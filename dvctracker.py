@@ -68,8 +68,10 @@ def get_all_specials():
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
     dvc_page = requests.get('http://dvcrentalstore.com/discounted-points-confirmed-reservations/', headers=headers)
     dvc_tree = html.fromstring(dvc_page.content)
-    specials = dvc_tree.xpath("//*[@id='main-content']/div[1]/div/article/div[2]/div[2]/div[@class='su-box su-box-style-glass']")
+    #specials = dvc_tree.xpath("//*[@id='main-content']/div[1]/div/article/div[2]/div[2]/div[@class='su-box su-box-style-glass]")
+    specials = dvc_tree.xpath("//div[@class='su-box su-box-style-glass']")
     specials_dict = {}
+    #pdb.set_trace()
     for special in specials:
         key, special_dict = process_element(special)
         specials_dict[key] = special_dict
