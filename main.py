@@ -7,12 +7,12 @@ import locale
 import requests
 import os
 
-#import pdb
+import pdb
 
 app = Flask(__name__)
 app.config.from_object(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/dvcspecials'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/dvcspecials'
+#app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -54,7 +54,9 @@ def send_email(email_message):
               "subject": "DVCTracker Updates",
               "html": email_message})
 
+
 #@app.route('/show-specials')
+@app.cli.command()
 def update_specials():
     new_specials = dvctracker.get_all_specials()
     #new_specials = dvctracker.get_all_specials_frozen()
@@ -97,6 +99,8 @@ def update_specials():
     #I am putting this before the render_template call because if I put it after any changes will get rolled back upon the completion of
     #the with statement because once the app context closes Flask automatically removes the database session, thus rolling back any transactions
     db.session.commit()
+
+
 
     if request:
         email_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
