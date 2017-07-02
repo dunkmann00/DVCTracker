@@ -141,7 +141,7 @@ def remove_special(db_entry):
     db.session.delete(db_entry)
 
 @app.template_filter()
-def datetimeformat(value, format="%B %d, %Y"):
+def datetimeformat(value, format="%B %-d, %Y"):
     return value.strftime(format)
 
 @app.template_filter()
