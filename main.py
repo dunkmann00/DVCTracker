@@ -50,7 +50,7 @@ def send_email(email_message):
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
         auth=("api", os.environ['MAILGUN_API_KEY']),
         data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
-              "to": ["han@gmail.com", "lando@gmail.com", "chewy@gmail.com"],
+              "to": ["han@gmail.com", "lando@gmail.com", "chewy@gmail.com", "leia@gmail.com"],
               "subject": "DVCTracker Updates",
               "html": email_message})
 
