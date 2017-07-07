@@ -18,11 +18,7 @@ CHECK_OUT = u"check_out"
 RESORT = u"resort"
 ID = u"id"
 
-ELEMENT_COUNT = 0
 def process_element(element):
-    global ELEMENT_COUNT
-    print ELEMENT_COUNT
-    ELEMENT_COUNT += 1
     item_dict = {}
     if element.xpath("div[1]")[0].text:
         item_dict[SPECIAL_TYPE] = DISC_POINTS
