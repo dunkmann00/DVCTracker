@@ -44,19 +44,21 @@ def process_element(element):
     return (key, item_dict)
 
 def clean_price(price):
-    price = price.strip('$/')
-    price = price.replace(',','')
+    price = price.strip(u'$/\xa0')
+    price = price.replace(u',',u'')
     return int(float(price))
 
 def clean_date(date):
+    date = date.strip(u'\xa0')
     date = date.replace(u'\xa0',u' ')
     parsed_date = re.search('(?:January|February|March|April|May|June|July|August|September|October|November|December) [0-9]{1,2}, [0-9]{4}', date)
     return datetime.strptime(parsed_date.group(), "%B %d, %Y").date()
 
 def get_resort(element):
     resort = element.xpath("strong[1]")[0].text + u" " + element.xpath("strong[2]")[0].text
+    resort = resort.strip(u'\xa0')
     resort = resort.replace(u'\xa0',u' ')
-    resort = resort.replace(u'\u2019',"'")
+    resort = resort.replace(u'\u2019',u"'")
     return resort
 
 def get_id(element, date):
@@ -64,6 +66,7 @@ def get_id(element, date):
         element_id = element.text + element[0].text
     else:
         element_id = element.text
+    element_id = element_id.strip(u'\xa0')
     element_id = element_id.replace(u'\xa0',u' ')
     element_id = element_id.strip(u'\u201c\u201d') + u' ' + date.strftime("%m%d%y")
     return element_id
