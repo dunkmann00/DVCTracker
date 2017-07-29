@@ -37,7 +37,10 @@ def process_element(element):
         item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p[1]/strong[2]")[0].text)
         item_dict[RESORT] = get_resort(element.xpath("div[2]/p[2]")[0])
         #item_dict[PRICE] = clean_price(element.xpath("div[2]/p[3]/strong[2]/span")[0].text)
-        item_dict[PRICE] = clean_price(element.xpath("div[2]/p[3]/strong[2]/span[contains(@style,'color: #800000')]")[0].text)
+        if len(element.xpath("div[2]/p[3]/strong[2]/span[contains(@style,'color: #800000')]")) == 0:
+            item_dict[PRICE] = clean_price(element.xpath("div[2]/p[3]/span/strong")[0].text)
+        else:
+            item_dict[PRICE] = clean_price(element.xpath("div[2]/p[3]/strong[2]/span[contains(@style,'color: #800000')]")[0].text)
         key = get_id(element.xpath("div[2]/p[4]/strong[2]/span/b")[0], item_dict[CHECK_OUT])
         item_dict[ID] = key
 
