@@ -32,7 +32,6 @@ def process_element(element):
         key = get_id(element.xpath("div[2]/p/strong[4]/span[contains(@style,'color: #800000')]")[0], item_dict[CHECK_OUT])
         item_dict[ID] = key
     else:
-        pdb.set_trace()
         item_dict[SPECIAL_TYPE] = PRECONFIRM
         item_dict[CHECK_IN] = clean_date(element.xpath("div[2]/p[1]/strong[1]")[0].text)
         item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p[1]/strong[2]")[0].text)
