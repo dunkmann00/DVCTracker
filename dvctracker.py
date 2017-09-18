@@ -5,7 +5,7 @@ from datetime import datetime
 
 import simplejson as json
 
-#import pdb
+import pdb
 
 SPECIAL_TYPE = u"special_type"
 DISC_POINTS = u"disc_points"
@@ -32,10 +32,11 @@ def process_element(element):
         key = get_id(element.xpath("div[2]/p/strong[4]/span[contains(@style,'color: #800000')]")[0], item_dict[CHECK_OUT])
         item_dict[ID] = key
     else:
+        pdb.set_trace()
         item_dict[SPECIAL_TYPE] = PRECONFIRM
         item_dict[CHECK_IN] = clean_date(element.xpath("div[2]/p[1]/strong[1]")[0].text)
         item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p[1]/strong[2]")[0].text)
-        item_dict[RESORT] = get_resort(element.xpath("div[2]/p[2]")[0])
+        item_dict[RESORT] = get_resort(element.xpath("div[2]/p[2]")[0].text_content())
         #item_dict[PRICE] = clean_price(element.xpath("div[2]/p[3]/strong[2]/span")[0].text)
         item_dict[PRICE] = clean_price(find_price(element.xpath("div[2]/p[3]")[0].text_content()))
         key = get_id(element.xpath("div[2]/p[4]/strong[2]/span/b")[0], item_dict[CHECK_OUT])
@@ -46,12 +47,13 @@ def process_element(element):
 def find_price(prices_str):
     prices_list = prices_str.split("\n")
     price = None
-    for item in prices_list:
-        if "Our Price:" in item:
-            price = re.search("\$[0-9,.]+",item).group()
-        elif "REDUCED" in item:
+    price_search = False
+    for item in reversed(prices_list):
+        if price_search:
             price = re.search("\$[0-9,.]+",item).group()
             break
+        elif "Save" in item:
+            price_search = True
     if not price:
         raise RuntimeError("No price found")
     return price
@@ -68,10 +70,11 @@ def clean_date(date):
     return datetime.strptime(parsed_date.group(), "%B %d, %Y").date()
 
 def get_resort(element):
-    resort = element.xpath("strong[1]")[0].text + u" " + element.xpath("strong[2]")[0].text
+    resort = element
     resort = resort.strip(u'\xa0')
     resort = resort.replace(u'\xa0',u' ')
     resort = resort.replace(u'\u2019',u"'")
+    resort = resort.replace(u'\n',u' ')
     return resort
 
 def get_id(element, date):
