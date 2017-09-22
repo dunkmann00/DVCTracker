@@ -29,7 +29,7 @@ def process_element(element):
         #item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span")[0].text)
         item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span[contains(@style,'color: #800000')]")[0].text)
         #key = get_id(element.xpath("div[2]/p/strong[4]/span[2]")[0], item_dict[CHECK_OUT])
-        key = get_id(element.xpath("div[2]/p/strong[4]/span[contains(@style,'color: #800000')]")[0], item_dict[CHECK_OUT])
+        key = get_id(element.xpath("div[2]/p/strong[4]")[0].text_content(), item_dict[CHECK_OUT])
         item_dict[ID] = key
     else:
         item_dict[SPECIAL_TYPE] = PRECONFIRM
@@ -38,7 +38,7 @@ def process_element(element):
         item_dict[RESORT] = get_resort(element.xpath("div[2]/p[2]")[0].text_content())
         #item_dict[PRICE] = clean_price(element.xpath("div[2]/p[3]/strong[2]/span")[0].text)
         item_dict[PRICE] = clean_price(find_price(element.xpath("div[2]/p[3]")[0].text_content()))
-        key = get_id(element.xpath("div[2]/p[4]/strong[2]/span/b")[0], item_dict[CHECK_OUT])
+        key = get_id(element.xpath("div[2]/p[4]")[0].text_content(), item_dict[CHECK_OUT])
         item_dict[ID] = key
 
     return (key, item_dict)
@@ -77,13 +77,9 @@ def get_resort(element):
     return resort
 
 def get_id(element, date):
-    if(len(element.getchildren()) > 0):
-        element_id = element.text + element[0].text
-    else:
-        element_id = element.text
-    element_id = element_id.strip(u'\xa0')
-    element_id = element_id.replace(u'\xa0',u' ')
-    element_id = element_id.strip(u'\u201c\u201d') + u' ' + date.strftime("%m%d%y")
+    element = element.replace(u'\xa0',u' ')
+    element_id = re.search(u"Special [A-Z-]+",element).group()
+    element_id = element_id + u' ' + date.strftime("%m%d%y")
     return element_id
 
 def get_all_specials():
