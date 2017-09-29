@@ -63,7 +63,7 @@ def send_email(email_message):
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
         auth=("api", os.environ['MAILGUN_API_KEY']),
         data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
-              "to": ["han@gmail.com", "lando@gmail.com", "chewy@gmail.com", "leia@gmail.com"],
+              "to": ["han@gmail.com", "lando@gmail.com"],#, "chewy@gmail.com", "leia@gmail.com"],
               "subject": "DVCTracker Updates",
               "html": email_message})
 
@@ -76,6 +76,11 @@ def send_error_email(email_message):
               "subject": "DVCTracker Error",
               "text": email_message})
 
+def send_text_message():
+    return requests.post(os.environ.get("TILL_URL"), json={
+        "phone": ["***REMOVED***", "***REMOVED***"],
+        "text": "Hey this is DVCTracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
+    })
 
 #@app.route('/show-specials')
 @app.cli.command()
@@ -100,11 +105,14 @@ def update_specials():
                 removed_specials_models.append(special_entry)
 
 
+        new_important_specials = False
         #Adding new Specials
         new_specials_list = []
         for new_special_key in new_specials:
             db_entry = add_special(new_specials[new_special_key])
             new_specials_list.append(db_entry)
+            if not new_important_specials and db_entry.special_type == dvctracker.PRECONFIRM: #this will change to preconfirm when ready to use
+                new_important_specials = important_special(db_entry.check_out, db_entry.check_in)
 
         if len(new_specials_list) > 1:
             new_specials_list = sorted(new_specials_list, key=lambda special: (special.check_in if special.check_in else date(2000,1,1), special.check_out))
@@ -114,6 +122,8 @@ def update_specials():
         for special_tuple in updated_specials:
             old_price, old_points = update_special(special_tuple)
             updated_specials_tuple.append((special_tuple[1], old_price, old_points))
+            if not new_important_specials and special_tuple[1].special_type == dvctracker.PRECONFIRM: #this will change to preconfirm when ready to use
+                new_important_specials = important_special(special_tuple[1].check_out, special_tuple[1].check_in)
 
         #Deleting Removed Specials
         for special_entry in removed_specials_models:
@@ -137,6 +147,8 @@ def update_specials():
                     print response.text
                 else:
                     print str(response.status_code) + ' ' + response.reason
+            if new_important_specials:
+                send_text_message()
         else:
             print "No changes found. Nothing to update Cap'n. :-)"
         set_health(True)
@@ -185,19 +197,23 @@ def idformat(value):
 
 @app.context_processor
 def my_utility_processor():
-    def important_special(check_out, check_in=None):
-        important = False
-        if check_in:
-            r1 = Range(start=check_in, end=check_out)
-            r2 = Range(start=date(2017, 12, 7), end=date(2017, 12, 13))
-            latest_start = max(r1.start, r2.start)
-            earliest_end = min(r1.end, r2.end)
-            overlap = (earliest_end - latest_start).days + 1
-            important = True if overlap > 0 else False
-        else:
-            important = True if check_out > date(2017, 12, 13) else False
-        return important
-    return dict(date=datetime.now, important_special=important_special)
+    def important_special_format(check_out, check_in=None):
+        return important_special(check_out, check_in)
+    return dict(date=datetime.now, important_special_format=important_special_format)
+
+def important_special(check_out, check_in=None):
+    important = False
+    if check_in:
+        r1 = Range(start=check_in, end=check_out)
+        r2 = Range(start=date(2017, 12, 7), end=date(2017, 12, 13))
+        latest_start = max(r1.start, r2.start)
+        earliest_end = min(r1.end, r2.end)
+        overlap = (earliest_end - latest_start).days + 1
+        important = True if overlap > 0 else False
+    else:
+        important = True if check_out > date(2017, 12, 13) else False
+    return important
+
 
 def set_health(healthy):
     status = Status.query.first()
