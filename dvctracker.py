@@ -2,6 +2,7 @@ import requests
 from lxml import html
 import re
 from datetime import datetime
+import sys
 
 import simplejson as json
 
@@ -20,28 +21,32 @@ ID = u"id"
 
 def process_element(element):
     item_dict = {}
-    if element.xpath("div[1]")[0].text:
-        item_dict[SPECIAL_TYPE] = DISC_POINTS
-        #item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[2]")[0].text)
-        item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[contains(@style,'color: #800000')]")[0].text.split(' ')[0]) #Only need the split because of a rare case they put up for one special, probably could remove this once they remove the special with a minimum number of points required
-        #item_dict[PRICE] = clean_price(element.xpath("div[2]/p/strong[2]/span")[0].text)
-        item_dict[PRICE] = clean_price(element.xpath("div[2]/p/strong[2]/span[contains(@style,'color: #800000')]")[0].text)
-        #item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span")[0].text)
-        item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span[contains(@style,'color: #800000')]")[0].text)
-        #key = get_id(element.xpath("div[2]/p/strong[4]/span[2]")[0], item_dict[CHECK_OUT])
-        key = get_id(element.xpath("div[2]/p/strong[4]")[0].text_content(), item_dict[CHECK_OUT])
-        item_dict[ID] = key
-    else:
-        item_dict[SPECIAL_TYPE] = PRECONFIRM
-        item_dict[CHECK_IN] = clean_date(element.xpath("div[2]/p[1]/strong[1]")[0].text)
-        item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p[1]/strong[2]")[0].text)
-        item_dict[RESORT] = get_resort(element.xpath("div[2]/p[2]")[0].text_content())
-        #item_dict[PRICE] = clean_price(element.xpath("div[2]/p[3]/strong[2]/span")[0].text)
-        item_dict[PRICE] = clean_price(find_price(element.xpath("div[2]/p[3]")[0].text_content()))
-        key = get_id(element.xpath("div[2]/p[4]")[0].text_content(), item_dict[CHECK_OUT])
-        item_dict[ID] = key
-
+    try:
+        if element.xpath("div[1]")[0].text:
+            item_dict[SPECIAL_TYPE] = DISC_POINTS
+            #item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[2]")[0].text)
+            item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[contains(@style,'color: #800000')]")[0].text.split(' ')[0]) #Only need the split because of a rare case they put up for one special, probably could remove this once they remove the special with a minimum number of points required
+            #item_dict[PRICE] = clean_price(element.xpath("div[2]/p/strong[2]/span")[0].text)
+            item_dict[PRICE] = clean_price(element.xpath("div[2]/p/strong[2]/span[contains(@style,'color: #800000')]")[0].text)
+            #item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span")[0].text)
+            item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span[contains(@style,'color: #800000')]")[0].text)
+            #key = get_id(element.xpath("div[2]/p/strong[4]/span[2]")[0], item_dict[CHECK_OUT])
+            key = get_id(element.xpath("div[2]/p/strong[4]")[0].text_content(), item_dict[CHECK_OUT])
+            item_dict[ID] = key
+        else:
+            item_dict[SPECIAL_TYPE] = PRECONFIRM
+            item_dict[CHECK_IN] = clean_date(element.xpath("div[2]/p[1]/strong[1]")[0].text)
+            item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p[1]/strong[2]")[0].text)
+            item_dict[RESORT] = get_resort(element.xpath("div[2]/p[2]")[0].text_content())
+            #item_dict[PRICE] = clean_price(element.xpath("div[2]/p[3]/strong[2]/span")[0].text)
+            item_dict[PRICE] = clean_price(find_price(element.xpath("div[2]/p[3]")[0].text_content()))
+            key = get_id(element.xpath("div[2]/p[4]")[0].text_content(), item_dict[CHECK_OUT])
+            item_dict[ID] = key
+    except:
+        print sys.exc_info()[0]
+        raise Exception(item_dict)
     return (key, item_dict)
+
 
 def find_price(prices_str):
     prices_list = prices_str.split("\n")
@@ -90,9 +95,12 @@ def get_all_specials():
     specials = dvc_tree.xpath("//div[@class='su-box su-box-style-glass']")
     specials_dict = {}
     #pdb.set_trace()
-    for special in specials:
-        key, special_dict = process_element(special)
-        specials_dict[key] = special_dict
+    try:
+        for special in specials:
+            key, special_dict = process_element(special)
+            specials_dict[key] = special_dict
+    except Exception as e:
+        raise Exception(e)
 
     return specials_dict
 

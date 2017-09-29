@@ -28,6 +28,8 @@ class Specials(db.Model):
     check_out = db.Column(db.Date)
     resort = db.Column(db.String(100))
 
+
+
     def __init__(self, special_id, special_type, points, price, check_in, check_out, resort):
         self.special_id = special_id
         self.special_type = special_type
@@ -39,6 +41,17 @@ class Specials(db.Model):
 
     def __repr__(self):
         return '<Special: %r>' % self.special_id
+
+class Status(db.Model):
+    status_id = db.Column(db.Integer, primary_key=True)
+    healthy = db.Column(db.Boolean)
+
+    def __init__(self, status_id, healthy):
+        self.status_id = status_id
+        self.healthy = healthy
+
+    def __repr__(self):
+        return '<Healthy: ' + 'Yes' if self.healthy else 'No'
 
 #@app.route('/')
 def hello_world():
@@ -54,68 +67,86 @@ def send_email(email_message):
               "subject": "DVCTracker Updates",
               "html": email_message})
 
+def send_error_email(email_message):
+    return requests.post(
+        "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
+        auth=("api", os.environ['MAILGUN_API_KEY']),
+        data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
+              "to": ["han@gmail.com", "lando@gmail.com"],
+              "subject": "DVCTracker Error",
+              "text": email_message})
+
 
 #@app.route('/show-specials')
 @app.cli.command()
 def update_specials():
-    new_specials = dvctracker.get_all_specials()
-    #new_specials = dvctracker.get_all_specials_frozen()
-    all_special_entries = Specials.query.order_by(Specials.check_in, Specials.check_out)
-    updated_specials = []
-    removed_specials_models = []
+    try:
+        new_specials = dvctracker.get_all_specials()
+        #new_specials = dvctracker.get_all_specials_frozen()
+        all_special_entries = Specials.query.order_by(Specials.check_in, Specials.check_out)
+        updated_specials = []
+        removed_specials_models = []
 
-    for special_entry in all_special_entries:
-        if special_entry.special_id in new_specials:
-            if special_entry.special_type == dvctracker.DISC_POINTS:
-                if special_entry.points != new_specials[special_entry.special_id][dvctracker.POINTS] or special_entry.price != new_specials[special_entry.special_id][dvctracker.PRICE]:
-                    updated_specials.append((new_specials[special_entry.special_id], special_entry))
+        for special_entry in all_special_entries:
+            if special_entry.special_id in new_specials:
+                if special_entry.special_type == dvctracker.DISC_POINTS:
+                    if special_entry.points != new_specials[special_entry.special_id][dvctracker.POINTS] or special_entry.price != new_specials[special_entry.special_id][dvctracker.PRICE]:
+                        updated_specials.append((new_specials[special_entry.special_id], special_entry))
+                else:
+                    if special_entry.price != new_specials[special_entry.special_id][dvctracker.PRICE]:
+                        updated_specials.append((new_specials[special_entry.special_id], special_entry))
+                del new_specials[special_entry.special_id]
             else:
-                if special_entry.price != new_specials[special_entry.special_id][dvctracker.PRICE]:
-                    updated_specials.append((new_specials[special_entry.special_id], special_entry))
-            del new_specials[special_entry.special_id]
-        else:
-            removed_specials_models.append(special_entry)
+                removed_specials_models.append(special_entry)
 
 
-    #Adding new Specials
-    new_specials_list = []
-    for new_special_key in new_specials:
-        db_entry = add_special(new_specials[new_special_key])
-        new_specials_list.append(db_entry)
+        #Adding new Specials
+        new_specials_list = []
+        for new_special_key in new_specials:
+            db_entry = add_special(new_specials[new_special_key])
+            new_specials_list.append(db_entry)
 
-    if len(new_specials_list) > 1:
-        new_specials_list = sorted(new_specials_list, key=lambda special: (special.check_in if special.check_in else date(2000,1,1), special.check_out))
+        if len(new_specials_list) > 1:
+            new_specials_list = sorted(new_specials_list, key=lambda special: (special.check_in if special.check_in else date(2000,1,1), special.check_out))
 
-    #Updating Old Specials
-    updated_specials_tuple = []
-    for special_tuple in updated_specials:
-        old_price, old_points = update_special(special_tuple)
-        updated_specials_tuple.append((special_tuple[1], old_price, old_points))
+        #Updating Old Specials
+        updated_specials_tuple = []
+        for special_tuple in updated_specials:
+            old_price, old_points = update_special(special_tuple)
+            updated_specials_tuple.append((special_tuple[1], old_price, old_points))
 
-    #Deleting Removed Specials
-    for special_entry in removed_specials_models:
-        remove_special(special_entry)
+        #Deleting Removed Specials
+        for special_entry in removed_specials_models:
+            remove_special(special_entry)
 
-    #I am putting this before the render_template call because if I put it after any changes will get rolled back upon the completion of
-    #the with statement because once the app context closes Flask automatically removes the database session, thus rolling back any transactions
-    db.session.commit()
+        #I am putting this before the render_template call because if I put it after any changes will get rolled back upon the completion of
+        #the with statement because once the app context closes Flask automatically removes the database session, thus rolling back any transactions
+        db.session.commit()
 
 
 
-    if request:
-        email_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
-        return email_message
-    elif len(new_specials_list) > 0 or len(updated_specials_tuple) > 0 or len(removed_specials_models) > 0:
-        #This will get called when I'm using it to send emails
-        with app.app_context():
+        if request:
             email_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
-            response = send_email(email_message)
-            if response.status_code == requests.codes.ok:
-                print response.text
-            else:
-                print str(response.status_code) + ' ' + response.reason
-    else:
-        print "No changes found. Nothing to update Cap'n. :-)"
+            return email_message
+        elif len(new_specials_list) > 0 or len(updated_specials_tuple) > 0 or len(removed_specials_models) > 0:
+            #This will get called when I'm using it to send emails
+            with app.app_context():
+                email_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
+                response = send_email(email_message)
+                if response.status_code == requests.codes.ok:
+                    print response.text
+                else:
+                    print str(response.status_code) + ' ' + response.reason
+        else:
+            print "No changes found. Nothing to update Cap'n. :-)"
+        set_health(True)
+    except Exception as e:
+        status = Status.query.first()
+        if status.healthy:
+            status.healthy = False
+            send_error_email(e)
+            print "Error Message Sent"
+            db.session.commit()
 
 
 
@@ -168,6 +199,14 @@ def my_utility_processor():
         return important
     return dict(date=datetime.now, important_special=important_special)
 
+def set_health(healthy):
+    status = Status.query.first()
+    if not status:
+        status = Status(0,healthy)
+        db.session.add(status)
+    else:
+        status.healthy = healthy
+    db.session.commit()
 
 
 #No longer necessary because I am using HTML with templating
