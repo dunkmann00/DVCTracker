@@ -83,7 +83,7 @@ def get_resort(element):
 
 def get_id(element, date):
     element = element.replace(u'\xa0',u' ')
-    element_id = re.search(u"Special [A-Z-]+",element).group()
+    element_id = re.search(u"Special [A-Z0-9-]+",element).group()
     element_id = element_id + u' ' + date.strftime("%m%d%y")
     return element_id
 
