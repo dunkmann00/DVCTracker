@@ -25,7 +25,7 @@ def process_element(element):
         if element.xpath("div[1]")[0].text:
             item_dict[SPECIAL_TYPE] = DISC_POINTS
             #item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[2]")[0].text)
-            item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[contains(@style,'color: #800000')]")[0].text.split(' ')[0]) #Only need the split because of a rare case they put up for one special, probably could remove this once they remove the special with a minimum number of points required
+            item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[contains(@style,'color: #800000')]")[0].text.split(' ')[0].strip()) #Only need the split because of a rare case they put up for one special, probably could remove this once they remove the special with a minimum number of points required
             #item_dict[PRICE] = clean_price(element.xpath("div[2]/p/strong[2]/span")[0].text)
             item_dict[PRICE] = clean_price(element.xpath("div[2]/p/strong[2]/span[contains(@style,'color: #800000')]")[0].text)
             #item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span")[0].text)
