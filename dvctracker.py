@@ -19,15 +19,17 @@ CHECK_OUT = u"check_out"
 RESORT = u"resort"
 ID = u"id"
 
+
+
 def process_element(element):
     item_dict = {}
     try:
         if element.xpath("div[1]")[0].text:
             item_dict[SPECIAL_TYPE] = DISC_POINTS
             #item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[2]")[0].text)
-            item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[contains(@style,'color: #800000')]")[0].text.strip())
+            item_dict[POINTS] = find_points(element.xpath("div[2]/p/strong[1]")[0].text_content())
             #item_dict[PRICE] = clean_price(element.xpath("div[2]/p/strong[2]/span")[0].text)
-            item_dict[PRICE] = clean_price(element.xpath("div[2]/p/strong[2]/span[contains(@style,'color: #800000')]")[0].text)
+            item_dict[PRICE] = find_points_price(element.xpath("div[2]/p/strong[2]")[0].text_content())
             #item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span")[0].text)
             item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span[contains(@style,'color: #800000')]")[0].text)
             #key = get_id(element.xpath("div[2]/p/strong[4]/span[2]")[0], item_dict[CHECK_OUT])
@@ -62,6 +64,18 @@ def find_price(prices_str):
         raise RuntimeError("No price found")
     return price
 
+def find_points(points_str):
+    points_str = points_str.strip(u'\xa0')
+    points_str= points_str.replace(u'\xa0',u' ')
+    points = re.search("Points Available: ([0-9]+)", points_str).group(1)
+    return int(points)
+
+def find_points_price(price_str):
+    price_str = price_str.strip(u'\xa0')
+    price_str= price_str.replace(u'\xa0',u' ')
+    price = re.search("Price: \$([0-9.]+)", price_str).group(1)
+    return int(float(price))
+
 def clean_price(price):
     price = price.strip(u'$/\xa0')
     price = price.replace(u',',u'')
@@ -80,6 +94,7 @@ def get_resort(element):
     resort = resort.replace(u'\u2019',u"'")
     resort = resort.replace(u'\n',u' ')
     return resort
+
 
 def get_id(element, date):
     element = element.replace(u'\xa0',u' ')
