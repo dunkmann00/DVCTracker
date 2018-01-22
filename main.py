@@ -156,7 +156,7 @@ def update_specials():
         status = Status.query.first()
         if status.healthy:
             status.healthy = False
-            #send_error_email(e)
+            send_error_email(e)
             print "Error Message Sent"
             db.session.commit()
 

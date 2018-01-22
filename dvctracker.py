@@ -24,7 +24,7 @@ ID = u"id"
 def process_element(element):
     item_dict = {}
     try:
-        if element.xpath("div[1]")[0].text:
+        if element.xpath("div[1]")[0].text == 'Discounted Points':
             item_dict[SPECIAL_TYPE] = DISC_POINTS
             #item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[2]")[0].text)
             item_dict[POINTS] = find_points(element.xpath("div[2]/p/strong[1]")[0].text_content())
