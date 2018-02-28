@@ -124,7 +124,7 @@ def update_specials():
         for new_special_key in new_specials:
             db_entry = add_special(new_specials[new_special_key])
             new_specials_list.append(db_entry)
-            if not new_important_specials and db_entry.special_type == dvctracker.PRECONFIRM: #this will change to preconfirm when ready to use
+            if not new_important_specials and db_entry.special_type == dvctracker.PRECONFIRM:
                 new_important_specials = important_special(db_entry.check_out, db_entry.check_in)
 
         if len(new_specials_list) > 1:
@@ -161,7 +161,11 @@ def update_specials():
                 else:
                     print str(response.status_code) + ' ' + response.reason
             if new_important_specials:
-                send_text_message()
+                response = send_text_message()
+                if response.status_code == requests.codes.ok:
+                    print response.text
+                else:
+                    print str(response.status_code) + ' ' + response.reason
         else:
             print "No changes found. Nothing to update Cap'n. :-)"
         set_health(True)
