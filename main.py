@@ -94,8 +94,8 @@ def send_text_message():
         "text": "Hey this is DVCTracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
     })
 
-@app.route('/show-specials')
-#@app.cli.command()
+#@app.route('/show-specials')
+@app.cli.command()
 def update_specials():
     try:
         new_specials = dvctracker.get_all_specials()
