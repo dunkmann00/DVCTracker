@@ -17,6 +17,7 @@ PRICE = u"price"
 CHECK_IN = u"check_in"
 CHECK_OUT = u"check_out"
 RESORT = u"resort"
+ROOM = u"room"
 ID = u"id"
 
 
@@ -25,6 +26,10 @@ def process_element(element):
     item_dict = {}
     try:
         if element.xpath("div[1]")[0].text == 'Discounted Points':
+            discount_str = element.text_content()
+            item_dict = parse_discount_points(discount_str)
+            key = item_dict[ID]
+            """
             item_dict[SPECIAL_TYPE] = DISC_POINTS
             #item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[2]")[0].text)
             item_dict[POINTS] = find_points(element.xpath("div[2]/p/strong[1]")[0].text_content())
@@ -35,7 +40,12 @@ def process_element(element):
             #key = get_id(element.xpath("div[2]/p/strong[4]/span[2]")[0], item_dict[CHECK_OUT])
             key = get_id(element.xpath("div[2]/p/strong[4]")[0].text_content(), item_dict[CHECK_OUT])
             item_dict[ID] = key
+            """
         else:
+            preconfirm_str = element.text_content()
+            item_dict = parse_preconfirm(preconfirm_str)
+            key = item_dict[ID]
+            """
             item_dict[SPECIAL_TYPE] = PRECONFIRM
             item_dict[CHECK_IN] = clean_date(element.xpath("div[2]/p[1]/strong[1]")[0].text)
             item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p[1]/strong[2]")[0].text)
@@ -44,10 +54,62 @@ def process_element(element):
             item_dict[PRICE] = clean_price(find_price(element.xpath("div[2]/p[3]")[0].text_content()))
             key = get_id(element.xpath("div[2]/p[4]")[0].text_content(), item_dict[CHECK_OUT])
             item_dict[ID] = key
+            """
     except:
         print sys.exc_info()[0]
         raise Exception(item_dict)
     return (key, item_dict)
+
+def parse_preconfirm(special):
+    item_dict = {}
+    item_dict[SPECIAL_TYPE] = PRECONFIRM
+    special_list = special.split("\n")
+    for i, line in enumerate(special_list):
+        if i == 0:
+            continue
+        if i == 1:
+            item_dict[CHECK_IN] = clean_date(line)
+        elif i == 2:
+            item_dict[CHECK_OUT] = clean_date(line)
+        elif i == 3:
+            item_dict[RESORT] = clean_resort(line)
+        elif i == 4:
+            item_dict[ROOM] = clean_room(line)
+            break
+
+    price_search = False
+    for line in reversed(special_list):
+        if "Mention" in line:
+            item_dict[ID] = get_id(line, item_dict[CHECK_OUT])
+        elif price_search:
+            price = re.search("\$[0-9,.]+",line).group()
+            item_dict[PRICE] = clean_price(price)
+            break
+        elif "Save" in line:
+            price_search = True
+
+    return item_dict
+
+
+def parse_discount_points(special):
+    item_dict = {}
+    item_dict[SPECIAL_TYPE] = DISC_POINTS
+    special_list = special.split("\n")
+    for i, line in enumerate(special_list):
+        if i == 0:
+            continue
+        if i == 1:
+            item_dict[POINTS] = find_points(line)
+        elif i == 2:
+            item_dict[PRICE] = find_points_price(line)
+        elif i == 3:
+            item_dict[CHECK_OUT] = clean_date(line)
+        elif i == 4:
+            item_dict[ID] = get_id(line, item_dict[CHECK_OUT])
+            break
+    return item_dict
+
+
 
 
 def find_price(prices_str):
@@ -87,6 +149,17 @@ def clean_date(date):
     parsed_date = re.search('(?:January|February|March|April|May|June|July|August|September|October|November|December) [0-9]{1,2}, [0-9]{4}', date)
     return datetime.strptime(parsed_date.group(), "%B %d, %Y").date()
 
+def clean_resort(resort):
+    resort = resort.strip(u'\xa0')
+    resort = resort.replace(u'\xa0',u' ')
+    resort = resort.replace(u'\u2019',u"'")
+    return resort
+
+def clean_room(room):
+    room = room.strip(u'\xa0')
+    room = room.replace(u'\xa0',u' ')
+    return room
+
 def get_resort(element):
     resort = element
     resort = resort.strip(u'\xa0')
@@ -99,7 +172,8 @@ def get_resort(element):
 def get_id(element, date):
     element = element.replace(u'\xa0',u' ')
     element_id = re.search(u"Special [A-Z0-9-]+",element).group()
-    element_id = element_id + u' ' + date.strftime("%m%d%y")
+    if element_id:
+        element_id = element_id + u' ' + date.strftime("%m%d%y")
     return element_id
 
 def get_all_specials():

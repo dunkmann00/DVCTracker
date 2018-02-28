@@ -9,10 +9,21 @@ import os
 
 #import pdb
 
+"""
+Potentially want to add a way to filter what specials are considered important.
+Currently the only thing I allow is a date range. But other options include:
+
+-Price (Both overall & per night, also per point for the discounted point specials)
+-Resort
+-Room Type (This would definitely be tricky because there can be different room
+            types at different resorts, it is not all the same across all of them)
+-Points Available
+
+"""
 app = Flask(__name__)
 app.config.from_object(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/dvcspecials'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/dvcspecials'
+#app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -27,10 +38,11 @@ class Specials(db.Model):
     check_in = db.Column(db.Date)
     check_out = db.Column(db.Date)
     resort = db.Column(db.String(100))
+    room = db.Column(db.String(100))
 
 
 
-    def __init__(self, special_id, special_type, points, price, check_in, check_out, resort):
+    def __init__(self, special_id, special_type, points, price, check_in, check_out, resort, room):
         self.special_id = special_id
         self.special_type = special_type
         self.points = points
@@ -38,6 +50,7 @@ class Specials(db.Model):
         self.check_in = check_in
         self.check_out = check_out
         self.resort = resort
+        self.room = room
 
     def __repr__(self):
         return '<Special: %r>' % self.special_id
@@ -142,6 +155,7 @@ def update_specials():
             #This will get called when I'm using it to send emails
             with app.app_context():
                 email_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
+                """
                 response = send_email(email_message)
                 if response.status_code == requests.codes.ok:
                     print response.text
@@ -149,6 +163,7 @@ def update_specials():
                     print str(response.status_code) + ' ' + response.reason
             if new_important_specials:
                 send_text_message()
+            """
         else:
             print "No changes found. Nothing to update Cap'n. :-)"
         set_health(True)
@@ -164,7 +179,7 @@ def update_specials():
 
 
 def add_special(special_dict):
-    special_entry = Specials(special_dict.get(dvctracker.ID), special_dict.get(dvctracker.SPECIAL_TYPE), special_dict.get(dvctracker.POINTS), special_dict.get(dvctracker.PRICE), special_dict.get(dvctracker.CHECK_IN), special_dict.get(dvctracker.CHECK_OUT), special_dict.get(dvctracker.RESORT))
+    special_entry = Specials(special_dict.get(dvctracker.ID), special_dict.get(dvctracker.SPECIAL_TYPE), special_dict.get(dvctracker.POINTS), special_dict.get(dvctracker.PRICE), special_dict.get(dvctracker.CHECK_IN), special_dict.get(dvctracker.CHECK_OUT), special_dict.get(dvctracker.RESORT), special_dict.get(dvctracker.ROOM))
     db.session.add(special_entry)
     return special_entry
 
@@ -205,7 +220,7 @@ def important_special(check_out, check_in=None):
     important = False
     if check_in:
         r1 = Range(start=check_in, end=check_out)
-        r2 = Range(start=date(2017, 12, 7), end=date(2017, 12, 13))
+        r2 = Range(start=date(2018, 11, 25), end=date(2018, 12, 1))
         latest_start = max(r1.start, r2.start)
         earliest_end = min(r1.end, r2.end)
         overlap = (earliest_end - latest_start).days + 1
