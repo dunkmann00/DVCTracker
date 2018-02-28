@@ -22,8 +22,8 @@ Currently the only thing I allow is a date range. But other options include:
 """
 app = Flask(__name__)
 app.config.from_object(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/dvcspecials'
-#app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
+#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/dvcspecials'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -155,7 +155,6 @@ def update_specials():
             #This will get called when I'm using it to send emails
             with app.app_context():
                 email_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
-                """
                 response = send_email(email_message)
                 if response.status_code == requests.codes.ok:
                     print response.text
@@ -163,7 +162,6 @@ def update_specials():
                     print str(response.status_code) + ' ' + response.reason
             if new_important_specials:
                 send_text_message()
-            """
         else:
             print "No changes found. Nothing to update Cap'n. :-)"
         set_health(True)
