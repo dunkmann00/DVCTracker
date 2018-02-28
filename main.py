@@ -22,9 +22,8 @@ Currently the only thing I allow is a date range. But other options include:
 """
 app = Flask(__name__)
 app.config.from_object(__name__)
-#app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://localhost/dvcspecials'
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['DATABASE_URL']
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config.from_pyfile("dvctracker_settings.cfg")
+app.config.from_envvar('DVC_SETTINGS', silent=True)
 db = SQLAlchemy(app)
 
 locale.setlocale(locale.LC_ALL, '')
@@ -95,8 +94,8 @@ def send_text_message():
         "text": "Hey this is DVCTracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
     })
 
-#@app.route('/show-specials')
-@app.cli.command()
+@app.route('/show-specials')
+#@app.cli.command()
 def update_specials():
     try:
         new_specials = dvctracker.get_all_specials()
@@ -149,8 +148,9 @@ def update_specials():
 
 
         if request:
-            email_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
-            return email_message
+            #web_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
+            web_message = render_template('email_template.html', added_specials=all_special_entries)
+            return web_message
         elif len(new_specials_list) > 0 or len(updated_specials_tuple) > 0 or len(removed_specials_models) > 0:
             #This will get called when I'm using it to send emails
             with app.app_context():
@@ -216,7 +216,7 @@ def idformat(value):
 def my_utility_processor():
     def important_special_format(check_out, check_in=None):
         return important_special(check_out, check_in)
-    return dict(date=datetime.now, important_special_format=important_special_format)
+    return dict(date=datetime.now, important_special_format=important_special_format, duration=stay_duration)
 
 def important_special(check_out, check_in=None):
     important = False
@@ -228,8 +228,13 @@ def important_special(check_out, check_in=None):
         overlap = (earliest_end - latest_start).days + 1
         important = True if overlap > 0 else False
     else:
-        important = True if check_out > date(2017, 12, 13) else False
+        important = True if check_out > date(2018, 12, 1) else False
     return important
+
+def stay_duration(check_out, check_in):
+    delta = check_out - check_in
+    days = delta.days
+    return days
 
 
 def set_health(healthy):

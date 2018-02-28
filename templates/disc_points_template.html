@@ -21,10 +21,12 @@
 <div style="background-color:{% if important_special_format(special.check_out) %}#049d05{% else %}#f20124{% endif %}; color:#FFFFFF; font-size:22px; padding:10px">Discounted Points</div>
 &nbsp;
 
-<div style="padding-left:18px;padding-bottom:18px">Points Available: {{ special.points }} {% if old_points %}({{ old_points }}){% endif %}<br>
-Price: {{ special.price|currencyformat }} {% if old_price %}({{ old_price|currencyformat }}){% endif %}<br>
-Check-Out no later than: {{ special.check_out|datetimeformat }}<br>
-Mention ID: {{ special.special_id|idformat }}</div>
+<div style="padding-left:18px;padding-bottom:18px">
+  Points Available: {{ special.points }} {% if old_points %}({{ old_points }}){% endif %}<br>
+  Price: {{ special.price|currencyformat }} {% if old_price %}({{ old_price|currencyformat }}){% endif %}<br>
+  Check-Out no later than: {{ special.check_out|datetimeformat }}<br>
+  Mention ID: {{ special.special_id|idformat }}
+</div>
 </div>
 
                                     </td>

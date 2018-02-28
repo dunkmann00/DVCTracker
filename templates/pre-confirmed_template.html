@@ -20,12 +20,19 @@
                                         <div style="background-color:{% if important_special_format(special.check_out, special.check_in) %}#049d05{% else %}#f20124{% endif %}; color:#FFFFFF; font-size:22px; padding:10px">Pre-confirmed Reservation</div>
 &nbsp;
 
-<div style="padding-left:18px;padding-bottom:18px">Check-In: {{ special.check_in|datetimeformat }}<br>
-Check-Out: {{ special.check_out|datetimeformat }}<br>
-Resort: {{ special.resort }}<br>
-Room: {{ special.room }}<br>
-Price: {{ special.price|currencyformat }} {% if old_price %}({{ old_price|currencyformat }}){% endif %}<br>
-Mention ID: {{ special.special_id|idformat }}</div>
+<div style="padding-left:18px;padding-bottom:18px">
+  Check-In: {{ special.check_in|datetimeformat }}<br>
+  Check-Out: {{ special.check_out|datetimeformat }}<br>
+  Length of Stay: {{ duration(special.check_out, special.check_in) }} days<br>
+  <br>
+  Resort: {{ special.resort }}<br>
+  Room: {{ special.room }}<br>
+  <br>
+  Total Price: {{ special.price|currencyformat }} {% if old_price %}({{ old_price|currencyformat }}){% endif %}<br>
+  Price/Night: {{ (special.price/duration(special.check_out, special.check_in))|currencyformat }}<br>
+  <br>
+  Mention ID: {{ special.special_id|idformat }}
+</div>
 
                                     </td>
                                 </tr>
