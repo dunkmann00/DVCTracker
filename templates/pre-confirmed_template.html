@@ -23,6 +23,7 @@
 <div style="padding-left:18px;padding-bottom:18px">Check-In: {{ special.check_in|datetimeformat }}<br>
 Check-Out: {{ special.check_out|datetimeformat }}<br>
 Resort: {{ special.resort }}<br>
+Room: {{ special.room }}<br>
 Price: {{ special.price|currencyformat }} {% if old_price %}({{ old_price|currencyformat }}){% endif %}<br>
 Mention ID: {{ special.special_id|idformat }}</div>
 
