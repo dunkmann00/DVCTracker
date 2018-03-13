@@ -23,7 +23,7 @@
 <div style="padding-left:18px;padding-bottom:18px">
   Check-In: {{ special.check_in|datetimeformat }}<br>
   Check-Out: {{ special.check_out|datetimeformat }}<br>
-  Length of Stay: {{ duration(special.check_out, special.check_in) }} days<br>
+  Length of Stay: {{ duration(special.check_out, special.check_in) }} {% if duration(special.check_out, special.check_in) > 1 %}nights{% else %}night{% endif %}<br>
   <br>
   Resort: {{ special.resort }}<br>
   Room: {{ special.room }}<br>
