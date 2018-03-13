@@ -2,6 +2,7 @@ from flask import Flask, json, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime
 from collections import namedtuple
+from ast import literal_eval
 import dvctracker
 import locale
 import requests
@@ -73,16 +74,16 @@ def hello_world():
 def send_email(email_message):
     return requests.post(
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
-        auth=("api", os.environ['MAILGUN_API_KEY']),
+        auth=("api", app.config['MAILGUN_API_KEY']),
         data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
-              "to": app.config['EMAILS'],
+              "to": literal_eval(app.config['EMAILS']),
               "subject": "DVCTracker Updates",
               "html": email_message})
 
 def send_error_email(email_message):
     return requests.post(
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
-        auth=("api", os.environ['MAILGUN_API_KEY']),
+        auth=("api", app.config['MAILGUN_API_KEY']),
         data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
               "to": ["han@gmail.com", "lando@gmail.com"],
               "subject": "DVCTracker Error",
@@ -159,13 +160,13 @@ def update_specials():
                 if response.status_code == requests.codes.ok:
                     print response.text
                 else:
-                    print str(response.status_code) + ' ' + response.reason
+                    print 'Mailgun: ' + str(response.status_code) + ' ' + response.reason
             if new_important_specials:
                 response = send_text_message()
                 if response.status_code == requests.codes.ok:
                     print response.text
                 else:
-                    print str(response.status_code) + ' ' + response.reason
+                    print 'Till: ' + str(response.status_code) + ' ' + response.reason
         else:
             print "No changes found. Nothing to update Cap'n. :-)"
         set_health(True)
