@@ -55,6 +55,11 @@ class Specials(db.Model):
     def __repr__(self):
         return '<Special: %r>' % self.special_id
 
+    def duration(self):
+        delta = self.check_out - self.check_in
+        days = delta.days
+        return days
+
 class Status(db.Model):
     status_id = db.Column(db.Integer, primary_key=True)
     healthy = db.Column(db.Boolean)
@@ -217,7 +222,7 @@ def idformat(value):
 def my_utility_processor():
     def important_special_format(check_out, check_in=None):
         return important_special(check_out, check_in)
-    return dict(date=datetime.now, important_special_format=important_special_format, duration=stay_duration)
+    return dict(date=datetime.now, important_special_format=important_special_format)
 
 def important_special(check_out, check_in=None):
     important = False
@@ -231,12 +236,6 @@ def important_special(check_out, check_in=None):
     else:
         important = True if check_out > date(2018, 12, 1) else False
     return important
-
-def stay_duration(check_out, check_in):
-    delta = check_out - check_in
-    days = delta.days
-    return days
-
 
 def set_health(healthy):
     status = Status.query.first()
