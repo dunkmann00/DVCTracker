@@ -6,7 +6,7 @@ import sys
 
 import simplejson as json
 
-import pdb
+#import pdb
 
 SPECIAL_TYPE = u"special_type"
 DISC_POINTS = u"disc_points"
@@ -23,7 +23,6 @@ ID = u"id"
 
 
 def process_element(element):
-    pdb.set_trace()
     item_dict = {}
     try:
         if element.xpath("div[1]")[0].text == 'Discounted Points':
