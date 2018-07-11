@@ -6,7 +6,7 @@ import sys
 
 import simplejson as json
 
-#import pdb
+import pdb
 
 SPECIAL_TYPE = u"special_type"
 DISC_POINTS = u"disc_points"
@@ -23,12 +23,17 @@ ID = u"id"
 
 
 def process_element(element):
+    pdb.set_trace()
     item_dict = {}
     try:
         if element.xpath("div[1]")[0].text == 'Discounted Points':
             discount_str = element.text_content()
             item_dict = parse_discount_points(discount_str)
-            key = item_dict[ID]
+            if ID in item_dict:
+                key = item_dict[ID]
+            else:
+                print "No ID for Discounted Points"
+                key = None
             """
             item_dict[SPECIAL_TYPE] = DISC_POINTS
             #item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[2]")[0].text)
@@ -44,7 +49,11 @@ def process_element(element):
         else:
             preconfirm_str = element.text_content()
             item_dict = parse_preconfirm(preconfirm_str)
-            key = item_dict[ID]
+            if ID in item_dict:
+                key = item_dict[ID]
+            else:
+                print "No ID for Preconfirm"
+                key = None
             """
             item_dict[SPECIAL_TYPE] = PRECONFIRM
             item_dict[CHECK_IN] = clean_date(element.xpath("div[2]/p[1]/strong[1]")[0].text)
@@ -57,7 +66,7 @@ def process_element(element):
             """
     except:
         print sys.exc_info()[0]
-        raise Exception(item_dict)
+        raise Exception(element.text_content())
     return (key, item_dict)
 
 def parse_preconfirm(special):
@@ -82,7 +91,7 @@ def parse_preconfirm(special):
         if "Mention" in line:
             item_dict[ID] = get_id(line, item_dict[CHECK_OUT])
         elif price_search:
-            price = re.search("\$[0-9,.]+",line).group()
+            price = re.search("\$*[0-9,.]+",line).group()
             item_dict[PRICE] = clean_price(price)
             break
         elif "Save" in line:
@@ -135,7 +144,7 @@ def find_points(points_str):
 def find_points_price(price_str):
     price_str = price_str.strip(u'\xa0')
     price_str= price_str.replace(u'\xa0',u' ')
-    price = re.search("Price: \$([0-9.]+)", price_str).group(1)
+    price = re.search("Price: \$*([0-9.]+)", price_str).group(1)
     return int(float(price))
 
 def clean_price(price):
@@ -187,7 +196,8 @@ def get_all_specials():
     try:
         for special in specials:
             key, special_dict = process_element(special)
-            specials_dict[key] = special_dict
+            if key:
+                specials_dict[key] = special_dict
     except Exception as e:
         raise Exception(e)
 
