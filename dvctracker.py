@@ -25,7 +25,7 @@ ID = u"id"
 def process_element(element):
     item_dict = {}
     try:
-        if element.xpath("div[1]")[0].text == 'Discounted Points':
+        if 'Discounted Points' in element.xpath("div[1]")[0].text_content():
             discount_str = element.text_content()
             item_dict = parse_discount_points(discount_str)
             if ID in item_dict:
