@@ -103,6 +103,10 @@ def parse_discount_points(special):
     item_dict = {}
     item_dict[SPECIAL_TYPE] = DISC_POINTS
     special_list = special.split("\n")
+
+    if len(special_list) < 5:
+        return {}
+
     for i, line in enumerate(special_list):
         if i == 0:
             continue
