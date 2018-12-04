@@ -3,3 +3,4 @@ special_dict.txt
 test_message.html
 development_settings.cfg
 *.pyc
+.env

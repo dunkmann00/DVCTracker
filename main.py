@@ -76,7 +76,15 @@ def hello_world():
     new_specials = dvctracker.get_all_specials()
     return json.jsonify(new_specials)
 
+@app.route('/specials')
+def current_specials():
+    all_special_entries = Specials.query.order_by(Specials.check_in, Specials.check_out)
+    return render_template('email_template.html', added_specials=all_special_entries)
+
 def send_email(email_message):
+    if app.config['MAILGUN_API_KEY'] is None:
+        print 'No MAILGUN API Key, not sending email.'
+        return
     return requests.post(
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
         auth=("api", app.config['MAILGUN_API_KEY']),
@@ -86,6 +94,9 @@ def send_email(email_message):
               "html": email_message})
 
 def send_error_email(email_message):
+    if app.config['MAILGUN_API_KEY'] is None:
+        print 'No MAILGUN API Key, not sending email.'
+        return
     return requests.post(
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
         auth=("api", app.config['MAILGUN_API_KEY']),
@@ -95,6 +106,9 @@ def send_error_email(email_message):
               "text": email_message})
 
 def send_text_message():
+    if os.environ.get("TILL_URL") is None:
+        print 'No TILL URL, not sending txt.'
+        return
     return requests.post(os.environ.get("TILL_URL"), json={
         "phone": ["***REMOVED***", "***REMOVED***"],
         "text": "Hey this is DVCTracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
@@ -224,7 +238,22 @@ def my_utility_processor():
         return important_special(check_out, check_in)
     return dict(date=datetime.now, important_special_format=important_special_format)
 
-def important_special(check_out, check_in=None):
+
+
+def important_special(special):
+    if special.special_type == u'preconfirm':
+        if u'Wilderness Lodge' in special.resort:
+            return True
+        price_per_night = special.price/special.duration()
+        if price_per_night <= 300:
+            return True
+    return False
+
+#Special for date based, would like to make this handle more options
+"""
+def important_special(special):
+    check_out = special.check_out
+    check_in = special.check_in
     important = False
     if check_in:
         r1 = Range(start=check_in, end=check_out)
@@ -234,8 +263,10 @@ def important_special(check_out, check_in=None):
         overlap = (earliest_end - latest_start).days + 1
         important = True if overlap > 0 else False
     else:
-        important = True if check_out > date(2018, 12, 1) else False
+        #important = True if check_out > date(2018, 12, 1) else False
+        important = False
     return important
+"""
 
 def set_health(healthy):
     status = Status.query.first()
