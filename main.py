@@ -81,6 +81,12 @@ def current_specials():
     all_special_entries = Specials.query.order_by(Specials.check_in, Specials.check_out)
     return render_template('email_template.html', added_specials=all_special_entries)
 
+@app.route('/specials/important')
+def current_important_specials():
+    all_special_entries = Specials.query.order_by(Specials.check_in, Specials.check_out)
+    all_special_entries = [special for special in all_special_entries if important_special(special)]
+    return render_template('email_template.html', added_specials=all_special_entries)
+
 def send_email(email_message):
     if app.config['MAILGUN_API_KEY'] is None:
         print 'No MAILGUN API Key, not sending email.'
@@ -234,8 +240,8 @@ def idformat(value):
 
 @app.context_processor
 def my_utility_processor():
-    def important_special_format(check_out, check_in=None):
-        return important_special(check_out, check_in)
+    def important_special_format(special):
+        return important_special(special)
     return dict(date=datetime.now, important_special_format=important_special_format)
 
 
