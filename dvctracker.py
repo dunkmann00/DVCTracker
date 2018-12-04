@@ -8,17 +8,17 @@ import simplejson as json
 
 #import pdb
 
-SPECIAL_TYPE = u"special_type"
-DISC_POINTS = u"disc_points"
-PRECONFIRM = u"preconfirm"
+SPECIAL_TYPE = "special_type"
+DISC_POINTS = "disc_points"
+PRECONFIRM = "preconfirm"
 
-POINTS = u"points"
-PRICE = u"price"
-CHECK_IN = u"check_in"
-CHECK_OUT = u"check_out"
-RESORT = u"resort"
-ROOM = u"room"
-ID = u"id"
+POINTS = "points"
+PRICE = "price"
+CHECK_IN = "check_in"
+CHECK_OUT = "check_out"
+RESORT = "resort"
+ROOM = "room"
+ID = "id"
 
 
 
@@ -31,7 +31,7 @@ def process_element(element):
             if ID in item_dict:
                 key = item_dict[ID]
             else:
-                print "No ID for Discounted Points"
+                print("No ID for Discounted Points")
                 key = None
             """
             item_dict[SPECIAL_TYPE] = DISC_POINTS
@@ -51,7 +51,7 @@ def process_element(element):
             if ID in item_dict:
                 key = item_dict[ID]
             else:
-                print "No ID for Preconfirm"
+                print("No ID for Preconfirm")
                 key = None
             """
             item_dict[SPECIAL_TYPE] = PRECONFIRM
@@ -64,7 +64,7 @@ def process_element(element):
             item_dict[ID] = key
             """
     except:
-        print sys.exc_info()[0]
+        print(sys.exc_info()[0])
         raise Exception(element.text_content())
     return (key, item_dict)
 
@@ -139,53 +139,52 @@ def find_price(prices_str):
     return price
 
 def find_points(points_str):
-    points_str = points_str.strip(u'\xa0')
-    points_str= points_str.replace(u'\xa0',u' ')
+    points_str = points_str.strip('\xa0')
+    points_str = points_str.replace('\xa0',' ')
     points = re.search("Points Available: ([0-9]+)", points_str).group(1)
     return int(points)
 
 def find_points_price(price_str):
-    price_str = price_str.strip(u'\xa0')
-    price_str= price_str.replace(u'\xa0',u' ')
+    price_str = price_str.strip('\xa0')
+    price_str = price_str.replace('\xa0',' ')
     price = re.search("Price: \$*([0-9.]+)", price_str).group(1)
     return int(float(price))
 
 def clean_price(price):
-    price = price.strip(u'$/\xa0')
-    price = price.replace(u',',u'')
+    price = price.strip('$/\xa0')
+    price = price.replace(',','')
     return int(float(price))
 
 def clean_date(date):
-    date = date.strip(u'\xa0')
-    date = date.replace(u'\xa0',u' ')
+    date = date.strip('\xa0')
+    date = date.replace('\xa0',' ')
     parsed_date = re.search('(?:January|February|March|April|May|June|July|August|September|October|November|December) [0-9]{1,2}, [0-9]{4}', date)
     return datetime.strptime(parsed_date.group(), "%B %d, %Y").date()
 
 def clean_resort(resort):
-    resort = resort.strip(u'\xa0')
-    resort = resort.replace(u'\xa0',u' ')
-    resort = resort.replace(u'\u2019',u"'")
+    resort = resort.strip('\xa0')
+    resort = resort.replace('\xa0',' ')
+    resort = resort.replace('\u2019',"'")
     return resort
 
 def clean_room(room):
-    room = room.strip(u'\xa0')
-    room = room.replace(u'\xa0',u' ')
+    room = room.strip('\xa0')
+    room = room.replace('\xa0',' ')
     return room
 
-def get_resort(element):
-    resort = element
-    resort = resort.strip(u'\xa0')
-    resort = resort.replace(u'\xa0',u' ')
-    resort = resort.replace(u'\u2019',u"'")
-    resort = resort.replace(u'\n',u' ')
+def get_resort(resort):
+    resort = resort.strip('\xa0')
+    resort = resort.replace('\xa0',' ')
+    resort = resort.replace('\u2019',"'")
+    resort = resort.replace('\n',' ')
     return resort
 
 
 def get_id(element, date):
-    element = element.replace(u'\xa0',u' ')
-    element_id = re.search(u"Special [A-Z0-9-]+",element).group()
+    element = element.replace('\xa0',' ')
+    element_id = re.search("Special [A-Z0-9-]+",element).group()
     if element_id:
-        element_id = element_id + u' ' + date.strftime("%m%d%y")
+        element_id = element_id + ' ' + date.strftime("%m%d%y")
     return element_id
 
 def get_all_specials():

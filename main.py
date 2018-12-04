@@ -41,19 +41,8 @@ class Specials(db.Model):
     room = db.Column(db.String(100))
 
 
-
-    def __init__(self, special_id, special_type, points, price, check_in, check_out, resort, room):
-        self.special_id = special_id
-        self.special_type = special_type
-        self.points = points
-        self.price = price
-        self.check_in = check_in
-        self.check_out = check_out
-        self.resort = resort
-        self.room = room
-
     def __repr__(self):
-        return '<Special: %r>' % self.special_id
+        return f'<Special: {self.special_id}>'
 
     def duration(self):
         delta = self.check_out - self.check_in
@@ -89,7 +78,7 @@ def current_important_specials():
 
 def send_email(email_message):
     if app.config['MAILGUN_API_KEY'] is None:
-        print 'No MAILGUN API Key, not sending email.'
+        print('No MAILGUN API Key, not sending email.')
         return
     return requests.post(
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
@@ -101,7 +90,7 @@ def send_email(email_message):
 
 def send_error_email(email_message):
     if app.config['MAILGUN_API_KEY'] is None:
-        print 'No MAILGUN API Key, not sending email.'
+        print('No MAILGUN API Key, not sending email.')
         return
     return requests.post(
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
@@ -113,7 +102,7 @@ def send_error_email(email_message):
 
 def send_text_message():
     if os.environ.get("TILL_URL") is None:
-        print 'No TILL URL, not sending txt.'
+        print('No TILL URL, not sending txt.')
         return
     return requests.post(os.environ.get("TILL_URL"), json={
         "phone": ["***REMOVED***", "***REMOVED***"],
@@ -183,31 +172,38 @@ def update_specials():
                 email_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
                 response = send_email(email_message)
                 if response.status_code == requests.codes.ok:
-                    print response.text
+                    print(response.text)
                 else:
-                    print 'Mailgun: ' + str(response.status_code) + ' ' + response.reason
+                    print(f'Mailgun: {response.status_code} {response.reason}')
             if new_important_specials:
                 response = send_text_message()
                 if response.status_code == requests.codes.ok:
-                    print response.text
+                    print(response.text)
                 else:
-                    print 'Till: ' + str(response.status_code) + ' ' + response.reason
+                    print(f'Till: {response.status_code} {response.reason}')
         else:
-            print "No changes found. Nothing to update Cap'n. :-)"
+            print("No changes found. Nothing to update Cap'n. :-)")
         set_health(True)
     except Exception as e:
         status = Status.query.first()
         if status.healthy:
             status.healthy = False
             send_error_email(e)
-            print "Error Message Sent"
+            print("Error Message Sent")
             db.session.commit()
 
 
 
 
 def add_special(special_dict):
-    special_entry = Specials(special_dict.get(dvctracker.ID), special_dict.get(dvctracker.SPECIAL_TYPE), special_dict.get(dvctracker.POINTS), special_dict.get(dvctracker.PRICE), special_dict.get(dvctracker.CHECK_IN), special_dict.get(dvctracker.CHECK_OUT), special_dict.get(dvctracker.RESORT), special_dict.get(dvctracker.ROOM))
+    special_entry = Specials(special_id=special_dict.get(dvctracker.ID),
+                             special_type=special_dict.get(dvctracker.SPECIAL_TYPE),
+                             points=special_dict.get(dvctracker.POINTS),
+                             price=special_dict.get(dvctracker.PRICE),
+                             check_in=special_dict.get(dvctracker.CHECK_IN),
+                             check_out=special_dict.get(dvctracker.CHECK_OUT),
+                             resort=special_dict.get(dvctracker.RESORT),
+                             room=special_dict.get(dvctracker.ROOM))
     db.session.add(special_entry)
     return special_entry
 
@@ -247,8 +243,8 @@ def my_utility_processor():
 
 
 def important_special(special):
-    if special.special_type == u'preconfirm':
-        if u'Wilderness Lodge' in special.resort:
+    if special.special_type == 'preconfirm':
+        if 'Wilderness Lodge' in special.resort:
             return True
         price_per_night = special.price/special.duration()
         if price_per_night <= 300:
