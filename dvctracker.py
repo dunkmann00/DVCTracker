@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 import sys
 
-import simplejson as json
+from flask import json
 
 #import pdb
 
