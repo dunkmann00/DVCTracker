@@ -150,7 +150,7 @@ def update_specials():
             db_entry = add_special(new_specials[new_special_key])
             new_specials_list.append(db_entry)
             if not new_important_specials and db_entry.special_type == dvctracker.PRECONFIRM:
-                new_important_specials = important_special(db_entry.check_out, db_entry.check_in)
+                new_important_specials = important_special(db_entry)
 
         if len(new_specials_list) > 1:
             new_specials_list = sorted(new_specials_list, key=lambda special: (special.check_in if special.check_in else date(2000,1,1), special.check_out))
@@ -161,7 +161,7 @@ def update_specials():
             old_price, old_points = update_special(special_tuple)
             updated_specials_tuple.append((special_tuple[1], old_price, old_points))
             if not new_important_specials and special_tuple[1].special_type == dvctracker.PRECONFIRM: #this will change to preconfirm when ready to use
-                new_important_specials = important_special(special_tuple[1].check_out, special_tuple[1].check_in)
+                new_important_specials = important_special(special_tuple[1])
 
         #Deleting Removed Specials
         for special_entry in removed_specials_models:
