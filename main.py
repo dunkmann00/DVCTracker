@@ -3,10 +3,8 @@ from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime
 from collections import namedtuple
 from ast import literal_eval
-import dvctracker
-import locale
-import requests
-import os
+import dvctracker, locale, requests, os, sys
+
 
 #import pdb
 
@@ -224,6 +222,8 @@ def remove_special(db_entry):
 
 @app.template_filter()
 def datetimeformat(value, format="%B %-d, %Y"):
+    if sys.platform == 'win32':
+        format = format.replace('%-', '%#')
     return value.strftime(format)
 
 @app.template_filter()
