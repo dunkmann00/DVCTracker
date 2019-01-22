@@ -126,14 +126,15 @@ def update_specials():
         send_important_only = important_criteria.get('important_only', False)
 
         for special_entry in all_special_entries:
-            if special_entry.special_id in new_specials:
+            special_entry_key = (special_entry.special_id, special_entry.check_out)
+            if special_entry_key in new_specials:
                 if special_entry.special_type == dvctracker.DISC_POINTS:
-                    if special_entry.points != new_specials[special_entry.special_id][dvctracker.POINTS] or special_entry.price != new_specials[special_entry.special_id][dvctracker.PRICE]:
-                        updated_specials.append((new_specials[special_entry.special_id], special_entry))
+                    if special_entry.points != new_specials[special_entry_key][dvctracker.POINTS] or special_entry.price != new_specials[special_entry_key][dvctracker.PRICE]:
+                        updated_specials.append((new_specials[special_entry_key], special_entry))
                 else:
-                    if special_entry.price != new_specials[special_entry.special_id][dvctracker.PRICE]:
-                        updated_specials.append((new_specials[special_entry.special_id], special_entry))
-                del new_specials[special_entry.special_id]
+                    if special_entry.price != new_specials[special_entry_key][dvctracker.PRICE]:
+                        updated_specials.append((new_specials[special_entry_key], special_entry))
+                del new_specials[special_entry_key]
             else:
                 removed_specials_models.append(special_entry)
 

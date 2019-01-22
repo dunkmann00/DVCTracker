@@ -28,16 +28,16 @@ def process_element(element):
         if 'Discounted Points' in element.xpath("div[1]")[0].text_content():
             discount_str = element.text_content()
             item_dict = parse_discount_points(discount_str)
-            if ID in item_dict:
-                key = item_dict[ID]
+            if ID in item_dict and CHECK_OUT in item_dict:
+                key = (item_dict[ID], item_dict[CHECK_OUT])
             else:
                 print("No ID for Discounted Points")
                 key = None
         else:
             preconfirm_str = element.text_content()
             item_dict = parse_preconfirm(preconfirm_str)
-            if ID in item_dict:
-                key = item_dict[ID]
+            if ID in item_dict and CHECK_OUT in item_dict:
+                key = (item_dict[ID], item_dict[CHECK_OUT])
             else:
                 print("No ID for Preconfirm")
                 key = None
@@ -66,7 +66,7 @@ def parse_preconfirm(special):
     price_search = False
     for line in reversed(special_list):
         if "Mention" in line:
-            item_dict[ID] = get_id(line, item_dict[CHECK_OUT])
+            item_dict[ID] = get_id(line)
         elif price_search:
             price = re.search("\$*[0-9,.]+",line).group()
             item_dict[PRICE] = clean_price(price)
@@ -95,7 +95,7 @@ def parse_discount_points(special):
         elif i == 3:
             item_dict[CHECK_OUT] = clean_date(line)
         elif i == 4:
-            item_dict[ID] = get_id(line, item_dict[CHECK_OUT])
+            item_dict[ID] = get_id(line)
             break
     return item_dict
 
@@ -158,7 +158,7 @@ def get_resort(resort):
     return resort
 
 
-def get_id(element, date):
+def get_id(element):
     element = element.replace('\xa0',' ')
     element_id = re.search("Special [A-Z0-9-]+",element).group()
     return element_id
