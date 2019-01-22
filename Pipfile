@@ -12,7 +12,7 @@ SQLAlchemy = {version = "*",extras = ["postgresql"]}
 requests = "*"
 lxml = "*"
 gunicorn = "*"
-
+tomlkit = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3"

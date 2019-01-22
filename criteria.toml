@@ -1,0 +1,9 @@
+important_only = false
+
+[[preconfirm]]
+  resorts = [
+    "Wilderness Lodge"
+  ]
+
+[[preconfirm]]
+  price_per_night = 300

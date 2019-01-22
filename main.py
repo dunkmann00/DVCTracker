@@ -1,22 +1,21 @@
-from flask import Flask, json, render_template, request
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime
 from collections import namedtuple
-from ast import literal_eval
-import dvctracker, locale, requests, os, sys
+import dvctracker, locale, requests, os, sys, tomlkit
 
-
-#import pdb
 
 """
-Potentially want to add a way to filter what specials are considered important.
-Currently the only thing I allow is a date range. But other options include:
+TO-DO
 
--Price (Both overall & per night, also per point for the discounted point specials)
--Resort
--Room Type (This would definitely be tricky because there can be different room
-            types at different resorts, it is not all the same across all of them)
--Points Available
+Perhaps look at how errors are handled and try to improve that. Currently it is
+deinitely lacking. Too many errors are not logged properly. Errors also cause
+the whole thing to stop. It should skip the errored special and move on, but
+send the message saying there is an error. It should also do the best it can to
+provide the special's text.
+
+I really like the way wtforms handle errors parsing form data. I would like to
+emulate something similar to that with parsing specials
 
 """
 app = Flask(__name__)
@@ -34,7 +33,7 @@ class Specials(db.Model):
     points = db.Column(db.Integer)
     price = db.Column(db.Integer)
     check_in = db.Column(db.Date)
-    check_out = db.Column(db.Date)
+    check_out = db.Column(db.Date, primary_key=True)
     resort = db.Column(db.String(100))
     room = db.Column(db.String(100))
 
@@ -51,17 +50,21 @@ class Status(db.Model):
     status_id = db.Column(db.Integer, primary_key=True)
     healthy = db.Column(db.Boolean)
 
-    def __init__(self, status_id, healthy):
-        self.status_id = status_id
-        self.healthy = healthy
-
     def __repr__(self):
         return '<Healthy: ' + 'Yes' if self.healthy else 'No'
 
-#@app.route('/')
-def hello_world():
-    new_specials = dvctracker.get_all_specials()
-    return json.jsonify(new_specials)
+class Emails(db.Model):
+    email = db.Column(db.String(80), primary_key=True)
+    get_errors = db.Column(db.Boolean, default=False)
+
+    def __repr__(self):
+        return f'<Email: {self.email}>'
+
+class PhoneNumbers(db.Model):
+    phone_number = db.Column(db.String(11), primary_key=True)
+
+    def __repr__(self):
+        return f'<Phone Number: {self.phone_number}>'
 
 @app.route('/specials')
 def current_specials():
@@ -78,11 +81,12 @@ def send_email(email_message):
     if app.config['MAILGUN_API_KEY'] is None:
         print('No MAILGUN API Key, not sending email.')
         return
+    email_addresses = [email_address.email for email_address in Emails.query.all()]
     return requests.post(
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
         auth=("api", app.config['MAILGUN_API_KEY']),
         data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
-              "to": literal_eval(app.config['EMAILS']),
+              "to": email_addresses,
               "subject": "DVCTracker Updates",
               "html": email_message})
 
@@ -90,11 +94,12 @@ def send_error_email(email_message):
     if app.config['MAILGUN_API_KEY'] is None:
         print('No MAILGUN API Key, not sending email.')
         return
+    email_addresses = [email_address.email for email_address in Emails.query.filter_by(get_errors=True).all()]
     return requests.post(
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
         auth=("api", app.config['MAILGUN_API_KEY']),
         data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
-              "to": ["han@gmail.com", "lando@gmail.com"],
+              "to": email_addresses,
               "subject": "DVCTracker Error",
               "text": email_message})
 
@@ -102,8 +107,9 @@ def send_text_message():
     if os.environ.get("TILL_URL") is None:
         print('No TILL URL, not sending txt.')
         return
+    phone_numbers = [phone_number.phone_number for phone_number in PhoneNumbers.query.all()]
     return requests.post(os.environ.get("TILL_URL"), json={
-        "phone": ["***REMOVED***", "***REMOVED***"],
+        "phone": phone_numbers,
         "text": "Hey this is DVCTracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
     })
 
@@ -116,6 +122,8 @@ def update_specials():
         all_special_entries = Specials.query.order_by(Specials.check_in, Specials.check_out)
         updated_specials = []
         removed_specials_models = []
+
+        send_important_only = important_criteria.get('important_only', False)
 
         for special_entry in all_special_entries:
             if special_entry.special_id in new_specials:
@@ -135,9 +143,11 @@ def update_specials():
         new_specials_list = []
         for new_special_key in new_specials:
             db_entry = add_special(new_specials[new_special_key])
-            new_specials_list.append(db_entry)
-            if not new_important_specials and db_entry.special_type == dvctracker.PRECONFIRM:
-                new_important_specials = important_special(db_entry)
+            important = important_special(db_entry)
+            if not (not important and send_important_only): #The only time it isn't added is when the special is not important and we only want to send important specials
+                new_specials_list.append(db_entry)
+            new_important_specials = new_important_specials or important
+
 
         if len(new_specials_list) > 1:
             new_specials_list = sorted(new_specials_list, key=lambda special: (special.check_in if special.check_in else date(2000,1,1), special.check_out))
@@ -146,9 +156,11 @@ def update_specials():
         updated_specials_tuple = []
         for special_tuple in updated_specials:
             old_price, old_points = update_special(special_tuple)
-            updated_specials_tuple.append((special_tuple[1], old_price, old_points))
-            if not new_important_specials and special_tuple[1].special_type == dvctracker.PRECONFIRM: #this will change to preconfirm when ready to use
-                new_important_specials = important_special(special_tuple[1])
+            important = important_special(special_tuple[1])
+            if not (not important and send_important_only):
+                updated_specials_tuple.append((special_tuple[1], old_price, old_points))
+            new_important_specials = new_important_specials or important
+
 
         #Deleting Removed Specials
         for special_entry in removed_specials_models:
@@ -169,13 +181,13 @@ def update_specials():
             with app.app_context():
                 email_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
                 response = send_email(email_message)
-                if response.status_code == requests.codes.ok:
+                if response and response.status_code == requests.codes.ok:
                     print(response.text)
                 else:
                     print(f'Mailgun: {response.status_code} {response.reason}')
             if new_important_specials:
                 response = send_text_message()
-                if response.status_code == requests.codes.ok:
+                if response and response.status_code == requests.codes.ok:
                     print(response.text)
                 else:
                     print(f'Till: {response.status_code} {response.reason}')
@@ -232,7 +244,7 @@ def currencyformat(value):
 
 @app.template_filter()
 def idformat(value):
-    return value[:-7]
+  return value[:-7]
 
 @app.context_processor
 def my_utility_processor():
@@ -240,35 +252,63 @@ def my_utility_processor():
         return important_special(special)
     return dict(date=datetime.now, important_special_format=important_special_format)
 
-
+def load_criteria(path='criteria.toml'):
+    with open(path, encoding='utf-8') as f:
+        content = f.read()
+        return tomlkit.loads(content)
 
 def important_special(special):
-    if special.special_type == 'preconfirm':
-        if 'Wilderness Lodge' in special.resort:
-            return True
-        price_per_night = special.price/special.duration()
-        if price_per_night <= 300:
+    for criteria in important_criteria.get(special.special_type, []):
+        important = False
+        for criterion in criteria:
+            important = check_criteria[criterion](special, criteria[criterion])
+            if not important:
+                break
+        if important:
             return True
     return False
 
-#Special for date based, would like to make this handle more options
-"""
-def important_special(special):
+def important_date(special, imp_date):
     check_out = special.check_out
-    check_in = special.check_in
-    important = False
-    if check_in:
+    if special.special_type == 'preconfirm':
+        check_in = special.check_in
         r1 = Range(start=check_in, end=check_out)
-        r2 = Range(start=date(2018, 11, 25), end=date(2018, 12, 1))
+        r2 = Range(start=date.fromisoformat(imp_date['start'].as_string()), end=date.fromisoformat(imp_date['end'].as_string()))
+        #Need to do that with the dates from the toml file because tomlkit thinks the return value of these should be a date and tries to make it
+        #a toml date, which results in an error. I will look into submitting a pull request.
+        #Tomlkit error info:
+        #Only applies to subtracting (__sub__) Date or DateTime, the resulting object from a subtract is not the same type of object, but is a timedelta.
+        #In the situation where it is a timedelta object the object should be returned as is and not passed into _new
         latest_start = max(r1.start, r2.start)
         earliest_end = min(r1.end, r2.end)
         overlap = (earliest_end - latest_start).days + 1
-        important = True if overlap > 0 else False
+        return overlap > 0
     else:
-        #important = True if check_out > date(2018, 12, 1) else False
-        important = False
-    return important
-"""
+        return check_out >= imp_date
+
+def important_resort(special, resorts):
+    for resort in resorts:
+        if resort in special.resort:
+            return True
+    return False
+
+def important_room(special, rooms):
+    for room in rooms:
+        if room in special.room:
+            return True
+    return False
+
+important_criteria = load_criteria()
+
+check_criteria = {
+    'date': important_date,
+    'length_of_stay': lambda special, value: special.duration() >= value,
+    'price': lambda special, value: special.price <= value,
+    'price_per_night': lambda special, value: special.price/special.duration() <= value,
+    'points': lambda special, value: special.points >= value,
+    'resorts': important_resort,
+    'rooms': important_room
+}
 
 def set_health(healthy):
     status = Status.query.first()
@@ -279,29 +319,12 @@ def set_health(healthy):
         status.healthy = healthy
     db.session.commit()
 
-
-#No longer necessary because I am using HTML with templating
-"""
-def render_disc_point_message(db_entry):
-    return "Points Available: {0}\nPrice: {1}/Point\nCheck-Out no later than: {2}\nMention ID: {3}\n".format(db_entry.points, locale.currency(db_entry.price, grouping=True), db_entry.check_out.strftime("%B %d, %Y"), db_entry.special_id[:-7])
-
-def render_preconfirm_message(db_entry):
-    return "Check-In: {0}\nCheck-Out: {1}\nResort: {2}\nPrice: {3}\nMention ID: {4}\n".format(db_entry.check_in.strftime("%B %d, %Y"), db_entry.check_out.strftime("%B %d, %Y"),db_entry.resort, locale.currency(db_entry.price, grouping=True), db_entry.special_id[:-7])
-"""
-
-#This function was more for just getting it setup initially. Now I should always use update_specials()
-"""
-def load_all_specials():
-    #new_specials = dvctracker.get_all_specials()
-    new_specials = dvctracker.get_all_specials_frozen()
-    for special_key in new_specials:
-        special = new_specials[special_key]
-        db_entry = Specials.query.get(special_key)
-        if db_entry is not None:
-            db_entry.price = special.get(dvctracker.PRICE)
-        else:
-            special_entry = Specials(special.get(dvctracker.ID), special.get(dvctracker.SPECIAL_TYPE), special.get(dvctracker.POINTS), special.get(dvctracker.PRICE), special.get(dvctracker.CHECK_IN), special.get(dvctracker.CHECK_OUT), special.get(dvctracker.RESORT))
-            db.session.add(special_entry)
-
+#Since I made the check-out column a primary key as well I no longer need to
+#add the date on as part of the special_id. This utility function will go
+#through all of the specials and remove the 6 character date that was added
+#onto the end
+def update_primary_keys():
+    specials = Specials.query.all()
+    for special in specials:
+        special.special_id = idformat(special.special_id)
     db.session.commit()
-"""

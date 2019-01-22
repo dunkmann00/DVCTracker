@@ -33,18 +33,6 @@ def process_element(element):
             else:
                 print("No ID for Discounted Points")
                 key = None
-            """
-            item_dict[SPECIAL_TYPE] = DISC_POINTS
-            #item_dict[POINTS] = int(element.xpath("div[2]/p/strong[1]/span[2]")[0].text)
-            item_dict[POINTS] = find_points(element.xpath("div[2]/p/strong[1]")[0].text_content())
-            #item_dict[PRICE] = clean_price(element.xpath("div[2]/p/strong[2]/span")[0].text)
-            item_dict[PRICE] = find_points_price(element.xpath("div[2]/p/strong[2]")[0].text_content())
-            #item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span")[0].text)
-            item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p/strong[3]/span[contains(@style,'color: #800000')]")[0].text)
-            #key = get_id(element.xpath("div[2]/p/strong[4]/span[2]")[0], item_dict[CHECK_OUT])
-            key = get_id(element.xpath("div[2]/p/strong[4]")[0].text_content(), item_dict[CHECK_OUT])
-            item_dict[ID] = key
-            """
         else:
             preconfirm_str = element.text_content()
             item_dict = parse_preconfirm(preconfirm_str)
@@ -53,16 +41,6 @@ def process_element(element):
             else:
                 print("No ID for Preconfirm")
                 key = None
-            """
-            item_dict[SPECIAL_TYPE] = PRECONFIRM
-            item_dict[CHECK_IN] = clean_date(element.xpath("div[2]/p[1]/strong[1]")[0].text)
-            item_dict[CHECK_OUT] = clean_date(element.xpath("div[2]/p[1]/strong[2]")[0].text)
-            item_dict[RESORT] = get_resort(element.xpath("div[2]/p[2]")[0].text_content())
-            #item_dict[PRICE] = clean_price(element.xpath("div[2]/p[3]/strong[2]/span")[0].text)
-            item_dict[PRICE] = clean_price(find_price(element.xpath("div[2]/p[3]")[0].text_content()))
-            key = get_id(element.xpath("div[2]/p[4]")[0].text_content(), item_dict[CHECK_OUT])
-            item_dict[ID] = key
-            """
     except:
         print(sys.exc_info()[0])
         raise Exception(element.text_content())
@@ -183,15 +161,12 @@ def get_resort(resort):
 def get_id(element, date):
     element = element.replace('\xa0',' ')
     element_id = re.search("Special [A-Z0-9-]+",element).group()
-    if element_id:
-        element_id = element_id + ' ' + date.strftime("%m%d%y")
     return element_id
 
 def get_all_specials():
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
     dvc_page = requests.get('http://dvcrentalstore.com/discounted-points-confirmed-reservations/', headers=headers)
     dvc_tree = html.fromstring(dvc_page.content)
-    #specials = dvc_tree.xpath("//*[@id='main-content']/div[1]/div/article/div[2]/div[2]/div[@class='su-box su-box-style-glass]")
     specials = dvc_tree.xpath("//div[@class='su-box su-box-style-glass']")
     specials_dict = {}
     #pdb.set_trace()
