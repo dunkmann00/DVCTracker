@@ -13,7 +13,7 @@
 		<meta charset="UTF-8">
         <meta http-equiv="X-UA-Compatible" content="IE=edge">
         <meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>DVC Tracker</title>
+		<title>{% if env_label %}({{ env_label }}) {% endif %}DVC Tracker</title>
 
     <style type="text/css">
 		p{
@@ -577,7 +577,7 @@
 
                         <td valign="top" class="mcnTextContent" style="padding-top:0; padding-right:18px; padding-bottom:9px; padding-left:18px;">
 
-                            <h1 style="text-align: center;"><span style="font-family:arial,helvetica neue,helvetica,sans-serif">DVC Tracker</span></h1>
+                            <h1 style="text-align: center;"><span style="font-family:arial,helvetica neue,helvetica,sans-serif">{% if env_label %}({{ env_label }}) {% endif %}DVC Tracker</span></h1>
 
 <div style="text-align: center;">Up-to-date as of: {{ date()|datetimeformat('%b %-d, %Y %-I:%M:%S%p') }}</div>
 

@@ -2,5 +2,6 @@ venv
 special_dict.txt
 test_message.html
 development_settings.cfg
+DVC_local.html
 *.pyc
 .env

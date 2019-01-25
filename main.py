@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, current_app
 from flask_sqlalchemy import SQLAlchemy
 from datetime import date, datetime
 from collections import namedtuple
@@ -62,6 +62,7 @@ class Emails(db.Model):
 
 class PhoneNumbers(db.Model):
     phone_number = db.Column(db.String(11), primary_key=True)
+    get_errors = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f'<Phone Number: {self.phone_number}>'
@@ -69,56 +70,72 @@ class PhoneNumbers(db.Model):
 @app.route('/specials')
 def current_specials():
     all_special_entries = Specials.query.order_by(Specials.check_in, Specials.check_out)
-    return render_template('email_template.html', added_specials=all_special_entries)
+    return render_template('email_template.html',
+                           added_specials=all_special_entries,
+                           env_label=env_label.get(current_app.env))
 
 @app.route('/specials/important')
 def current_important_specials():
     all_special_entries = Specials.query.order_by(Specials.check_in, Specials.check_out)
     all_special_entries = [special for special in all_special_entries if important_special(special)]
-    return render_template('email_template.html', added_specials=all_special_entries)
+    return render_template('email_template.html',
+                           added_specials=all_special_entries,
+                           env_label=env_label.get(current_app.env))
 
-def send_email(email_message):
-    if app.config['MAILGUN_API_KEY'] is None:
-        print('No MAILGUN API Key, not sending email.')
-        return
+
+def send_update_email(email_message):
     email_addresses = [email_address.email for email_address in Emails.query.all()]
-    return requests.post(
-        "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
-        auth=("api", app.config['MAILGUN_API_KEY']),
-        data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
-              "to": email_addresses,
-              "subject": "DVCTracker Updates",
-              "html": email_message})
+    return send_email(email_message, [email_addresses])
 
 def send_error_email(email_message):
+    email_addresses = [email_address.email for email_address in Emails.query.filter_by(get_errors=True).all()]
+    return send_email(email_message, email_addresses, False)
+
+def send_email(email_message, addresses, html_message=True):
     if app.config['MAILGUN_API_KEY'] is None:
         print('No MAILGUN API Key, not sending email.')
         return
-    email_addresses = [email_address.email for email_address in Emails.query.filter_by(get_errors=True).all()]
+    msg_type = "html" if html_message else "text"
+
+    sub_env = env_label.get(current_app.env, "")
+    sub_env = f"({sub_env}) " if sub_env else ""
     return requests.post(
         "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
         auth=("api", app.config['MAILGUN_API_KEY']),
         data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
-              "to": email_addresses,
-              "subject": "DVCTracker Error",
-              "text": email_message})
+              "to": addresses,
+              "subject": sub_env + "DVCTracker Updates",
+              msg_type: email_message})
 
-def send_text_message():
+
+def send_update_text_message():
+    phone_numbers = [phone_number.phone_number for phone_number in PhoneNumbers.query.all()]
+    msg = "Hey this is DVCTracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
+    return send_text_message(msg, phone_numbers)
+
+def send_error_text_messsage():
+    phone_numbers = [phone_number.phone_number for phone_number in PhoneNumbers.query.filter_by(get_errors=True).all()]
+    msg = "Hey this is DVCTracker!\nThere seems to be a problem checking for updates and/or sending emails. Check your emails for more info!"
+    return send_text_message(msg, phone_numbers)
+
+def send_text_message(message, numbers):
     if os.environ.get("TILL_URL") is None:
         print('No TILL URL, not sending txt.')
         return
-    phone_numbers = [phone_number.phone_number for phone_number in PhoneNumbers.query.all()]
+
+    msg_env = env_label.get(current_app.env, "")
+    msg_env = f"({msg_env}) " if msg_env else ""
     return requests.post(os.environ.get("TILL_URL"), json={
-        "phone": phone_numbers,
-        "text": "Hey this is DVCTracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
+        "phone": numbers,
+        "text": msg_env + message
     })
 
-#@app.route('/show-specials')
+
 @app.cli.command()
 def update_specials():
     try:
-        new_specials = dvctracker.get_all_specials()
-        #new_specials = dvctracker.get_all_specials_frozen()
+        new_specials, errors = dvctracker.get_all_specials()
+
         all_special_entries = Specials.query.order_by(Specials.check_in, Specials.check_out)
         updated_specials = []
         removed_specials_models = []
@@ -167,44 +184,42 @@ def update_specials():
         for special_entry in removed_specials_models:
             remove_special(special_entry)
 
-        #I am putting this before the render_template call because if I put it after any changes will get rolled back upon the completion of
-        #the with statement because once the app context closes Flask automatically removes the database session, thus rolling back any transactions
-        db.session.commit()
 
+        if len(new_specials_list) > 0 or len(updated_specials_tuple) > 0 or len(removed_specials_models) > 0:
+            email_message = render_template('email_template.html',
+                                            added_specials=new_specials_list,
+                                            updated_specials=updated_specials_tuple,
+                                            removed_specials=removed_specials_models,
+                                            env_label=env_label.get(current_app.env))
+            response = send_update_email(email_message)
+            if response and response.status_code == requests.codes.ok:
+                print(response.text)
+            else:
+                msg = f'Mailgun: {response.status_code} {response.reason}'
+                print(msg)
+                raise Exception(msg)
 
-
-        if request:
-            #web_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
-            web_message = render_template('email_template.html', added_specials=all_special_entries)
-            return web_message
-        elif len(new_specials_list) > 0 or len(updated_specials_tuple) > 0 or len(removed_specials_models) > 0:
-            #This will get called when I'm using it to send emails
-            with app.app_context():
-                email_message = render_template('email_template.html', added_specials=new_specials_list,updated_specials=updated_specials_tuple,removed_specials=removed_specials_models)
-                response = send_email(email_message)
-                if response and response.status_code == requests.codes.ok:
-                    print(response.text)
-                else:
-                    print(f'Mailgun: {response.status_code} {response.reason}')
             if new_important_specials:
-                response = send_text_message()
+                response = send_update_text_message()
                 if response and response.status_code == requests.codes.ok:
                     print(response.text)
                 else:
                     print(f'Till: {response.status_code} {response.reason}')
         else:
             print("No changes found. Nothing to update Cap'n. :-)")
-        set_health(True)
+
+        if len(errors) > 0:
+            msg = "\n\n--------------------\n\n".join((str(error) for error in errors))
+            msg = "DVC Tracker recently encountered the following errors:\n\n" + msg
+            feeling_sick(msg)
+        else:
+            set_health(True)
+
     except Exception as e:
-        status = Status.query.first()
-        if status.healthy:
-            status.healthy = False
-            send_error_email(e)
-            print("Error Message Sent")
-            db.session.commit()
+        db.session.rollback()
+        feeling_sick(e)
 
-
-
+    db.session.commit()
 
 def add_special(special_dict):
     special_entry = Specials(special_id=special_dict.get(dvctracker.ID),
@@ -233,6 +248,24 @@ def update_special(special_tuple):
 def remove_special(db_entry):
     db.session.delete(db_entry)
 
+def feeling_sick(message):
+    if set_health(False):
+        send_error_email(message)
+        send_error_text_messsage()
+        print("Error Messages Sent")
+
+def set_health(healthy):
+    status = Status.query.first()
+    changed = False
+    if not status:
+        status = Status(healthy=healthy)
+        db.session.add(status)
+        changed = True
+    elif status.healthy != healthy:
+        status.healthy = healthy
+        changed = True
+    return changed
+
 @app.template_filter()
 def datetimeformat(value, format="%B %-d, %Y"):
     if sys.platform == 'win32':
@@ -243,15 +276,9 @@ def datetimeformat(value, format="%B %-d, %Y"):
 def currencyformat(value):
     return locale.currency(value, grouping=True)
 
-@app.template_filter()
-def idformat(value):
-  return value[:-7]
-
 @app.context_processor
 def my_utility_processor():
-    def important_special_format(special):
-        return important_special(special)
-    return dict(date=datetime.now, important_special_format=important_special_format)
+    return dict(date=datetime.now, important_special_format=important_special)
 
 def load_criteria(path='criteria.toml'):
     with open(path, encoding='utf-8') as f:
@@ -311,21 +338,7 @@ check_criteria = {
     'rooms': important_room
 }
 
-def set_health(healthy):
-    status = Status.query.first()
-    if not status:
-        status = Status(0,healthy)
-        db.session.add(status)
-    else:
-        status.healthy = healthy
-    db.session.commit()
-
-#Since I made the check-out column a primary key as well I no longer need to
-#add the date on as part of the special_id. This utility function will go
-#through all of the specials and remove the 6 character date that was added
-#onto the end
-def update_primary_keys():
-    specials = Specials.query.all()
-    for special in specials:
-        special.special_id = idformat(special.special_id)
-    db.session.commit()
+env_label = {
+    'development' : 'dev',
+    'staging' : 'beta'
+}
