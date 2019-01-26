@@ -47,7 +47,7 @@ def process_element(element):
 def parse_preconfirm(special):
     item_dict = {}
     item_dict[SPECIAL_TYPE] = PRECONFIRM
-    special_list = special.split("\n")
+    special_list = [line for line in special.split("\n") if line is not '']
     cur_attribute = ""
     try:
         for i, line in enumerate(special_list):
@@ -87,7 +87,7 @@ def parse_preconfirm(special):
 def parse_discount_points(special):
     item_dict = {}
     item_dict[SPECIAL_TYPE] = DISC_POINTS
-    special_list = special.split("\n")
+    special_list = [line for line in special.split("\n") if line is not '']
 
     if len(special_list) < 5:
         raise SpecialError("Incorrect Line Count", special)
@@ -177,7 +177,7 @@ def get_all_specials():
     specials = dvc_tree.xpath("//div[@class='su-box su-box-style-glass']")
     specials_dict = {}
     errors = []
-    
+
     for special in specials:
         try:
             special_dict = process_element(special)
@@ -186,6 +186,6 @@ def get_all_specials():
         except SpecialError as err:
             errors.append(err)
         except Exception as e:
-            errors.append(SpecialError("Unknown Error", special.text_content()))
+            errors.append(SpecialError(f"{type(e)} - {e}", special.text_content()))
 
     return (specials_dict, errors)
