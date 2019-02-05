@@ -85,13 +85,13 @@ def current_important_specials():
 
 def send_update_email(email_message):
     email_addresses = [email_address.email for email_address in Emails.query.all()]
-    return send_email(email_message, [email_addresses])
+    return send_email("DVCTracker Updates", email_message, [email_addresses])
 
 def send_error_email(email_message):
     email_addresses = [email_address.email for email_address in Emails.query.filter_by(get_errors=True).all()]
-    return send_email(email_message, email_addresses, False)
+    return send_email("DVCTracker Error", email_message, email_addresses, False)
 
-def send_email(email_message, addresses, html_message=True):
+def send_email(subject, email_message, addresses, html_message=True):
     if app.config['MAILGUN_API_KEY'] is None:
         print('No MAILGUN API Key, not sending email.')
         return
@@ -104,7 +104,7 @@ def send_email(email_message, addresses, html_message=True):
         auth=("api", app.config['MAILGUN_API_KEY']),
         data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
               "to": addresses,
-              "subject": sub_env + "DVCTracker Updates",
+              "subject": sub_env + subject,
               msg_type: email_message})
 
 
