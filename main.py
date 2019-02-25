@@ -87,9 +87,9 @@ def send_email(subject, email_message, addresses, html_message=True):
     sub_env = env_label.get(current_app.env, "")
     sub_env = f"({sub_env}) " if sub_env else ""
     return requests.post(
-        "https://api.mailgun.net/v3/dvctracker.yourdomain.com/messages",
+        f"https://api.mailgun.net/v3/{app.config['MAILGUN_DOMAIN_NAME']}/messages",
         auth=("api", app.config['MAILGUN_API_KEY']),
-        data={"from": "DVCTracker <mailgun@dvctracker.yourdomain.com>",
+        data={"from": f"DVCTracker <mailgun@{app.config['MAILGUN_DOMAIN_NAME']}>",
               "to": addresses,
               "subject": sub_env + subject,
               msg_type: email_message})
