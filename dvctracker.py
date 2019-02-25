@@ -3,6 +3,8 @@ from lxml import html
 import re
 from datetime import datetime
 import sys
+import time
+import random
 
 
 SPECIAL_TYPE = "special_type"
@@ -161,9 +163,18 @@ def get_id(element):
     element_id = re.search("Special [A-Z0-9-]+",element).group()
     return element_id
 
-def get_specials_page():
+def get_specials_page(): #Backoff with jitter - https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
-    dvc_page = requests.get('http://dvcrentalstore.com/discounted-points-confirmed-reservations/', headers=headers)
+    retries = 0
+    while(retries < 5):
+        if retries > 0:
+            time.sleep(random.uniform(0, 2**retries))
+            print(f"Attempting Retry on Specials Request: {retries}")
+        dvc_page = requests.get('https://dvcrentalstore.com/discounted-points-confirmed-reservations/', headers=headers)
+        if dvc_page.status_code in (500, 502, 503, 504):
+            retries+=1
+        else:
+            break
     return dvc_page.content
 
 def get_local_specials_page():

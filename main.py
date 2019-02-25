@@ -5,19 +5,6 @@ from collections import namedtuple
 import dvctracker, locale, requests, os, sys, tomlkit
 
 
-"""
-TO-DO
-
-Perhaps look at how errors are handled and try to improve that. Currently it is
-deinitely lacking. Too many errors are not logged properly. Errors also cause
-the whole thing to stop. It should skip the errored special and move on, but
-send the message saying there is an error. It should also do the best it can to
-provide the special's text.
-
-I really like the way wtforms handle errors parsing form data. I would like to
-emulate something similar to that with parsing specials
-
-"""
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.from_pyfile("dvctracker_settings.cfg")
@@ -135,6 +122,10 @@ def send_text_message(message, numbers):
 def update_specials():
     try:
         new_specials, errors = dvctracker.get_all_specials()
+
+        if len(new_specials) == 0:
+            print("There is a problem getting data from the DVC website.")
+            return
 
         all_special_entries = Specials.query.order_by(Specials.check_in, Specials.check_out)
         updated_specials = []
@@ -280,7 +271,7 @@ def currencyformat(value):
 def my_utility_processor():
     return dict(date=datetime.now, important_special_format=important_special)
 
-def load_criteria(path='criteria.toml'):
+def load_criteria(path):
     with open(path, encoding='utf-8') as f:
         content = f.read()
         return tomlkit.loads(content)
@@ -326,7 +317,7 @@ def important_room(special, rooms):
             return True
     return False
 
-important_criteria = load_criteria()
+important_criteria = load_criteria(app.config['DVC_CRITERIA'])
 
 check_criteria = {
     'date': important_date,

@@ -1,9 +1,25 @@
 important_only = false
 
 [[preconfirm]]
-  resorts = [
-    "Wilderness Lodge"
+  date.start = 2019-02-01
+  date.end = 2019-02-25
+  price_per_night = 400
+  rooms = [
+    "1-Bedroom",
+    "Villa"
   ]
 
 [[preconfirm]]
-  price_per_night = 300
+  resorts = [
+    "Wilderness Lodge",
+  ]
+
+[[preconfirm]]
+  length_of_stay = 11
+
+[[disc_points]]
+  date = 2019-02-01
+  points = 100
+
+[[disc_points]]
+  price = 15
