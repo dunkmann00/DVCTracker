@@ -1,0 +1,3 @@
+#Github marks the project as HTML because of the template files being so large.
+#Ignoring them so it will classify it as Python, as it should.
+templates/ linguist-detectable=false
