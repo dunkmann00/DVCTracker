@@ -8,12 +8,12 @@ The description says it all. DVCTracker will allow you to track the specials tha
 Configuration
 -------------
 
-DVCTracker can be configured to check for specials that are 'important'. These important specials will be highlighted green in emails and will also trigger a text message when they are found. If you are **ONLY** interested in getting notified about important specials (rather than all specials) DVCTracker can also be configured to send emails which only show the important specials. All of this is done through the [`criteria.toml`](..criteria.toml) file.
+DVCTracker can be configured to check for specials that are 'important'. These important specials will be highlighted green in emails and will also trigger a text message when they are found. If you are **ONLY** interested in getting notified about important specials (rather than all specials) DVCTracker can also be configured to send emails which only show the important specials. All of this is done through the [`criteria.toml`](criteria.toml) file.
 
 Criteria File
 -------------
 
-The [`criteria.toml`](..criteria.toml) file uses [TOML](https://github.com/toml-lang/toml) which is a configuration file format that is both easy for humans to read and manipulate as well as computers. This makes it well suited to be used by DVCTracker for indicating important specials. The current criteria file includes examples of how you would indicate important specials so be sure to check that.
+The [`criteria.toml`](criteria.toml) file uses [TOML](https://github.com/toml-lang/toml) which is a configuration file format that is both easy for humans to read and manipulate as well as computers. This makes it well suited to be used by DVCTracker for indicating important specials. The current criteria file includes examples of how you would indicate important specials so be sure to check that.
 
 The structure for the criteria file is as follows:
 + If the `important_only` key is present and set to True, only important specials will be included in emails. The default is False.
