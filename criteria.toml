@@ -6,7 +6,7 @@ important_only = false
   price_per_night = 400
   rooms = [
     "1-Bedroom",
-    "Villa"
+    "Studio"
   ]
 
 [[preconfirm]]
