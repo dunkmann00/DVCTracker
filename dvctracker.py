@@ -92,7 +92,10 @@ def parse_discount_points(special):
     special_list = [line for line in special.split("\n") if line is not '']
 
     if len(special_list) < 5:
-        raise SpecialError("Incorrect Line Count", special)
+        if "None" in special_list[-1]:
+            return None
+        else:
+            raise SpecialError("Incorrect Line Count", special)
 
     cur_attribute = ""
     try:
@@ -192,8 +195,9 @@ def get_all_specials():
     for special in specials:
         try:
             special_dict = process_element(special)
-            key = (special_dict[ID], special_dict[CHECK_OUT])
-            specials_dict[key] = special_dict
+            if special_dict is not None:
+                key = (special_dict[ID], special_dict[CHECK_OUT])
+                specials_dict[key] = special_dict
         except SpecialError as err:
             errors.append(err)
         except Exception as e:
