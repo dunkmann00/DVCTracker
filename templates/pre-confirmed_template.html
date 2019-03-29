@@ -31,7 +31,7 @@
   Total Price: {{ special.price|currencyformat }} {% if old_price %}({{ old_price|currencyformat }}){% endif %}<br>
   Price/Night: {{ (special.price/special.duration())|currencyformat }} {% if old_price %}({{ (old_price/special.duration())|currencyformat }}){% endif %}<br>
   <br>
-  Mention ID: {{ special.special_id }}
+  Mention ID: Special {{ special.special_id }}
 </div>
 
                                     </td>

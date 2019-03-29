@@ -162,8 +162,7 @@ def clean_room(room):
     return room
 
 def get_id(element):
-    element = element.replace('\xa0',' ')
-    element_id = re.search("Special [A-Z0-9-]+",element).group()
+    element_id = re.search("Special\s*([A-Z0-9-]+)",element).group(1)
     return element_id
 
 def get_specials_page(): #Backoff with jitter - https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
