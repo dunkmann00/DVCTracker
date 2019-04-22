@@ -657,13 +657,13 @@
 
 {# This table is the discounted points table #}
 
-{% for special in added_specials if special.special_type == "disc_points" %}
+{% for special in added_specials if special.type == "disc_points" %}
 {% include 'disc_points_template.html' %}
 {% endfor %}
 
 {# This table is the pre-confirmeds table #}
 
-{% for special in added_specials if special.special_type == "preconfirm" %}
+{% for special in added_specials if special.type == "preconfirm" %}
 {% include 'pre-confirmed_template.html' %}
 {% endfor %}
 
@@ -731,13 +731,13 @@
 
 {# This table is the discounted points table #}
 
-{% for special,old_price,old_points in updated_specials if special.special_type == "disc_points" %}
+{% for special in updated_specials if special.type == "disc_points" %}
 {% include 'disc_points_template.html' %}
 {% endfor %}
 
 {# This table is the pre-confirmeds table #}
 
-{% for special,old_price,old_points in updated_specials if special.special_type == "preconfirm" %}
+{% for special in updated_specials if special.type == "preconfirm" %}
 {% include 'pre-confirmed_template.html' %}
 {% endfor %}
 
@@ -806,13 +806,13 @@
 
 {# This table is the discounted points table #}
 
-{% for special in removed_specials if special.special_type == "disc_points" %}
+{% for special in removed_specials if special.type == "disc_points" %}
 {% include 'disc_points_template.html' %}
 {% endfor %}
 
 {# This table is the pre-confirmeds table #}
 
-{% for special in removed_specials if special.special_type == "preconfirm" %}
+{% for special in removed_specials if special.type == "preconfirm" %}
 {% include 'pre-confirmed_template.html' %}
 {% endfor %}
 
