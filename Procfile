@@ -1,2 +1,2 @@
 release: flask deploy
-web: gunicorn main:app --log-file -
+web: gunicorn dvctracker:app --log-file -
