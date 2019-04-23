@@ -1,6 +1,6 @@
 from flask_migrate import Migrate, upgrade
 from app import create_app, db
-from app.models import StoredSpecial, Status, Emails, PhoneNumbers, SpecialTypes
+from app.models import StoredSpecial, Status, Email, PhoneNumber, SpecialTypes
 from app.parsers import DVCRentalParser, ParsedSpecial, SpecialIDGenerator
 from app.cli import update_specials
 
@@ -11,7 +11,7 @@ migrate = Migrate(app, db)
 @app.shell_context_processor
 def make_shell_context():
     return dict(db=db, ParsedSpecial=ParsedSpecial, StoredSpecial=StoredSpecial,
-                Status=Status, Emails=Emails, PhoneNumbers=PhoneNumbers, SpecialTypes=SpecialTypes,
+                Status=Status, Email=Email, PhoneNumber=PhoneNumber, SpecialTypes=SpecialTypes,
                 DVCRentalParser=DVCRentalParser, SpecialIDGenerator=SpecialIDGenerator)
 
 

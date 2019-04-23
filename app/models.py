@@ -124,26 +124,30 @@ class Status(db.Model):
     def __repr__(self):
         return '<Healthy: ' + 'Yes' if self.healthy else 'No'
 
-class Emails(db.Model):
+class Email(db.Model):
     """
     The email addresses that updates should be sent to. If get_errors is set
     to True, the address will also receive error messages. The email addresses
     aren't checked in any way so it is up to you to make sure they are valid
     and correct.
     """
+    __tablename__ = 'emails'
+
     email = db.Column(db.String(80), primary_key=True)
     get_errors = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f'<Email: {self.email}>'
 
-class PhoneNumbers(db.Model):
+class PhoneNumber(db.Model):
     """
     The phone numbers that important update messages should get sent to. If
     get_errors is set to True, the number will also receive error messages. The
     phone numbers aren't checked in any way so it is up to you to make sure they
     are valid and correct.
     """
+    __tablename__ = 'phone_numbers'
+
     phone_number = db.Column(db.String(11), primary_key=True)
     get_errors = db.Column(db.Boolean, default=False)
 
