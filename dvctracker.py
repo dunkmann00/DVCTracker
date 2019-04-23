@@ -19,8 +19,10 @@ def make_shell_context():
 def deploy():
     """Run deployment tasks."""
     #migrate database to latest revision
+    print('Upgrading db schema if any changes made...')
     upgrade()
 
     #run an update to the specials, if the db changed we may now track more
     #data and need to update to get it
+    print('Upgrading stored specials with live data...')
     update_specials((), False, False)
