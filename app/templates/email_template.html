@@ -599,10 +599,9 @@
         </tr>
     </tbody>
 </table>
+{# This is where the specials start #}
 
-{# This is where the second table, which is the section of specials Additions #}
-
-{% if added_specials %}
+{% for heading, specials in specials_group %}
 <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width:100%;">
     <tbody class="mcnTextBlockOuter">
         <tr>
@@ -615,12 +614,12 @@
 				<!--[if mso]>
 				<td valign="top" width="600" style="width:600px;">
 				<![endif]-->
-                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%; min-width:100%;" width="100%" class="mcnTextContentContainer">
+                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%; min-width:100%; {% if not loop.first %}margin-top:20px;{% endif %}" width="100%" class="mcnTextContentContainer">
                     <tbody><tr>
 
                         <td valign="top" class="mcnTextContent" style="padding: 0px 18px 9px; font-family: Arial, &quot;Helvetica Neue&quot;, Helvetica, sans-serif;">
 
-                            <span style="color:#f20124"><strong><span style="font-size:24px"><span style="font-family:arial,helvetica neue,helvetica,sans-serif">Added</span></span></strong></span>
+                            <span style="color:#f20124"><strong><span style="font-size:24px"><span style="font-family:arial,helvetica neue,helvetica,sans-serif">{{ heading }}</span></span></strong></span>
                         </td>
                     </tr>
                 </tbody></table>
@@ -637,7 +636,6 @@
     </tbody>
 </table>
 
-{# This table is just the divider under the section #}
 <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnDividerBlock" style="min-width:100%;">
     <tbody class="mcnDividerBlockOuter">
         <tr>
@@ -657,172 +655,25 @@
         </tr>
     </tbody>
 </table>
-
+{% if specials %}
 {# This table is the discounted points table #}
 
-{% for special in added_specials if special.type == "disc_points" %}
+{% for special in specials if special.type == "disc_points" %}
 {% include 'disc_points_template.html' %}
 {% endfor %}
 
 {# This table is the pre-confirmeds table #}
 
-{% for special in added_specials if special.type == "preconfirm" %}
+{% for special in specials if special.type == "preconfirm" %}
 {% include 'pre-confirmed_template.html' %}
 {% endfor %}
 
-{% endif %}
+{% else %}
 
-
-
-{# This is where the second table, which is the section of specials is Updates #}
-
-{% if updated_specials %}
-<table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width:100%;">
-    <tbody class="mcnTextBlockOuter">
-        <tr>
-            <td valign="top" class="mcnTextBlockInner" style="padding-top:9px;">
-              	<!--[if mso]>
-				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
-				<tr>
-				<![endif]-->
-
-				<!--[if mso]>
-				<td valign="top" width="600" style="width:600px;">
-				<![endif]-->
-                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%; min-width:100%; margin-top: 20px;" width="100%" class="mcnTextContentContainer">
-                    <tbody><tr>
-
-                        <td valign="top" class="mcnTextContent" style="padding: 0px 18px 9px; font-family: Arial, &quot;Helvetica Neue&quot;, Helvetica, sans-serif;">
-
-                            <span style="color:#f20124"><strong><span style="font-size:24px"><span style="font-family:arial,helvetica neue,helvetica,sans-serif">Updated</span></span></strong></span>
-                        </td>
-                    </tr>
-                </tbody></table>
-				<!--[if mso]>
-				</td>
-				<![endif]-->
-
-				<!--[if mso]>
-				</tr>
-				</table>
-				<![endif]-->
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-{# This table is just the divider under the section #}
-<table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnDividerBlock" style="min-width:100%;">
-    <tbody class="mcnDividerBlockOuter">
-        <tr>
-            <td class="mcnDividerBlockInner" style="min-width: 100%; padding: 9px 18px;">
-                <table class="mcnDividerContent" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width: 100%;border-top: 2px solid #EAEAEA;">
-                    <tbody><tr>
-                        <td>
-                            <span></span>
-                        </td>
-                    </tr>
-                </tbody></table>
-<!--
-                <td class="mcnDividerBlockInner" style="padding: 18px;">
-                <hr class="mcnDividerContent" style="border-bottom-color:none; border-left-color:none; border-right-color:none; border-bottom-width:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:0; margin-bottom:0; margin-left:0;" />
--->
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-{# This table is the discounted points table #}
-
-{% for special in updated_specials if special.type == "disc_points" %}
-{% include 'disc_points_template.html' %}
-{% endfor %}
-
-{# This table is the pre-confirmeds table #}
-
-{% for special in updated_specials if special.type == "preconfirm" %}
-{% include 'pre-confirmed_template.html' %}
-{% endfor %}
+<h2 style="text-align: center;">No Specials at this time</h2>
 
 {% endif %}
-
-
-
-
-{# This is where the second table, which is the section of specials is Removals #}
-
-{% if removed_specials %}
-<table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnTextBlock" style="min-width:100%;">
-    <tbody class="mcnTextBlockOuter">
-        <tr>
-            <td valign="top" class="mcnTextBlockInner" style="padding-top:9px;">
-              	<!--[if mso]>
-				<table align="left" border="0" cellspacing="0" cellpadding="0" width="100%" style="width:100%;">
-				<tr>
-				<![endif]-->
-
-				<!--[if mso]>
-				<td valign="top" width="600" style="width:600px;">
-				<![endif]-->
-                <table align="left" border="0" cellpadding="0" cellspacing="0" style="max-width:100%; min-width:100%; margin-top: 20px;" width="100%" class="mcnTextContentContainer">
-                    <tbody><tr>
-
-                        <td valign="top" class="mcnTextContent" style="padding: 0px 18px 9px; font-family: Arial, &quot;Helvetica Neue&quot;, Helvetica, sans-serif;">
-
-                            <span style="color:#f20124"><strong><span style="font-size:24px"><span style="font-family:arial,helvetica neue,helvetica,sans-serif">Removed</span></span></strong></span>
-                        </td>
-                    </tr>
-                </tbody></table>
-				<!--[if mso]>
-				</td>
-				<![endif]-->
-
-				<!--[if mso]>
-				</tr>
-				</table>
-				<![endif]-->
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-{# This table is just the divider under the section #}
-<table border="0" cellpadding="0" cellspacing="0" width="100%" class="mcnDividerBlock" style="min-width:100%;">
-    <tbody class="mcnDividerBlockOuter">
-        <tr>
-            <td class="mcnDividerBlockInner" style="min-width: 100%; padding: 9px 18px;">
-                <table class="mcnDividerContent" border="0" cellpadding="0" cellspacing="0" width="100%" style="min-width: 100%;border-top: 2px solid #EAEAEA;">
-                    <tbody><tr>
-                        <td>
-                            <span></span>
-                        </td>
-                    </tr>
-                </tbody></table>
-<!--
-                <td class="mcnDividerBlockInner" style="padding: 18px;">
-                <hr class="mcnDividerContent" style="border-bottom-color:none; border-left-color:none; border-right-color:none; border-bottom-width:0; border-left-width:0; border-right-width:0; margin-top:0; margin-right:0; margin-bottom:0; margin-left:0;" />
--->
-            </td>
-        </tr>
-    </tbody>
-</table>
-
-{# This table is the discounted points table #}
-
-{% for special in removed_specials if special.type == "disc_points" %}
-{% include 'disc_points_template.html' %}
 {% endfor %}
-
-{# This table is the pre-confirmeds table #}
-
-{% for special in removed_specials if special.type == "preconfirm" %}
-{% include 'pre-confirmed_template.html' %}
-{% endfor %}
-
-{% endif %}
-
-
-
 </td>
                             </tr>
                             <tr>

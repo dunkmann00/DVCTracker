@@ -56,12 +56,16 @@ def update_specials(local_specials, send_email, send_error_report):
         remove_old_specials(removed_specials_list)
 
         #Send an email if we need to.... i.e. if there were any kind of updates
-        changes = len(new_specials_list) > 0 or len(updated_specials_list) > 0 or len(removed_specials_list) > 0
-        if changes and send_email:
+        changes = []
+        if len(new_specials_list) > 0:
+            changes.append(('Added', new_specials_list))
+        if len(updated_specials_list) > 0:
+            changes.append(('Updated', updated_specials_list))
+        if len(removed_specials_list) > 0:
+            changes.append(('Removed', removed_specials_list))
+        if len(changes) > 0 and send_email:
             email_message = render_template('email_template.html',
-                                            added_specials=new_specials_list,
-                                            updated_specials=updated_specials_list,
-                                            removed_specials=removed_specials_list,
+                                            specials_group=changes,
                                             env_label=env_label.get(current_app.env))
             message.send_update_email(email_message)
 
