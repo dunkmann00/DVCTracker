@@ -10,7 +10,7 @@ locale.setlocale(locale.LC_ALL, '')
 
 @main.route('/')
 def current_specials():
-    all_stored_specials = Special.query.order_by(Special.check_in, Special.check_out)
+    all_stored_specials = Special.query.order_by(Special.check_in, Special.check_out).all()
     return render_template('email_template.html',
                            specials_group=(('All', all_stored_specials),),
                            env_label=env_label.get(current_app.env))
@@ -25,7 +25,7 @@ def current_important_specials():
 
 @main.route('/errors')
 def current_error_specials():
-    all_stored_specials = Special.query.filter_by(error=True).order_by(Special.check_in, Special.check_out)
+    all_stored_specials = Special.query.filter_by(error=True).order_by(Special.check_in, Special.check_out).all()
     return render_template('email_template.html',
                            specials_group=(('Errors', all_stored_specials),),
                            env_label=env_label.get(current_app.env))
