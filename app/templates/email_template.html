@@ -731,6 +731,10 @@
 
 {# This table is the discounted points table #}
 
+{% macro old_value(value) -%}
+{% if value is defined %}({{ value|nullable }}){% endif %}
+{%- endmacro %}
+
 {% for special in updated_specials if special.type == "disc_points" %}
 {% include 'disc_points_template.html' %}
 {% endfor %}

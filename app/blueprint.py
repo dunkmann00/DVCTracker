@@ -33,15 +33,15 @@ def current_error_specials():
 
 @main.app_template_filter()
 def datetimeformat(value, format="%B %-d, %Y"):
-    if value is None:
-        return None
+    if not value:    #using 'not' rather than 'is None' so that when a Jinja2
+        return value  #Undefined value is passed in we will also exit
     if sys.platform == 'win32':
         format = format.replace('%-', '%#')
     return value.strftime(format)
 
 @main.app_template_filter()
 def currencyformat(value):
-    return locale.currency(value, grouping=True) if value is not None else None
+    return locale.currency(value, grouping=True) if value else value
 
 @main.app_template_filter()
 def nullable(value):

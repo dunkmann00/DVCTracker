@@ -12,7 +12,7 @@ def log_response(service, success_msg, raise_on_fail=False):
             if response and response.status_code == requests.codes.ok:
                 if success_msg:
                     print(success_msg)
-            else:
+            elif response:
                 msg = f'{service}: {response.status_code} {response.reason}'
                 print(msg)
                 if raise_on_fail:

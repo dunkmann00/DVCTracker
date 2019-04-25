@@ -22,10 +22,10 @@
 &nbsp;
 
 <div style="padding-left:18px;padding-bottom:18px">
-  Points Available: {{ special.points|nullable }} {% if special.old_points %}({{ special.old_points }}){% endif %}<br>
-  Price: {{ special.price|currencyformat|nullable }} {% if old_price %}({{ old_price|currencyformat }}){% endif %}<br>
-  Check-Out no later than: {{ special.check_out|datetimeformat|nullable }}<br>
-  Mention ID: Special {{ special.mention_id|nullable }}<br>
+  Points Available: {{ special.points|nullable }} {{ old_value(special.old_points) }}<br>
+  Price: {{ special.price|currencyformat|nullable }} {{ old_value(special.old_price|currencyformat) }}<br>
+  Check-Out no later than: {{ special.check_out|datetimeformat|nullable }} {{ old_value(special.old_check_out|datetimeformat) }}<br>
+  Mention ID: Special {{ special.mention_id|nullable }} {{ old_value(special.old_mention_id) }}<br>
 	<br>
 	Source: <a href="{{ special.url }}" target="_blank" rel="noopener noreferrer">{{ special.source }}</a>
 </div>

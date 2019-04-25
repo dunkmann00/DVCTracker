@@ -65,13 +65,22 @@ class StoredSpecial(db.Model):
     def update_with_special(self, other):
         """
         Updates any values that are not equal from other to self. Other can be
-        either a StoredSpecial or a ParsedSpecial.
+        either a StoredSpecial or a ParsedSpecial. The old value will be stored
+        as a variable with the prefix 'old_' added (i.e. points -> old_points).
         """
+        old_price_per_night = self.price_per_night
+        old_duration = self.duration
         for col in self.get_columns():
             stored_value = getattr(self, col)
             new_value = getattr(other, col)
             if new_value != stored_value:
+                setattr(self, f"old_{col}", stored_value)
                 setattr(self, col, new_value)
+                if 'check' in col:
+                    self.old_duration = old_duration
+                    self.old_price_per_night = old_price_per_night
+                elif 'price' == col:
+                    self.old_price_per_night = old_price_per_night
 
     @orm.validates('error')
     def error_change(self, key, error):

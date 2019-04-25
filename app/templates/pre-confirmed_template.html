@@ -21,17 +21,17 @@
 &nbsp;
 
 <div style="padding-left:18px;padding-bottom:18px">
-  Check-In: {{ special.check_in|datetimeformat|nullable }}<br>
-  Check-Out: {{ special.check_out|datetimeformat|nullable }}<br>
-  Length of Stay: {{ special.duration|nullable }} {% if special.duration %}night{{'s' if special.duration > 1}}{% endif %}<br>
+  Check-In: {{ special.check_in|datetimeformat|nullable }} {{ old_value(special.old_check_in|datetimeformat) }}<br>
+  Check-Out: {{ special.check_out|datetimeformat|nullable }} {{ old_value(special.old_check_out|datetimeformat) }}<br>
+  Length of Stay: {{ special.duration|nullable }} {% if special.duration %}night{{'s' if special.duration > 1}}{% endif %} {{ old_value(special.old_duration) }}<br>
   <br>
-  Resort: {{ special.resort|nullable }}<br>
-  Room: {{ special.room|nullable }}<br>
+  Resort: {{ special.resort|nullable }} {{ old_value(special.old_resort) }}<br>
+  Room: {{ special.room|nullable }} {{ old_value(special.old_room) }}<br>
   <br>
-  Total Price: {{ special.price|currencyformat|nullable }} {% if special.old_price %}({{ special.old_price|currencyformat }}){% endif %}<br>
-  Price/Night: {{ special.price_per_night|currencyformat|nullable }} {% if special.old_price and special.duration %}({{ special.old_price/special.duration|currencyformat }}){% endif %}<br>
+  Total Price: {{ special.price|currencyformat|nullable }} {{ old_value(special.old_price|currencyformat) }}<br>
+  Price/Night: {{ special.price_per_night|currencyformat|nullable }} {{ old_value(special.old_price_per_night|currencyformat) }}<br>
   <br>
-  Mention ID: Special {{ special.mention_id|nullable }}<br>
+  Mention ID: Special {{ special.mention_id|nullable }} {{ old_value(special.old_mention_id) }}<br>
 	<br>
 	Source: <a href="{{ special.url }}" target="_blank" rel="noopener noreferrer">{{ special.source }}</a>
 </div>
