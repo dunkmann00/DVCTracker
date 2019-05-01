@@ -18,8 +18,8 @@ class HerokuConfig(Config):
     def init_app(cls, app):
         Config.init_app(app)
 
-        from werkzeug.contrib.fixers import ProxyFix
-        app.wsgi_app = ProxyFix(app.wsgi_app)
+        from werkzeug.middleware.proxy_fix import ProxyFix
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_port=1)
 
 config = {
     'development': DevelopmentConfig,

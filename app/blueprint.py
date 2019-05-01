@@ -3,7 +3,7 @@ from datetime import datetime
 from . import env_label
 from .models import StoredSpecial as Special
 from .criteria import important_special
-import locale, sys, pdb
+import locale, sys
 
 main = Blueprint('main', __name__)
 locale.setlocale(locale.LC_ALL, '')
