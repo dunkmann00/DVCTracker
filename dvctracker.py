@@ -3,9 +3,10 @@ from app import create_app, db
 from app.models import StoredSpecial, Status, Email, PhoneNumber, SpecialTypes
 from app.parsers import DVCRentalParser, ParsedSpecial, SpecialIDGenerator
 from app.cli import update_specials
+import os
 
 
-app = create_app()
+app = create_app(os.getenv('FLASK_CONFIG', 'default'))
 migrate = Migrate(app, db)
 
 @app.shell_context_processor

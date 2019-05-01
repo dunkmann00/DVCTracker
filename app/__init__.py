@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+from config import config
 
 
 db = SQLAlchemy()
@@ -9,12 +10,10 @@ env_label = {
     'staging' : 'beta'
 }
 
-def create_app():
+def create_app(config_name):
     app = Flask(__name__)
-    app.config.from_object(__name__)
-    app.config.from_pyfile("../dvctracker_settings.cfg")
-    app.config.from_envvar('DVC_SETTINGS', silent=True)
-
+    app.config.from_object(config[config_name])
+    config[config_name].init_app(app)
     db.init_app(app)
 
     from .blueprint import main as main_blueprint
