@@ -93,7 +93,7 @@ def get_current_specials(local_specials):
         dvc_parser_specials = dvc_parser.get_all_specials(local_special)
 
         if len(dvc_parser_specials) == 0:
-            msg = f"There is a problem getting data from the {dvc_parcer.name} website."
+            msg = f"There is a problem getting data from the '{dvc_parser.name}' website."
             print(msg)
             raise Exception(msg)
         all_new_specials.update(dvc_parser_specials)
