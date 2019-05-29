@@ -4,9 +4,13 @@ import requests, time, random, hashlib
 
 
 class BaseParser(object):
-    def __init__(self, name, url):
+    def __init__(self, name, source, site_url, data_url=None, headers=None, params=None):
         self.name = name
-        self.url = url
+        self.source = source
+        self.site_url = site_url
+        self.data_url = data_url
+        self.headers = headers
+        self.params = params
         self.current_error = None
 
     def new_parsed_special(self, special_id_generator):
@@ -14,7 +18,7 @@ class BaseParser(object):
         Creates a ParsedSpecial object with the source and url attributes set
         to the values of the parser.
         """
-        return ParsedSpecial(special_id_generator, source=self.name, url=self.url)
+        return ParsedSpecial(special_id_generator, source=self.source, url=self.site_url)
 
     def get_all_specials(self, local_specials=None):
         """
@@ -48,14 +52,14 @@ class BaseParser(object):
         about why that is implemented visit:
         https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
         """
-        headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'}
         retries = 0
         print(f'Retrieving Specials from {self.name}')
         while(retries < 5):
             if retries > 0:
                 time.sleep(random.uniform(0, 2**retries))
                 print(f"Attempting Retry on Specials Request: {retries}")
-            dvc_page = requests.get(self.url, headers=headers)
+            url = self.data_url if self.data_url is not None else self.site_url
+            dvc_page = requests.get(url, headers=self.headers, params=self.params)
             if dvc_page.status_code in (500, 502, 503, 504):
                 retries+=1
             else:
