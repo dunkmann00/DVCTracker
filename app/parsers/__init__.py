@@ -1,4 +1,4 @@
-from .dvcrentalstore import DVCRentalParser
+from .dvcrentalstore_points import DVCRentalPointParser
 from .base_parser import ParsedSpecial, SpecialIDGenerator
 
-PARSERS = [DVCRentalParser]
+PARSERS = [DVCRentalPointParser]

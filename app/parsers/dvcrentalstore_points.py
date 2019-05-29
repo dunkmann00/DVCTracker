@@ -28,7 +28,7 @@ def mention(parsed_special):
         raise SpecialAttributesMissing()
     return parsed_special.mention_id
 
-class DVCRentalParser(BaseParser):
+class DVCRentalPointParser(BaseParser):
     def __init__(self, *args):
         super(DVCRentalParser, self).__init__(name='DVC Rental Store',
                                               url='https://dvcrentalstore.com/discounted-points-confirmed-reservations/')
