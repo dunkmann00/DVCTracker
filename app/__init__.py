@@ -19,9 +19,10 @@ def create_app(config_name):
     from .blueprint import main as main_blueprint
     app.register_blueprint(main_blueprint, url_prefix='/specials')
 
-    from .cli import update_specials_cli, reset_errors
+    from .cli import update_specials_cli, reset_errors, store_specials_data
     app.cli.add_command(update_specials_cli)
     app.cli.add_command(reset_errors)
+    app.cli.add_command(store_specials_data)
 
     from .criteria import load_criteria
     load_criteria(app.config['DVC_CRITERIA'])

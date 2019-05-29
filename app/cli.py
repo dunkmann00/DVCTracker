@@ -17,6 +17,18 @@ def reset_errors():
     set_health(True)
     db.session.commit()
 
+@click.command(help="Store contents of website data from parser NAME to use with local_specials.")
+@click.argument('name')
+def store_specials_data(name):
+    for Parser in PARSERS:
+        dvc_parser = Parser()
+        if dvc_parser.name == name:
+            specials_data = dvc_parser.get_specials_page()
+            with open(f'{dvc_parser.name}.html', 'wb') as f:
+                f.write(specials_data)
+            print(f"'{dvc_parser.name}' data has been stored!")
+            break
+
 @click.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
 @click.option('--local', 'local_specials', multiple=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True),
                          envvar="LOCAL_SPECIALS",
@@ -41,7 +53,7 @@ def update_specials(local_specials, send_email, send_error_report):
         new_specials = all_new_specials.copy()
 
         #Get the stored specials from the db
-        stored_specials = StoredSpecial.query.order_by(StoredSpecial.check_in, StoredSpecial.check_out)
+        stored_specials = StoredSpecial.query.order_by(StoredSpecial.check_in, StoredSpecial.check_out).all()
 
         #Check for any changes to the specials
         updated_specials_tuple, removed_specials_list = check_for_changes(new_specials, stored_specials)
@@ -92,6 +104,18 @@ def get_current_specials(local_specials):
         local_special = local_special_for_parser(dvc_parser, local_specials)
         dvc_parser_specials = dvc_parser.get_all_specials(local_special)
 
+        #Probably want to move this check into 'update_specials'. Putting it there
+        #will allow for an error to be tracked but won't require an exception to
+        #be thrown. As an idea, I could make the following changes to implement
+        #this:
+        #   1) Rather than returning a dictionary with specials and their id's as
+        #      keys, I could add each parsers dict into a dict with the parser
+        #      name as the key.
+        #   2) In 'update_specials' check if any specific parser is empty.
+        #   3) If a parser is empty create a list with the bad (and also maybe
+        #      the good) parsers.
+        #   4) Use the good list to filter the database query with and use the
+        #      bad list in the error message
         if len(dvc_parser_specials) == 0:
             msg = f"There is a problem getting data from the '{dvc_parser.name}' website."
             print(msg)
