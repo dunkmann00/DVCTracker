@@ -3,6 +3,7 @@ special_dict.txt
 test_message.html
 development_settings.cfg
 DVC_local.html
-dvcrentalstore_points.html
+dvcrentalstore_points.json
+dvcrentalstore_preconfirms.json
 *.pyc
 .env

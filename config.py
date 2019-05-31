@@ -5,6 +5,7 @@ class Config:
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     MAILGUN_API_KEY = os.getenv('MAILGUN_API_KEY')
     MAILGUN_DOMAIN_NAME = os.getenv('MAILGUN_DOMAIN_NAME')
+    TILL_URL = os.getenv('TILL_URL')
     DVC_CRITERIA = os.getenv('DVC_CRITERIA', 'criteria.toml')
     @staticmethod
     def init_app(app):

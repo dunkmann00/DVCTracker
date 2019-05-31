@@ -19,15 +19,19 @@ def reset_errors():
 
 @click.command(help="Store contents of website data from parser NAME to use with local_specials.")
 @click.argument('name')
-def store_specials_data(name):
+@click.option('-e', '--extension', default='html', help=("The extension you would like to use for "
+                                                         "the file that will be created. The "
+                                                         "default is 'html'."))
+def store_specials_data(name, extension):
     for Parser in PARSERS:
         dvc_parser = Parser()
         if dvc_parser.name == name:
             specials_data = dvc_parser.get_specials_page()
-            with open(f'{dvc_parser.name}.html', 'wb') as f:
+            with open(f'{dvc_parser.name}.{extension}', 'wb') as f:
                 f.write(specials_data)
             print(f"'{dvc_parser.name}' data has been stored!")
-            break
+            return
+    print(f"No parser with the name '{name}' was found.")
 
 @click.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
 @click.option('--local', 'local_specials', multiple=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True),
@@ -59,13 +63,13 @@ def update_specials(local_specials, send_email, send_error_report):
         updated_specials_tuple, removed_specials_list = check_for_changes(new_specials, stored_specials)
 
         #Adding new Specials
-        new_specials_list, new_important_specials = store_new_specials(new_specials)
+        new_specials_list, new_important_specials = store_new_specials(new_specials, stored_specials)
 
         #Updating Old Specials
         updated_specials_list, updated_important_specials = update_old_specials(updated_specials_tuple)
 
         #Deleting Removed Specials
-        remove_old_specials(removed_specials_list)
+        removed_specials_list = remove_old_specials(removed_specials_list)
 
         #Send an email if we need to.... i.e. if there were any kind of updates
         changes = []
@@ -75,7 +79,7 @@ def update_specials(local_specials, send_email, send_error_report):
             changes.append(('Updated', updated_specials_list))
         if len(removed_specials_list) > 0:
             changes.append(('Removed', removed_specials_list))
-        if len(changes) > 0 and send_email:
+        if changes and send_email:
             email_message = render_template('email_template.html',
                                             specials_group=changes,
                                             env_label=env_label.get(current_app.env))
@@ -123,12 +127,13 @@ def get_current_specials(local_specials):
         all_new_specials.update(dvc_parser_specials)
     return all_new_specials
 
-def store_new_specials(new_specials):
+def store_new_specials(new_specials, stored_specials):
     send_important_only = important_only()
     new_important_specials = False
     new_specials_list = []
     for new_special_key in new_specials:
         special_entry = add_special(new_specials[new_special_key])
+        stored_specials.append(special_entry)
         important = important_special(special_entry)
         if not (not important and send_important_only): #The only time it isn't added is when the special is not important and we only want to send important specials
             new_specials_list.append(special_entry)
@@ -155,8 +160,15 @@ def update_old_specials(updated_specials_tuple):
     return updated_specials_list, updated_important_specials
 
 def remove_old_specials(removed_specials):
+    send_important_only = important_only()
+    removed_specials_list = []
     for stored_special in removed_specials:
         remove_special(stored_special)
+        important = important_special(stored_special)
+        if not (not important and send_important_only):
+            removed_specials_list.append(stored_special)
+
+    return removed_specials_list
 
 def check_for_changes(new_specials, stored_specials):
     updated_specials_tuple = []
@@ -185,6 +197,7 @@ def handle_errors(new_specials, stored_specials):
     if len(new_specials_errors) > 0:
         error_msg = render_template('error_template.html', specials=new_specials_errors,
                                     env_label=env_label.get(current_app.env))
+        print('Uhh-ohh, Houston, we have a problem. There appears to be an error.')
         message.send_error_email(error_msg)
         message.send_error_text_messsage()
 
@@ -193,6 +206,7 @@ def handle_errors(new_specials, stored_specials):
         if len(all_specials_errors) > 0:
             error_msg = render_template('error_template.html', specials=all_specials_errors,
                                         env_label=env_label.get(current_app.env), error_report=True)
+            print('So, about that bug...when are you going to catch it? Producing Error Report.')
             message.send_error_report_email(error_msg)
 
 def unhandled_error(error):
@@ -224,5 +238,5 @@ def set_health(healthy):
 
 def local_special_for_parser(parser, local_specials):
     for local_special in local_specials:
-        if f"{parser.name}.html" == os.path.basename(local_special):
+        if parser.name == os.path.splitext(os.path.basename(local_special))[0]:
             return local_special

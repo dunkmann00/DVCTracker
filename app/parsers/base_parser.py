@@ -98,10 +98,10 @@ class ParsedSpecial(object):
                                     object, StoredSpecial will store the value
                                     that 'special_id_generator' generates for
                                     a ParsedSpecial
-        2) 'raw_strings' - This is stored in the event of an error, so that the
-                           original text from the website can be included in an
-                           error email. This is also stored so it can be used
-                           by the default function for the 'special_id_generator'.
+        2) 'raw_string' - This is stored in the event of an error, so that the
+                          original text from the website can be included in an
+                          error email. This is also stored so it can be used
+                          by the default function for the 'special_id_generator'.
         3) 'errors' - Stores all the SpecialError objects that were created
                       during the parsing of the html. This is used in the error
                       email. This is also used to determine the value of the
@@ -119,7 +119,7 @@ class ParsedSpecial(object):
         self.check_out = kwargs.pop('check_out', None)
         self.resort = kwargs.pop('resort', None)
         self.room = kwargs.pop('room', None)
-        self.raw_strings = kwargs.pop('raw_strings', None)
+        self.raw_string = kwargs.pop('raw_string', None)
         self.errors = []
         self._special_id = None
 
@@ -143,6 +143,10 @@ class ParsedSpecial(object):
                 else:
                     print(f"Unable to generate special_id")
 
+    @special_id.setter
+    def special_id(self, value):
+        self._special_id = value
+
     @property
     def error(self):
         return len(self.errors) > 0
@@ -160,9 +164,8 @@ class SpecialIDGenerator(object):
     added to it using the decorator function 'generator_function'. Functions
     will be tried in the order that they are added in the file.
     SpecialIDGenerator already includes a default function that takes the
-    'raw_strings' value, joins each string together with line endings, and
-    returns the sha-256 hash. This function will be used if all of the other
-    functions that are added fail.
+    'raw_string' value and returns the sha-256 hash. This function will be used
+    if all of the other functions that are added fail.
     """
     def __init__(self):
         self.generator_functions = [self.default_special_id]
@@ -174,7 +177,7 @@ class SpecialIDGenerator(object):
     @staticmethod
     def default_special_id(parsed_special):
         m = hashlib.sha256()
-        m.update('\n'.join(parsed_special.raw_strings).encode())
+        m.update(parsed_special.raw_string.encode())
         return m.hexdigest()
 
 def special_error(f):

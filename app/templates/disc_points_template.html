@@ -25,7 +25,7 @@
   Points Available: {{ special.points|nullable }} {{ old_value(special.old_points) }}<br>
   Price: {{ special.price|currencyformat|nullable }} {{ old_value(special.old_price|currencyformat) }}<br>
   Check-Out no later than: {{ special.check_out|datetimeformat|nullable }} {{ old_value(special.old_check_out|datetimeformat) }}<br>
-  Mention ID: Special {{ special.mention_id|nullable }} {{ old_value(special.old_mention_id) }}<br>
+  Mention ID: {% if special.mention_id %}Special {% endif %}{{ special.mention_id|nullable }} {{ old_value(special.old_mention_id) }}<br>
 	<br>
 	Source: <a href="{{ special.url }}" target="_blank" rel="noopener noreferrer">{{ special.source }}</a>
 </div>

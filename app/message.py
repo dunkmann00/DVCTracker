@@ -11,7 +11,7 @@ def log_response(service, success_msg, raise_on_fail=False):
             response = f(*args, **kwargs)
             if response and response.status_code == requests.codes.ok:
                 if success_msg:
-                    print(success_msg)
+                    print(f'{service}: {success_msg}')
             elif response:
                 msg = f'{service}: {response.status_code} {response.reason}'
                 print(msg)
@@ -40,41 +40,41 @@ def send_email(subject, email_message, addresses, html_message=True):
 
 @log_response("Mailgun", "Update Message Sent", True)
 def send_update_email(email_message):
-    email_addresses = [email_address.email for email_address in Email.query.all()]
+    email_addresses = [email_address.email for email_address in Email.query]
     return send_email("DVCTracker Updates", email_message, email_addresses)
 
 @log_response("Mailgun", "Error Message Sent")
 def send_error_email(email_message, html_message=True):
-    email_addresses = [email_address.email for email_address in Email.query.filter_by(get_errors=True).all()]
+    email_addresses = [email_address.email for email_address in Email.query.filter_by(get_errors=True)]
     return send_email("DVCTracker Error", email_message, email_addresses, html_message)
 
 @log_response("Mailgun", "Error Report Sent")
 def send_error_report_email(email_message, html_message=True):
-    email_addresses = [email_address.email for email_address in Email.query.filter_by(get_errors=True).all()]
+    email_addresses = [email_address.email for email_address in Email.query.filter_by(get_errors=True)]
     return send_email("DVCTracker Error Report", email_message, email_addresses, html_message)
 
 
 
 def send_text_message(message, numbers):
-    if os.environ.get("TILL_URL") is None:
+    if current_app.config['TILL_URL'] is None:
         print('No TILL URL, not sending txt.')
         return
 
     msg_env = env_label.get(current_app.env)
     msg_env = f"({msg_env}) " if msg_env else ""
-    return requests.post(os.environ.get("TILL_URL"), json={
+    return requests.post(current_app.config['TILL_URL'], json={
                "phone": numbers,
                "text": msg_env + message
            })
 
 @log_response("Till", "Update Text Sent")
 def send_update_text_message():
-    phone_numbers = [phone_number.phone_number for phone_number in PhoneNumber.query.all()]
+    phone_numbers = [phone_number.phone_number for phone_number in PhoneNumber.query]
     msg = "Hey this is DVCTracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
     return send_text_message(msg, phone_numbers)
 
 @log_response("Till", "Error Text Sent")
 def send_error_text_messsage():
-    phone_numbers = [phone_number.phone_number for phone_number in PhoneNumber.query.filter_by(get_errors=True).all()]
+    phone_numbers = [phone_number.phone_number for phone_number in PhoneNumber.query.filter_by(get_errors=True)]
     msg = "Hey this is DVCTracker!\nThere seems to be a problem checking for updates and/or sending emails. Check your emails for more info!"
     return send_text_message(msg, phone_numbers)

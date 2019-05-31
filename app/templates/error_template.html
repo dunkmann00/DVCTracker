@@ -70,9 +70,9 @@
             {% endfor %}
       </div>
         <h2>Special's Text:</h2>
-        {% for line in special.raw_strings %}
-        {{ line }}<br>
-        {% endfor %}
+        <pre>
+{{ special.raw_string }}
+        </pre>
         {% if not loop.last %}<div class="separator separator-extra"></div>{% endif %}
     </div>
     {% endfor %}
