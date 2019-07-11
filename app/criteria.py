@@ -32,12 +32,7 @@ def important_date(special, imp_date):
         if check_in is None:
             return False
         r1 = Range(start=check_in, end=check_out)
-        r2 = Range(start=date.fromisoformat(imp_date['start'].as_string()), end=date.fromisoformat(imp_date['end'].as_string()))
-        #Need to do that with the dates from the toml file because tomlkit thinks the return value of these should be a date and tries to make it
-        #a toml date, which results in an error. I will look into submitting a pull request.
-        #Tomlkit error info:
-        #Only applies to subtracting (__sub__) Date or DateTime, the resulting object from a subtract is not the same type of object, but is a timedelta.
-        #In the situation where it is a timedelta object the object should be returned as is and not passed into _new
+        r2 = Range(start=imp_date['start'], end=imp_date['end'])
         latest_start = max(r1.start, r2.start)
         earliest_end = min(r1.end, r2.end)
         overlap = (earliest_end - latest_start).days + 1
