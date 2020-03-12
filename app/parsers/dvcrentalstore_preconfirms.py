@@ -1,30 +1,8 @@
 from flask import json
 from datetime import datetime
-from .base_parser import BaseParser, SpecialIDGenerator, special_error
+from .base_parser import BaseParser, special_error
 from ..models import SpecialTypes
-from ..errors import SpecialError, SpecialAttributesMissing
-
-special_id_generator = SpecialIDGenerator()
-
-@special_id_generator.generator_function
-def mention_and_check_out(parsed_special):
-    if parsed_special.mention_id is None or parsed_special.check_out is None:
-        raise SpecialAttributesMissing()
-    check_out_str = parsed_special.check_out.strftime("%m%d%y")
-    return f'{parsed_special.mention_id}:{check_out_str}'
-
-@special_id_generator.generator_function
-def mention_and_check_in(parsed_special):
-    if parsed_special.mention_id is None or parsed_special.check_in is None:
-        raise SpecialAttributesMissing()
-    check_in_str = parsed_special.check_in.strftime("%m%d%y")
-    return f'{parsed_special.mention_id}:{check_in_str}'
-
-@special_id_generator.generator_function
-def mention(parsed_special):
-    if parsed_special.mention_id is None:
-        raise SpecialAttributesMissing()
-    return parsed_special.mention_id
+from ..errors import SpecialError
 
 
 class DVCRentalPreconfirmParser(BaseParser):
@@ -48,7 +26,7 @@ class DVCRentalPreconfirmParser(BaseParser):
         """
         Parses Preconfirmed specials. Info is parsed out of a JSON dictionary.
         """
-        parsed_special = self.new_parsed_special(special_id_generator)
+        parsed_special = self.new_parsed_special()
         parsed_special.type = SpecialTypes.preconfirm
         parsed_special.raw_string = json.dumps(special_dict, indent=' '*4)
 
@@ -56,9 +34,13 @@ class DVCRentalPreconfirmParser(BaseParser):
             setattr(parsed_special, field, func(self, special_dict))
             if self.current_error is not None:
                 parsed_special.errors.append(self.pop_current_error())
-
+        if parsed_special.special_id is None:
+            # Try one more time to set the special_id
+            parsed_special.special_id = self.mention_and_check_out(parsed_special)
         return parsed_special
 
+    # Now that DVCRentalStore has unique IDs in their data, we can just set
+    # the special_id directly, we don't need to use the SpecialIDGenerator
     @special_error
     def get_special_id(self, special_dict):
         id = special_dict.get('id')
@@ -119,6 +101,13 @@ class DVCRentalPreconfirmParser(BaseParser):
         room = 'Deluxe Studio' if room == 'Studio' else room.replace(' ', '-')
         view = f'{view} View ' if view else ''
         return f'{view}{room} Villa'
+
+    @staticmethod
+    def mention_and_check_out(parsed_special):
+        if parsed_special.mention_id is None or parsed_special.check_out is None:
+            return
+        check_out_str = parsed_special.check_out.strftime("%m%d%y")
+        return f'{parsed_special.mention_id}:{check_out_str}'
 
     parse_fields = {'price': get_price,
                     'check_in': get_check_in_date,

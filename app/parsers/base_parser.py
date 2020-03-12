@@ -1,4 +1,4 @@
-from ..errors import SpecialError, SpecialAttributesMissing
+from ..errors import SpecialError
 from functools import wraps
 import requests, time, random, hashlib
 
@@ -13,12 +13,12 @@ class BaseParser(object):
         self.params = params
         self.current_error = None
 
-    def new_parsed_special(self, special_id_generator):
+    def new_parsed_special(self):
         """
         Creates a ParsedSpecial object with the source and url attributes set
         to the values of the parser.
         """
-        return ParsedSpecial(special_id_generator, source=self.source, url=self.site_url)
+        return ParsedSpecial(source=self.source, url=self.site_url)
 
     def get_all_specials(self, local_specials=None):
         """
@@ -94,21 +94,16 @@ class ParsedSpecial(object):
     A ParsedSpecial object represents the data that is on the Parser's
     website. The attributes of this object mirror that of the StoredSpecial
     object, however there are a few differences:
-        1) 'special_id_generator' - Only the ParsedSpecial needs to store this
-                                    object, StoredSpecial will store the value
-                                    that 'special_id_generator' generates for
-                                    a ParsedSpecial
-        2) 'raw_string' - This is stored in the event of an error, so that the
+        1) 'raw_string' - This is stored in the event of an error, so that the
                           original text from the website can be included in an
                           error email. This is also stored so it can be used
                           by the default function for the 'special_id_generator'.
-        3) 'errors' - Stores all the SpecialError objects that were created
+        2) 'errors' - Stores all the SpecialError objects that were created
                       during the parsing of the html. This is used in the error
                       email. This is also used to determine the value of the
                       'error' attribute.
     """
-    def __init__(self, special_id_generator, **kwargs):
-        self.special_id_generator = special_id_generator
+    def __init__(self, **kwargs):
         self.mention_id = kwargs.pop('mention_id', None)
         self.source = kwargs.pop('source', None)
         self.url = kwargs.pop('url', None)
@@ -128,20 +123,11 @@ class ParsedSpecial(object):
 
     @property
     def special_id(self):
-        if self.special_id_generator is None:
-            return None
-        elif self._special_id is not None:
+        if self._special_id is not None:
             return self._special_id
-
-        for generator_function in self.special_id_generator.generator_functions:
-            try:
-                self._special_id = generator_function(self)
-                return self._special_id
-            except SpecialAttributesMissing:
-                if generator_function.__name__ != 'default_special_id':
-                    print(f"Creating special_id with '{generator_function.__name__}' failed, trying next method...")
-                else:
-                    print(f"Unable to generate special_id")
+        m = hashlib.sha256()
+        m.update(self.raw_string.encode())
+        return m.hexdigest()
 
     @special_id.setter
     def special_id(self, value):
@@ -155,30 +141,6 @@ class ParsedSpecial(object):
     def __repr__(self):
         return f'<Parsed Special: {self.special_id}>'
 
-
-class SpecialIDGenerator(object):
-    """
-    Used to create a value for the special_id attribute of a ParsedSpecial.
-    In a BaseParser subclass file, a SpecialIDGenerator should be created and
-    functions that will create a 'special_id' using other fields, should be
-    added to it using the decorator function 'generator_function'. Functions
-    will be tried in the order that they are added in the file.
-    SpecialIDGenerator already includes a default function that takes the
-    'raw_string' value and returns the sha-256 hash. This function will be used
-    if all of the other functions that are added fail.
-    """
-    def __init__(self):
-        self.generator_functions = [self.default_special_id]
-
-    def generator_function(self, callback):
-        self.generator_functions.insert(-1, callback)
-        return callback
-
-    @staticmethod
-    def default_special_id(parsed_special):
-        m = hashlib.sha256()
-        m.update(parsed_special.raw_string.encode())
-        return m.hexdigest()
 
 def special_error(f):
     '''

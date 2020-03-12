@@ -9,10 +9,3 @@ class SpecialError(Exception):
     def __str__(self):
         return (f"Unable to parse '{self.attribute}'\n"
                 f"Content: '{self.content}'\n")
-
-class SpecialAttributesMissing(Exception):
-    """
-    Exception raised in a 'special_id_generator' function when the function
-    cannot succesfully create a 'special_id'.
-    """
-    pass
