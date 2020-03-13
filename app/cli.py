@@ -214,12 +214,20 @@ def unhandled_error(error):
     db.session.rollback()
     healthy = check_health()
     if healthy or g.send_error_report:
-        error_msg = f'Unhandled Exception\n\n{error}\n\n{traceback.format_exc()}'
+        error_msg = f'Unhandled Exception: {error_type(error)}\n\n{error}\n\n{traceback.format_exc()}'
         send_error_func = message.send_error_report_email if g.send_error_report else message.send_error_email
         send_error_func(error_msg, html_message=False)
         if healthy:
             message.send_error_text_messsage()
         set_health(False)
+
+# From traceback.py in CPython Line #563
+def error_type(error):
+    err_type = type(error).__qualname__
+    err_mod = type(error).__module__
+    if err_mod not in ("__main__", "builtins"):
+        err_type = err_mod + '.' + err_type
+    return err_type
 
 def get_status():
     status = Status.query.first()
