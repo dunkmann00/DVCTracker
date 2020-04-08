@@ -1,4 +1,4 @@
-from flask import json
+from flask import json, current_app
 from datetime import datetime
 from .base_parser import BaseParser, special_error
 from ..models import SpecialTypes
@@ -18,7 +18,7 @@ class DVCRentalPreconfirmParser(BaseParser):
                                                             'X-Requested-With': 'XMLHttpRequest'},
                                                    params={'format': 'both',
                                                            'page': 1,
-                                                           'rows_per_page': 250,
+                                                           'rows_per_page': current_app.config['DVCRENTALSTORE_PRECONFIRM_RPP'],
                                                            'sort_field': 'field_10',
                                                            'sort_order': 'asc'})
 

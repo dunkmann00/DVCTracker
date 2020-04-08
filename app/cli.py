@@ -22,6 +22,7 @@ def reset_errors():
 @click.option('-e', '--extension', default='html', help=("The extension you would like to use for "
                                                          "the file that will be created. The "
                                                          "default is 'html'."))
+@with_appcontext
 def store_specials_data(name, extension):
     for Parser in PARSERS:
         dvc_parser = Parser()

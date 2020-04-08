@@ -7,6 +7,7 @@ class Config:
     MAILGUN_DOMAIN_NAME = os.getenv('MAILGUN_DOMAIN_NAME')
     TILL_URL = os.getenv('TILL_URL')
     DVC_CRITERIA = os.getenv('DVC_CRITERIA', 'criteria.toml')
+    DVCRENTALSTORE_PRECONFIRM_RPP = int(os.getenv('DVCRENTALSTORE_PRECONFIRM_RPP', 100))
     @staticmethod
     def init_app(app):
         pass
