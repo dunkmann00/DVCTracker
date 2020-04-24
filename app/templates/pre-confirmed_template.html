@@ -31,7 +31,7 @@
   Total Price: {{ special.price|currencyformat|nullable }} {{ old_value(special.old_price|currencyformat) }}<br>
   Price/Night: {{ special.price_per_night|currencyformat|nullable }} {{ old_value(special.old_price_per_night|currencyformat) }}<br>
   <br>
-  Reservation ID: {% if special.reservation_id %}Special {% endif %}{{ special.reservation_id|nullable }} {{ old_value(special.old_reservation_id) }}<br>
+  Reservation ID: {{ special.reservation_id|nullable }} {{ old_value(special.old_reservation_id) }}<br>
 	<br>
 	Source: <a href="{{ special.url }}" target="_blank" rel="noopener noreferrer">{{ special.source }}</a>
 </div>
