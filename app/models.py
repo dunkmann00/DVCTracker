@@ -23,7 +23,7 @@ class StoredSpecial(db.Model):
         self.new_error = False
 
     special_id = db.Column(db.String(), primary_key=True)
-    mention_id = db.Column(db.String(64))
+    reservation_id = db.Column(db.String(64))
     source = db.Column(db.String(32))
     url = db.Column(db.String(100))
     type = db.Column(db.String(15))

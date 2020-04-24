@@ -49,10 +49,10 @@ class DVCRentalPreconfirmParser(BaseParser):
         return id
 
     @special_error
-    def get_mention_id(self, special_dict):
-        id = special_dict.get('field_199_raw')
+    def get_reservation_id(self, special_dict):
+        id = special_dict.get('field_56_raw')
         if id is None:
-            raise SpecialError('mention_id', 'field_199_raw = None')
+            raise SpecialError('reservation_id', 'field_56_raw = None')
         return id
 
     @special_error
@@ -112,7 +112,7 @@ class DVCRentalPreconfirmParser(BaseParser):
     parse_fields = {'price': get_price,
                     'check_in': get_check_in_date,
                     'check_out': get_check_out_date,
-                    'mention_id': get_mention_id,
+                    'reservation_id': get_reservation_id,
                     'special_id': get_special_id,
                     'resort': get_resort,
                     'room': get_room}

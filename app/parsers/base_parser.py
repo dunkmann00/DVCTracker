@@ -104,7 +104,7 @@ class ParsedSpecial(object):
                       'error' attribute.
     """
     def __init__(self, **kwargs):
-        self.mention_id = kwargs.pop('mention_id', None)
+        self.reservation_id = kwargs.pop('reservation_id', None)
         self.source = kwargs.pop('source', None)
         self.url = kwargs.pop('url', None)
         self.type = kwargs.pop('type', None)
