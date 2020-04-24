@@ -53,7 +53,7 @@ class DVCRentalPreconfirmParser(BaseParser):
         id = special_dict.get('field_56_raw')
         if id is None:
             raise SpecialError('reservation_id', 'field_56_raw = None')
-        return id
+        return str(id)
 
     @special_error
     def get_price(self, special_dict):
