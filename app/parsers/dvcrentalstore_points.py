@@ -48,10 +48,10 @@ class DVCRentalPointParser(BaseParser):
         return id
 
     @special_error
-    def get_mention_id(self, special_dict):
+    def get_reservation_id(self, special_dict):
         id = special_dict.get('field_203_raw')
         if id is None:
-            raise SpecialError('mention_id', 'field_203_raw = None')
+            raise SpecialError('get_reservation_id', 'field_203_raw = None')
         return id
 
     @special_error
@@ -86,7 +86,7 @@ class DVCRentalPointParser(BaseParser):
     parse_fields = {'points': get_points,
                     'price': get_price,
                     'check_out': get_check_out_date,
-                    'mention_id': get_mention_id,
+                    'reservation_id': get_reservation_id,
                     'special_id': get_special_id}
 
     def process_specials_content(self, specials_content):
