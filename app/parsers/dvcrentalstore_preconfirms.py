@@ -10,7 +10,7 @@ class DVCRentalPreconfirmParser(BaseParser):
         super(DVCRentalPreconfirmParser, self).__init__(name='dvcrentalstore_preconfirms',
                                                    source='DVC Rental Store',
                                                    site_url='https://dvcrentalstore.com/discounted-points-confirmed-reservations/',
-                                                   data_url='https://us-east-1-renderer-read.knack.com/v1/scenes/scene_143/views/view_979/records',
+                                                   data_url='https://us-east-1-renderer-read.knack.com/v1/scenes/scene_620/views/view_1064/records',
                                                    headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
                                                             'X-Knack-REST-API-Key': 'renderer',                     #REQUIRED
                                                             'X-Knack-Application-Id': '5b1e9f1bd250af137b419ba5',   #REQUIRED
