@@ -3,6 +3,7 @@ from datetime import datetime
 from .base_parser import BaseParser, special_error
 from ..models import SpecialTypes
 from ..errors import SpecialError
+import requests
 
 
 class DVCRentalPreconfirmParser(BaseParser):
@@ -21,6 +22,30 @@ class DVCRentalPreconfirmParser(BaseParser):
                                                            'rows_per_page': current_app.config['DVCRENTALSTORE_PRECONFIRM_RPP'],
                                                            'sort_field': 'field_10',
                                                            'sort_order': 'asc'})
+
+    def get_specials_page(self):
+        # Have to override the superclass because this has to support paging
+        # maybe eventually I can remove this, but for now there are too many preconfirms (> 1000)
+        content = []
+        total_pages = 1
+        retries = 0
+        print(f'Retrieving Specials from {self.name}')
+        while self.params['page'] <= total_pages:
+            while(retries < 5):
+                if retries > 0:
+                    time.sleep(random.uniform(0, 2**retries))
+                    print(f"Attempting Retry on Specials Request: {retries}")
+                url = self.data_url if self.data_url is not None else self.site_url
+                dvc_page = requests.get(url, headers=self.headers, params=self.params)
+                if dvc_page.status_code in (500, 502, 503, 504):
+                    retries+=1
+                else:
+                    break
+            dvc_json = json.loads(dvc_page.content)
+            content.append(dvc_json)
+            total_pages = dvc_json.get('total_pages', 1)
+            self.params['page']+=1
+        return content
 
     def process_element(self, special_dict):
         """
@@ -117,14 +142,15 @@ class DVCRentalPreconfirmParser(BaseParser):
                     'resort': get_resort,
                     'room': get_room}
 
-    def process_specials_content(self, specials_content):
-        specials = json.loads(specials_content).get('records', {})
+    def process_specials_content(self, specials_content_list):
         specials_dict = {}
+        for specials_content in specials_content_list:
+            specials = specials_content.get('records', {})
 
-        for special in specials:
-            parsed_special = self.process_element(special)
-            if parsed_special is not None:
-                key = parsed_special.special_id
-                specials_dict[key] = parsed_special
+            for special in specials:
+                parsed_special = self.process_element(special)
+                if parsed_special is not None:
+                    key = parsed_special.special_id
+                    specials_dict[key] = parsed_special
 
         return specials_dict
