@@ -3,7 +3,7 @@ from datetime import datetime
 from .base_parser import BaseParser, special_error
 from ..models import SpecialTypes
 from ..errors import SpecialError
-import requests
+import requests, time, random
 
 
 class DVCRentalPreconfirmParser(BaseParser):
