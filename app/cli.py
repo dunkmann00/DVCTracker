@@ -1,4 +1,4 @@
-from flask import current_app, g, render_template
+from flask import current_app, g, render_template, json
 from flask.cli import with_appcontext
 from datetime import date
 from . import db, env_label
@@ -27,9 +27,20 @@ def store_specials_data(name, extension):
     for Parser in PARSERS:
         dvc_parser = Parser()
         if dvc_parser.name == name:
+            mode = 'wb'
             specials_data = dvc_parser.get_specials_page()
-            with open(f'{dvc_parser.name}.{extension}', 'wb') as f:
-                f.write(specials_data)
+            if (isinstance(specials_data, str) or
+                isinstance(specials_data, list) or
+                isinstance(specials_data, dict)):
+                mode = 'w'
+            elif not isinstance(specials_data, bytes):
+                print(f'Unable to write parser data to file (Type: {type(specials_data)})')
+
+            with open(f'{dvc_parser.name}.{extension}', mode) as f:
+                if isinstance(specials_data, bytes) or isinstance(specials_data, str):
+                    f.write(specials_data)
+                else:
+                    json.dump(specials_data, f)
             print(f"'{dvc_parser.name}' data has been stored!")
             return
     print(f"No parser with the name '{name}' was found.")

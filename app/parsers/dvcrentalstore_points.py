@@ -8,7 +8,7 @@ class DVCRentalPointParser(BaseParser):
     def __init__(self, *args):
         super(DVCRentalPointParser, self).__init__(name='dvcrentalstore_points',
                                                    source='DVC Rental Store',
-                                                   site_url='https://dvcrentalstore.com/discounted-points-confirmed-reservations/',
+                                                   site_url='https://dvcrentalstore.com/discounted-points-confirmed-reservations/#view-discounted-points/',
                                                    data_url='https://us-east-1-renderer-read.knack.com/v1/scenes/scene_152/views/view_245/records',
                                                    headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
                                                             'X-Knack-REST-API-Key': 'renderer',                     #REQUIRED
