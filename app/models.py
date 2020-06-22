@@ -25,6 +25,7 @@ class StoredSpecial(db.Model):
     special_id = db.Column(db.String(), primary_key=True)
     reservation_id = db.Column(db.String(64))
     source = db.Column(db.String(32))
+    source_name = db.Column(db.String(32))
     url = db.Column(db.String(150))
     type = db.Column(db.String(15))
     points = db.Column(db.Integer)

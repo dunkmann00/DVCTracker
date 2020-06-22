@@ -18,7 +18,7 @@ class BaseParser(object):
         Creates a ParsedSpecial object with the source and url attributes set
         to the values of the parser.
         """
-        return ParsedSpecial(source=self.source, url=self.site_url)
+        return ParsedSpecial(source=self.source, source_name=self.name, url=self.site_url)
 
     def get_all_specials(self, local_specials=None):
         """
@@ -106,6 +106,7 @@ class ParsedSpecial(object):
     def __init__(self, **kwargs):
         self.reservation_id = kwargs.pop('reservation_id', None)
         self.source = kwargs.pop('source', None)
+        self.source_name = kwargs.pop('source_name', None)
         self.url = kwargs.pop('url', None)
         self.type = kwargs.pop('type', None)
         self.points = kwargs.pop('points', None)
