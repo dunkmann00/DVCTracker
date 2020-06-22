@@ -26,7 +26,7 @@ def deploy():
 
     # This is just temporary for this version
     update_source()
-    
+
     #run an update to the specials, if the db changed we may now track more
     #data and need to update to get it
     print('Upgrading stored specials with live data...')
@@ -35,5 +35,5 @@ def deploy():
 def update_source():
     for special in StoredSpecial.query:
         special.source_name = special.source
-        special.source = 'dvcrentalstore_preconfirms' if special.type == preconfirm else 'dvcrentalstore_points'
+        special.source = 'dvcrentalstore_preconfirms' if special.type == 'preconfirm' else 'dvcrentalstore_points'
     db.session.commit()
