@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>{% if env_label %}({{ env_label }}) {% endif %}DVCTracker Errors</title>
+    <style type="text/css">
+      body{
+        color: #444444;
+        font-family: Helvetica;
+        font-size: 14px;
+        font-style: normal;
+        font-weight: bold;
+        line-height: 150%;
+        text-align: left;
+      }
+
+      h1{
+        line-height: 100%;
+        margin-bottom: 10px;
+      }
+
+      h3{
+        margin-top: 10px;
+      }
+      #email-header{
+        margin-bottom: 40px;
+        text-align: center;
+      }
+
+      .attr-error h3{
+        margin: 0px;
+      }
+
+      .attr-error>div{
+        display: inline-block;
+      }
+
+      .special{
+        margin: 10px 0px;
+      }
+
+      .separator{
+        background-color: #aaa;
+        height: 1px;
+        margin: 10px 8%;
+      }
+
+      .separator.separator-extra{
+        margin: 30px 8%;
+      }
+
+    </style>
+</head>
+<body>
+    <div id="email-header">
+        <h1>{% if env_label %}({{ env_label }}) {% endif %}DVC Tracker Parser is Empty</h1>
+        <h3>{{ date()|datetimeformat('%B %-d, %Y %-I:%M%p') }}</h3>
+    </div>
+    <div>
+        <h3>Parser Source: {{ parser_source }}</h3>
+    </div>
+</body>
+</html>

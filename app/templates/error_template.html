@@ -76,5 +76,11 @@
         {% if not loop.last %}<div class="separator separator-extra"></div>{% endif %}
     </div>
     {% endfor %}
+    {% if empty_parsers %}
+    <h2>Empty Parsers</h2>
+    {% for empty_parser in empty_parsers %}
+    <h3>Parser Source: {{ empty_parser.parser_source }}</h3>
+    {% endfor %}
+    {% endif %}
 </body>
 </html>

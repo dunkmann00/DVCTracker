@@ -134,6 +134,22 @@ class Status(db.Model):
     def __repr__(self):
         return '<Healthy: ' + 'Yes' if self.healthy else 'No'
 
+class ParserStatus(db.Model):
+    """
+    The model for the status of a Parser. Parsers don't need to have a Status
+    but if there are no specials found from a parser a status will be created
+    and will have its healthy attribute set to False. The empty_okay attribute
+    can be set to True in order to process the parser with noo specials. The
+    idea for providing this option is to avoid all the specials from being
+    deleted when something wrong happens with the site they are from. If they
+    all disappear and reappear it results in unnecessary notifications being
+    sent.
+    """
+    parser_status_id = db.Column(db.Integer, primary_key=True)
+    parser_source = db.Column(db.String(32), unique=True)
+    healthy = db.Column(db.Boolean)
+    empty_okay = db.Column(db.Boolean, default=False)
+
 class Email(db.Model):
     """
     The email addresses that updates should be sent to. If get_errors is set

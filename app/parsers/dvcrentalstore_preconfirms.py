@@ -8,8 +8,8 @@ import requests, time, random
 
 class DVCRentalPreconfirmParser(BaseParser):
     def __init__(self, *args):
-        super(DVCRentalPreconfirmParser, self).__init__(name='dvcrentalstore_preconfirms',
-                                                   source='DVC Rental Store',
+        super(DVCRentalPreconfirmParser, self).__init__(source='dvcrentalstore_preconfirms',
+                                                   source_name='DVC Rental Store',
                                                    site_url='https://dvcrentalstore.com/confirmed-reservations/',
                                                    data_url='https://us-east-1-renderer-read.knack.com/v1/scenes/scene_620/views/view_1064/records',
                                                    headers={'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36',
@@ -29,7 +29,7 @@ class DVCRentalPreconfirmParser(BaseParser):
         content = []
         total_pages = 1
         retries = 0
-        print(f'Retrieving Specials from {self.name}')
+        print(f'Retrieving Specials from {self.source}')
         while self.params['page'] <= total_pages:
             while(retries < 5):
                 if retries > 0:
@@ -44,7 +44,7 @@ class DVCRentalPreconfirmParser(BaseParser):
             try:
                 dvc_json = dvc_page.json()
             except ValueError as e:
-                print(f"Error when parsing '{self.name}' response:")
+                print(f"Error when parsing '{self.source}' response:")
                 print(e)
                 return None
             content.append(dvc_json)

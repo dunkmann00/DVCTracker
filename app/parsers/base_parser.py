@@ -4,9 +4,9 @@ import requests, time, random, hashlib
 
 
 class BaseParser(object):
-    def __init__(self, name, source, site_url, data_url=None, headers=None, params=None):
-        self.name = name
+    def __init__(self, source, source_name, site_url, data_url=None, headers=None, params=None):
         self.source = source
+        self.source_name = source_name
         self.site_url = site_url
         self.data_url = data_url
         self.headers = headers
@@ -18,7 +18,7 @@ class BaseParser(object):
         Creates a ParsedSpecial object with the source and url attributes set
         to the values of the parser.
         """
-        return ParsedSpecial(source=self.source, source_name=self.name, url=self.site_url)
+        return ParsedSpecial(source=self.source, source_name=self.source_name, url=self.site_url)
 
     def get_all_specials(self, local_specials=None):
         """
@@ -53,7 +53,7 @@ class BaseParser(object):
         https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
         """
         retries = 0
-        print(f'Retrieving Specials from {self.name}')
+        print(f'Retrieving Specials from {self.source}')
         while(retries < 5):
             if retries > 0:
                 time.sleep(random.uniform(0, 2**retries))

@@ -2,7 +2,7 @@ from flask import current_app, g, render_template, json
 from flask.cli import with_appcontext
 from datetime import date
 from . import db, env_label
-from .models import StoredSpecial, Status
+from .models import StoredSpecial, Status, ParserStatus
 from .criteria import important_only, important_special
 from .parsers import PARSERS
 import app.message as message
@@ -26,7 +26,7 @@ def reset_errors():
 def store_specials_data(name, extension):
     for Parser in PARSERS:
         dvc_parser = Parser()
-        if dvc_parser.name == name:
+        if dvc_parser.source == name:
             mode = 'wb'
             specials_data = dvc_parser.get_specials_page()
             if (isinstance(specials_data, str) or
@@ -36,12 +36,12 @@ def store_specials_data(name, extension):
             elif not isinstance(specials_data, bytes):
                 print(f'Unable to write parser data to file (Type: {type(specials_data)})')
 
-            with open(f'{dvc_parser.name}.{extension}', mode) as f:
+            with open(f'{dvc_parser.source}.{extension}', mode) as f:
                 if isinstance(specials_data, bytes) or isinstance(specials_data, str):
                     f.write(specials_data)
                 else:
                     json.dump(specials_data, f)
-            print(f"'{dvc_parser.name}' data has been stored!")
+            print(f"'{dvc_parser.source}' data has been stored!")
             return
     print(f"No parser with the name '{name}' was found.")
 
@@ -62,26 +62,40 @@ def update_specials(local_specials, send_email, send_error_report):
     g.send_error_report = send_error_report
     try:
         #Get the current specials from either the Internet or a local file
-        all_new_specials = get_current_specials(local_specials)
+        all_current_specials = get_current_specials(local_specials)
+        all_new_specials = {}
+        all_stored_specials = []
+        all_updated_specials_tuple = []
+        all_removed_specials_list = []
 
-        #Make a copy of all the specials, needed for when we check everything
-        #for errors later
-        new_specials = all_new_specials.copy()
+        for parser_source in all_current_specials:
+            #Make a copy of all the specials, needed for when we check everything
+            #for errors later
+            new_specials = all_current_specials[parser_source].copy()
 
-        #Get the stored specials from the db
-        stored_specials = StoredSpecial.query.order_by(StoredSpecial.check_in, StoredSpecial.check_out).all()
+            if len(new_specials) == 0:
+                if not empty_parser_error(parser_source):
+                    continue
+            
+            #Get the stored specials from the db
+            stored_specials = StoredSpecial.query.filter_by(source=parser_source).order_by(StoredSpecial.check_in, StoredSpecial.check_out).all()
 
-        #Check for any changes to the specials
-        updated_specials_tuple, removed_specials_list = check_for_changes(new_specials, stored_specials)
+            #Check for any changes to the specials
+            updated_specials_tuple, removed_specials_list = check_for_changes(new_specials, stored_specials)
+
+            all_new_specials.update(new_specials)
+            all_stored_specials.extend(stored_specials)
+            all_updated_specials_tuple.extend(updated_specials_tuple)
+            all_removed_specials_list.extend(removed_specials_list)
 
         #Adding new Specials
-        new_specials_list, new_important_specials = store_new_specials(new_specials, stored_specials)
+        new_specials_list, new_important_specials = store_new_specials(all_new_specials, all_stored_specials)
 
         #Updating Old Specials
-        updated_specials_list, updated_important_specials = update_old_specials(updated_specials_tuple)
+        updated_specials_list, updated_important_specials = update_old_specials(all_updated_specials_tuple)
 
         #Deleting Removed Specials
-        removed_specials_list = remove_old_specials(removed_specials_list)
+        removed_specials_list = remove_old_specials(all_removed_specials_list)
 
         #Send an email if we need to.... i.e. if there were any kind of updates
         changes = []
@@ -106,7 +120,7 @@ def update_specials(local_specials, send_email, send_error_report):
             print("No changes found. Nothing to update Cap'n. :-)")
 
         #Handle any errors that were generated during the parsing of the specials
-        handle_errors(all_new_specials, stored_specials)
+        handle_errors(all_current_specials, all_stored_specials)
         set_health(True)
     except Exception as e:
         unhandled_error(e)
@@ -132,11 +146,12 @@ def get_current_specials(local_specials):
         #      the good) parsers.
         #   4) Use the good list to filter the database query with and use the
         #      bad list in the error message
-        if len(dvc_parser_specials) == 0:
-            msg = f"There is a problem getting data from the '{dvc_parser.name}' website."
-            print(msg)
-            raise Exception(msg)
-        all_new_specials.update(dvc_parser_specials)
+
+        # if len(dvc_parser_specials) == 0:
+        #     msg = f"There is a problem getting data from the '{dvc_parser.source}' website."
+        #     print(msg)
+        #     raise Exception(msg)
+        all_new_specials[dvc_parser.source] = dvc_parser_specials
     return all_new_specials
 
 def store_new_specials(new_specials, stored_specials):
@@ -205,7 +220,10 @@ def remove_special(stored_special):
     db.session.delete(stored_special)
 
 def handle_errors(new_specials, stored_specials):
-    new_specials_errors = [new_specials[stored_special.special_id] for stored_special in stored_specials if stored_special.new_error]
+    new_specials_flat = {}
+    for key in new_specials:
+        new_specials_flat.update(new_specials[key])
+    new_specials_errors = [new_specials_flat[stored_special.special_id] for stored_special in stored_specials if stored_special.new_error]
     if len(new_specials_errors) > 0:
         error_msg = render_template('error_template.html', specials=new_specials_errors,
                                     env_label=env_label.get(current_app.env))
@@ -214,12 +232,31 @@ def handle_errors(new_specials, stored_specials):
         message.send_error_text_messsage()
 
     if g.send_error_report:
-        all_specials_errors = [new_specials[stored_special.special_id] for stored_special in stored_specials if stored_special.error]
-        if len(all_specials_errors) > 0:
+        all_specials_errors = [new_specials_flat[stored_special.special_id] for stored_special in stored_specials if stored_special.error]
+        all_empty_parsers = ParserStatus.query.filter_by(healthy=False).all()
+        if len(all_specials_errors) > 0 or len(all_empty_parsers) > 0:
             error_msg = render_template('error_template.html', specials=all_specials_errors,
+                                        empty_parsers=all_empty_parsers,
                                         env_label=env_label.get(current_app.env), error_report=True)
             print('So, about that bug...when are you going to catch it? Producing Error Report.')
             message.send_error_report_email(error_msg)
+
+def empty_parser_error(parser_source):
+    parser_status = ParserStatus.query.filter_by(parser_source=parser_source).first()
+    if parser_status is None:
+        parser_status = ParserStatus(parser_source=parser_source,
+                                     healthy=True)
+        db.session.add(parser_status)
+    if parser_status.healthy and not parser_status.empty_okay:
+        parser_status.healthy = False
+        print('Umm hello?...Anyone Home?')
+        error_msg = render_template('empty_parser_template.html', parser_source=parser_source,
+                                    env_label=env_label.get(current_app.env))
+        message.send_error_email(error_msg)
+        message.send_error_text_messsage()
+    return parser_status.empty_okay
+
+
 
 def unhandled_error(error):
     traceback.print_exc()
@@ -258,5 +295,5 @@ def set_health(healthy):
 
 def local_special_for_parser(parser, local_specials):
     for local_special in local_specials:
-        if parser.name == os.path.splitext(os.path.basename(local_special))[0]:
+        if parser.source == os.path.splitext(os.path.basename(local_special))[0]:
             return local_special
