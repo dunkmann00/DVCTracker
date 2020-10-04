@@ -50,7 +50,7 @@ class StoredSpecial(db.Model):
 
     @property
     def price_per_night(self):
-        if self.price is None or self.duration is None:
+        if self.price is None or self.duration is None or self.duration == 0:
             return None
         return self.price/self.duration
 

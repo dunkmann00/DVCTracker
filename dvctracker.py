@@ -26,4 +26,4 @@ def deploy():
     #run an update to the specials, if the db changed we may now track more
     #data and need to update to get it
     print('Upgrading stored specials with live data...')
-    update_specials((), False, False)
+    update_specials((), True, False)
