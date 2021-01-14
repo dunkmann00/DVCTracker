@@ -5,5 +5,6 @@ development_settings.cfg
 DVC_local.html
 dvcrentalstore_points.json
 dvcrentalstore_preconfirms.json
+dvcrentalstore_confirmed_2021.html
 *.pyc
 .env
