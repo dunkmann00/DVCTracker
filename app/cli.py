@@ -77,6 +77,9 @@ def update_specials(local_specials, send_email, send_error_report):
                 if not empty_parser_error(parser_source):
                     continue
 
+            # Since the parser has specials in it, set it to healthy
+            parser_healthy(parser_source)
+
             #Get the stored specials from the db
             stored_specials = StoredSpecial.query.filter_by(source=parser_source).order_by(StoredSpecial.check_in, StoredSpecial.check_out).all()
 
@@ -242,11 +245,7 @@ def handle_errors(new_specials, stored_specials):
             message.send_error_report_email(error_msg)
 
 def empty_parser_error(parser_source):
-    parser_status = ParserStatus.query.filter_by(parser_source=parser_source).first()
-    if parser_status is None:
-        parser_status = ParserStatus(parser_source=parser_source,
-                                     healthy=True)
-        db.session.add(parser_status)
+    parser_status = get_parser_status(parser_source)
     if parser_status.healthy and not parser_status.empty_okay:
         parser_status.healthy = False
         print('Umm hello?...Anyone Home?')
@@ -258,6 +257,17 @@ def empty_parser_error(parser_source):
         parser_status.healthy = True
     return parser_status.empty_okay
 
+def parser_healthy(parser_source):
+    parser_status = get_parser_status(parser_source)
+    parser_status.healthy = True
+
+def get_parser_status(parser_source):
+    parser_status = ParserStatus.query.filter_by(parser_source=parser_source).first()
+    if parser_status is None:
+        parser_status = ParserStatus(parser_source=parser_source,
+                                     healthy=True)
+        db.session.add(parser_status)
+    return parser_status
 
 
 def unhandled_error(error):
