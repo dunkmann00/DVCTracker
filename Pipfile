@@ -16,6 +16,7 @@ tomlkit = "*"
 beautifulsoup4 = "*"
 flask-migrate = "*"
 psycopg2 = "*"
+twilio = "*"
 
 [requires]
 python_version = "3.8"

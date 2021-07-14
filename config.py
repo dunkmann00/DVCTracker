@@ -6,6 +6,9 @@ class Config:
     MAILGUN_API_KEY = os.getenv('MAILGUN_API_KEY')
     MAILGUN_DOMAIN_NAME = os.getenv('MAILGUN_DOMAIN_NAME')
     TILL_URL = os.getenv('TILL_URL')
+    TWILIO_SID = os.getenv('TWILIO_SID')
+    TWILIO_TOKEN = os.getenv('TWILIO_TOKEN')
+    TWILIO_MSG_SRVC = os.getenv('TWILIO_MSG_SRVC')
     DVC_CRITERIA = os.getenv('DVC_CRITERIA', 'criteria.toml')
     DVCRENTALSTORE_PRECONFIRM_RPP = int(os.getenv('DVCRENTALSTORE_PRECONFIRM_RPP', 100))
     @staticmethod

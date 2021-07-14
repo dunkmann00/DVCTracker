@@ -2,6 +2,7 @@ from flask import current_app
 from functools import wraps
 from . import env_label
 from .models import Email, PhoneNumber
+from twilio.rest import Client
 import requests, os
 
 def log_response(service, success_msg, raise_on_fail=False):
@@ -54,18 +55,37 @@ def send_error_report_email(email_message, html_message=True):
     return send_email("DVCTracker Error Report", email_message, email_addresses, html_message)
 
 
-
 def send_text_message(message, numbers):
-    if current_app.config['TILL_URL'] is None:
-        print('No TILL URL, not sending txt.')
+    if current_app.config['TWILIO_SID'] is None:
+        print('No Twilio SID, not sending txt.')
         return
 
     msg_env = env_label.get(current_app.env)
     msg_env = f"({msg_env}) " if msg_env else ""
-    return requests.post(current_app.config['TILL_URL'], json={
-               "phone": numbers,
-               "text": msg_env + message
-           })
+    account_sid = current_app.config['TWILIO_SID']
+    auth_token = current_app.config['TWILIO_TOKEN']
+    client = Client(account_sid, auth_token)
+
+    messages = []
+    for number in numbers:
+        messages.append(client.messages.create(
+                messaging_service_sid=current_app.config['TWILIO_MSG_SRVC'],
+                body = "- \n\n" + msg_env + message,
+                to = number
+            ).status)
+    return messages
+
+# def send_text_message(message, numbers):
+#     if current_app.config['TILL_URL'] is None:
+#         print('No TILL URL, not sending txt.')
+#         return
+#
+#     msg_env = env_label.get(current_app.env)
+#     msg_env = f"({msg_env}) " if msg_env else ""
+#     return requests.post(current_app.config['TILL_URL'], json={
+#                "phone": numbers,
+#                "text": msg_env + message
+#            })
 
 @log_response("Till", "Update Text Sent")
 def send_update_text_message():
