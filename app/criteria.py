@@ -38,23 +38,42 @@ def important_date(special, imp_date):
         overlap = (earliest_end - latest_start).days + 1
         return overlap > 0
     else:
-        return check_out >= imp_date
+        return check_out >= imp_date['end']
+
+def important_length_of_stay(special, value):
+    if special.duration is None:
+        return False
+    return special.duration >= value
+
+def important_price(special, value):
+    if special.price is None:
+        return False
+    return special.price <= value
+
+def important_price_per_night(special, value):
+    if special.price_per_night is None:
+        return False
+    return special.price_per_night <= value
+
+def important_points(special, value):
+    if special.points is None:
+        return False
+    return special.points >= value
 
 def important_resort(special, resorts):
     if special.resort is None:
         return False
-    for resort in resorts:
-        if resort in special.resort:
-            return True
-    return False
+    return special.resort in resorts
 
 def important_room(special, rooms):
     if special.room is None:
         return False
-    for room in rooms:
-        if room in special.room:
-            return True
-    return False
+    return special.room in rooms
+
+def important_view(special, views):
+    if special.view is None:
+        return False
+    return special.view in views
 
 def important_only():
     return important_criteria.get('important_only', False)
@@ -62,10 +81,11 @@ def important_only():
 
 check_criteria = {
     'date': important_date,
-    'length_of_stay': lambda special, value: special.duration >= value if special.duration is not None else False,
-    'price': lambda special, value: special.price <= value if special.price is not None else False,
-    'price_per_night': lambda special, value: special.price_per_night <= value if special.price_per_night is not None else False,
-    'points': lambda special, value: special.points >= value if special.points is not None else False,
+    'length_of_stay': important_length_of_stay,
+    'price': important_price,
+    'price_per_night': important_price_per_night,
+    'points': important_points,
     'resorts': important_resort,
-    'rooms': important_room
+    'rooms': important_room,
+    'views': important_view
 }

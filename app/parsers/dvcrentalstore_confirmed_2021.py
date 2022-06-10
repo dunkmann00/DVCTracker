@@ -89,12 +89,17 @@ class DVCRentalStoreConfirmed2021(BaseParser):
     @special_error
     def get_room(self, specials_dict):
         room = specials_dict.get('room_type')
-        view = specials_dict.get('room_view')
         if not room:
             raise SpecialError('room', 'room_type = None')
         room = 'Deluxe Studio' if room == 'Studio' else room.replace(' ', '-')
-        view = f'{view} View ' if view else ''
-        return f'{view}{room} Villa'
+        return room
+
+    @special_error
+    def get_view(self, specials_dict):
+        view = specials_dict.get('room_view')
+        if not view:
+            raise SpecialError('view', 'room_view = None')
+        return view
 
     @staticmethod
     def mention_and_check_out(parsed_special):
@@ -103,13 +108,16 @@ class DVCRentalStoreConfirmed2021(BaseParser):
         check_out_str = parsed_special.check_out.strftime("%m%d%y")
         return f'{parsed_special.reservation_id}:{check_out_str}'
 
-    parse_fields = {'price': get_price,
-                    'check_in': get_check_in_date,
-                    'check_out': get_check_out_date,
-                    'reservation_id': get_reservation_id,
-                    'special_id': get_special_id,
-                    'resort': get_resort,
-                    'room': get_room}
+    parse_fields = {
+        'price': get_price,
+        'check_in': get_check_in_date,
+        'check_out': get_check_out_date,
+        'reservation_id': get_reservation_id,
+        'special_id': get_special_id,
+        'resort': get_resort,
+        'room': get_room,
+        'view': get_view,
+    }
 
     def process_specials_content(self, specials_content):
         specials = self.get_specials_list(specials_content)

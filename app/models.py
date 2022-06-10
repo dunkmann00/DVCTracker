@@ -36,6 +36,7 @@ class StoredSpecial(db.Model):
     check_out = db.Column(db.Date)
     resort = db.Column(db.String(100))
     room = db.Column(db.String(100))
+    view = db.Column(db.String(100))
     error = db.Column(db.Boolean, default=False)
 
     @orm.reconstructor
