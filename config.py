@@ -13,6 +13,12 @@ class Config:
     TWILIO_MSG_SRVC = os.getenv('TWILIO_MSG_SRVC')
     DVC_CRITERIA = os.getenv('DVC_CRITERIA', 'criteria.toml')
     DVCRENTALSTORE_PRECONFIRM_RPP = int(os.getenv('DVCRENTALSTORE_PRECONFIRM_RPP', 100))
+    APNS_KEY_ID = os.getenv('APNS_KEY_ID')
+    APNS_TEAM_ID = os.getenv('APNS_TEAM_ID')
+    APNS_AUTH_KEY = os.getenv('APNS_AUTH_KEY')
+    APNS_TOPIC = os.getenv('APNS_TOPIC')
+    SEND_EMAIL_ON_DEPLOY = os.getenv('SEND_EMAIL_ON_DEPLOY', 'False') == 'True'
+    SSL_REDIRECT = False
     @staticmethod
     def init_app(app):
         pass
