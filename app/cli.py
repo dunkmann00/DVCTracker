@@ -2,12 +2,41 @@ from flask import current_app, g, render_template, json
 from flask.cli import with_appcontext
 from datetime import date
 from . import db, env_label
-from .models import StoredSpecial, Status, ParserStatus
+from .models import StoredSpecial, Status, ParserStatus, User
 from .criteria import important_only, important_special
 from .parsers import PARSERS
-import app.message as message
+from . import notifications
+from base64 import b64encode
 import click, os, traceback
+import sqlalchemy.exc
 
+@click.command(help="Encode the AuthKey p8 file into base64 for storing as an environment variable.")
+@click.argument('auth_key_path')
+def encode_auth_key(auth_key_path):
+    with open(auth_key_path, 'rb') as f:
+        auth_key_base64 = b64encode(f.read()).decode()
+    print("Base64 Encoded AuthKey:")
+    print(auth_key_base64)
+
+@click.command(help="Create a new User with the provided Username")
+@click.option('-u', '--username', prompt=True)
+@click.option(
+    '-p', '--password',
+    prompt=True,
+    hide_input=True,
+    confirmation_prompt=True,
+)
+@with_appcontext
+def make_new_user(username, password):
+    print(f"Making new user with username: {username}")
+    user = User(username=username, password=password)
+    db.session.add(user)
+    try:
+        db.session.commit()
+    except sqlalchemy.exc.IntegrityError:
+        print("Making new user failed. The username already exists.")
+    else:
+        print("New user created successfully!")
 
 @click.command(help="Reset all specials' error attributes to false & overall health to true.")
 @with_appcontext
@@ -112,11 +141,12 @@ def update_specials(local_specials, send_email, send_error_report):
             email_message = render_template('email_template.html',
                                             specials_group=changes,
                                             env_label=env_label.get(current_app.env))
-            message.send_update_email(email_message)
+            notifications.send_update_email(email_message)
 
-            #Send a text if any of the changes were considered important
+            #Send a text/push notification if any of the changes were considered important
             if new_important_specials or updated_important_specials:
-                message.send_update_text_message()
+                notifications.send_update_text_message()
+                notifications.send_update_push_notification()
         elif changes and not send_email:
             print("Changes found, not sending email. Bada-bing, bada-BOOM!")
         else:
@@ -231,8 +261,9 @@ def handle_errors(new_specials, stored_specials):
         error_msg = render_template('error_template.html', specials=new_specials_errors,
                                     env_label=env_label.get(current_app.env))
         print('Uhh-ohh, Houston, we have a problem. There appears to be an error.')
-        message.send_error_email(error_msg)
-        message.send_error_text_messsage()
+        notifications.send_error_email(error_msg)
+        notifications.send_error_text_messsage()
+        notifications.send_error_push_notification()
 
     if g.send_error_report:
         all_specials_errors = [new_specials_flat[stored_special.special_id] for stored_special in stored_specials if stored_special.error]
@@ -242,7 +273,7 @@ def handle_errors(new_specials, stored_specials):
                                         empty_parsers=all_empty_parsers,
                                         env_label=env_label.get(current_app.env), error_report=True)
             print('So, about that bug...when are you going to catch it? Producing Error Report.')
-            message.send_error_report_email(error_msg)
+            notifications.send_error_report_email(error_msg)
 
 def empty_parser_error(parser_source):
     parser_status = get_parser_status(parser_source)
@@ -251,8 +282,9 @@ def empty_parser_error(parser_source):
         print('Umm hello?...Anyone Home?')
         error_msg = render_template('empty_parser_template.html', parser_source=parser_source,
                                     env_label=env_label.get(current_app.env))
-        message.send_error_email(error_msg)
-        message.send_error_text_messsage()
+        notifications.send_error_email(error_msg)
+        notifications.send_error_text_messsage()
+        notifications.send_error_push_notification()
     elif not parser_status.healthy and parser_status.empty_okay:
         parser_status.healthy = True
     return parser_status.empty_okay
@@ -276,10 +308,11 @@ def unhandled_error(error):
     healthy = check_health()
     if healthy or g.send_error_report:
         error_msg = f'Unhandled Exception: {error_type(error)}\n\n{error}\n\n{traceback.format_exc()}'
-        send_error_func = message.send_error_report_email if g.send_error_report else message.send_error_email
+        send_error_func = notifications.send_error_report_email if g.send_error_report else notifications.send_error_email
         send_error_func(error_msg, html_message=False)
         if healthy:
-            message.send_error_text_messsage()
+            notifications.send_error_text_messsage()
+            notifications.send_error_push_notification()
         set_health(False)
 
 # From traceback.py in CPython Line #563
