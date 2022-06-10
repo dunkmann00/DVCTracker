@@ -1,6 +1,8 @@
+from datetime import datetime
 from . import db
 from sqlalchemy import orm
 from sqlalchemy.inspection import inspect
+from .security import pwd_context
 
 class SpecialTypes():
     """
@@ -179,3 +181,51 @@ class PhoneNumber(db.Model):
 
     def __repr__(self):
         return f'<Phone Number: {self.phone_number}>'
+
+class PushToken(db.Model):
+    """
+    The Apple Push Tokens that updates should be sent to.
+    """
+    __tablename__ = 'push_tokens'
+
+    push_token = db.Column(db.String(), primary_key=True)
+    get_errors = db.Column(db.Boolean, default=False)
+    last_updated = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    def ping(self):
+        self.last_updated = datetime.utcnow()
+
+    @staticmethod
+    def on_set_push_token(target, value, oldvalue, initiator):
+        target.ping()
+
+db.event.listen(PushToken.push_token, 'set', PushToken.on_set_push_token)
+
+class User(db.Model):
+    """
+    The User account that is used to protect certain endpoints
+    """
+    __tablename__ = 'users'
+    username = db.Column(db.String(), primary_key=True)
+    password_hash = db.Column(db.String())
+    important_criteria = db.Column(db.JSON)
+    last_accessed = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    @property
+    def password(self):
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = pwd_context.hash(password)
+
+    def verify_password(self, password):
+        valid, new_hash = pwd_context.verify_and_update(password,
+                                                        self.password_hash)
+        if valid and new_hash is not None:
+            self.password_hash = new_hash
+            db.session.commit()
+        return valid
+
+    def ping(self):
+        self.last_accessed = datetime.utcnow()
