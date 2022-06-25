@@ -1,5 +1,5 @@
 from flask import current_app
-from .helper import log_response
+from .util import log_response, NotificationResponse
 from ... import env_label
 from ...models import Email
 import requests
@@ -12,13 +12,23 @@ def send_email(subject, email_message, addresses, html_message=True):
 
     sub_env = env_label.get(current_app.env)
     sub_env = f"({sub_env}) " if sub_env else ""
-    return requests.post(
+    response = requests.post(
         f"https://api.mailgun.net/v3/{current_app.config['MAILGUN_DOMAIN_NAME']}/messages",
         auth=("api", current_app.config['MAILGUN_API_KEY']),
         data={"from": f"DVCTracker <mailgun@{current_app.config['MAILGUN_DOMAIN_NAME']}>",
               "to": addresses,
               "subject": sub_env + subject,
-              msg_type: email_message})
+              msg_type: email_message}
+    )
+
+    notification_response = NotificationResponse()
+    notification_response.success = response.status_code == requests.codes.ok
+    if not notification_response.success:
+        notification_response.msg = f"{response.status_code} {response.reason}"
+
+    return notification_response
+
+
 
 @log_response("Mailgun", "Update Message Sent", True)
 def send_update_email(email_message):

@@ -1,5 +1,5 @@
 from flask import current_app
-from .helper import log_response
+from .util import log_response, NotificationResponse
 from ... import env_label
 from ...models import PushToken
 from apns2.client import APNsClient, Notification
@@ -34,8 +34,15 @@ def send_notifications(notifications):
         use_alternative_port=False
     )
     results = client.send_notification_batch(notifications, topic)
-    return {result_key:results[result_key] for result_key in results
-                if results[result_key] != 'Success'}
+    errors = [f"Token: {token} did not send.\nError: {errors[token]}" for token in results
+                if results[token] != 'Success']
+
+    response = NotificationResponse()
+    response.success = len(errors) == 0
+    if not response.success:
+        response.msg = "\n".join(errors)
+
+    return response
 
 @log_response('APNS', 'Update Push Notification Sent')
 def send_update_push_notification():

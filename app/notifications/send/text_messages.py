@@ -1,8 +1,9 @@
 from flask import current_app
-from .helper import log_response
+from .util import log_response, NotificationResponse
 from ... import env_label
 from ...models import PhoneNumber
 from twilio.rest import Client
+from twilio.base.exceptions import TwilioRestException
 
 def send_text_message(message, numbers):
     if current_app.config['TWILIO_SID'] is None:
@@ -15,14 +16,23 @@ def send_text_message(message, numbers):
     auth_token = current_app.config['TWILIO_TOKEN']
     client = Client(account_sid, auth_token)
 
-    messages = []
+    err_messages = []
     for number in numbers:
-        messages.append(client.messages.create(
+        try:
+            message = client.messages.create(
                 messaging_service_sid=current_app.config['TWILIO_MSG_SRVC'],
                 body = "- \n\n" + msg_env + message,
                 to = number
-            ).status)
-    return messages
+            )
+        except TwilioRestException as err:
+            err_messages.append(str(err))
+
+    response = NotificationResponse()
+    response.success = len(err_messages) == 0
+    if not response.success:
+        response.msg = "\n".join(err_messages)
+
+    return response
 
 @log_response("Twilio", "Update Text Sent")
 def send_update_text_message():
