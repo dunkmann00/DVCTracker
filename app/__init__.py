@@ -1,9 +1,20 @@
-from flask import Flask, redirect, url_for
+from flask import Flask, redirect, url_for, json
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import MetaData
 from config import config
+from .customjsonencoder import CustomJSONEncoder
 
+# This is for alembic
+convention = {   #https://docs.sqlalchemy.org/en/latest/core/constraints.html#configuring-constraint-naming-conventions
+  "ix": "ix_%(column_0_label)s",
+  "uq": "uq_%(table_name)s_%(column_0_name)s",
+  "ck": "ck_%(table_name)s_%(constraint_name)s",
+  "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+  "pk": "pk_%(table_name)s"
+}
 
-db = SQLAlchemy()
+metadata = MetaData(naming_convention=convention)
+db = SQLAlchemy(metadata=metadata, engine_options={"json_serializer": json.dumps})
 
 env_label = {
     'development' : 'dev',
@@ -14,6 +25,8 @@ def create_app(config_name):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
+    app.json_encoder = CustomJSONEncoder
+
     db.init_app(app)
 
     from .main import main as main_blueprint
@@ -38,8 +51,5 @@ def create_app(config_name):
     app.cli.add_command(store_specials_data)
     app.cli.add_command(encode_auth_key)
     app.cli.add_command(make_new_user)
-
-    from .criteria import load_criteria
-    load_criteria(app.config['DVC_CRITERIA'])
 
     return app
