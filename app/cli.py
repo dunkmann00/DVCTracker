@@ -3,7 +3,7 @@ from flask.cli import with_appcontext
 from datetime import date
 from . import db, env_label
 from .models import StoredSpecial, Status, ParserStatus, User
-from .criteria import important_only, important_special
+from .criteria import ImportantCriteria
 from .parsers import PARSERS
 from . import notifications
 from base64 import b64encode
@@ -121,33 +121,44 @@ def update_specials(local_specials, send_email, send_error_report):
             all_removed_specials_list.extend(removed_specials_list)
 
         #Adding new Specials
-        new_specials_list, new_important_specials = store_new_specials(all_new_specials, all_stored_specials)
+        new_specials_list = store_new_specials(all_new_specials, all_stored_specials)
 
         #Updating Old Specials
-        updated_specials_list, updated_important_specials = update_old_specials(all_updated_specials_tuple)
+        updated_specials_list = update_old_specials(all_updated_specials_tuple)
 
         #Deleting Removed Specials
         removed_specials_list = remove_old_specials(all_removed_specials_list)
 
-        #Send an email if we need to.... i.e. if there were any kind of updates
-        changes = []
-        if len(new_specials_list) > 0:
-            changes.append(('Added', new_specials_list))
-        if len(updated_specials_list) > 0:
-            changes.append(('Updated', updated_specials_list))
-        if len(removed_specials_list) > 0:
-            changes.append(('Removed', removed_specials_list))
-        if changes and send_email:
-            email_message = render_template('email_template.html',
-                                            specials_group=changes,
-                                            env_label=env_label.get(current_app.env))
-            notifications.send_update_email(email_message)
+        for user in User.query:
+            important_criteria = ImportantCriteria(user.important_criteria)
+            #Send an email if we need to.... i.e. if there were any kind of updates
+            send_new_specials = get_send_specials_list(new_specials_list, important_criteria)
+            send_updated_specials = get_send_specials_list(updated_specials_list, important_criteria)
+            send_removed_specials = get_send_specials_list(removed_specials_list, important_criteria)
 
-            #Send a text/push notification if any of the changes were considered important
-            if new_important_specials or updated_important_specials:
-                notifications.send_update_text_message()
-                notifications.send_update_push_notification()
-        elif changes and not send_email:
+            changes = []
+            if len(send_new_specials) > 0:
+                changes.append(('Added', send_new_specials))
+            if len(send_updated_specials) > 0:
+                changes.append(('Updated', send_updated_specials))
+            if len(send_removed_specials) > 0:
+                changes.append(('Removed', send_removed_specials))
+            if changes and send_email:
+                email_message = render_template('email_template.html',
+                                                specials_group=changes,
+                                                env_label=env_label.get(current_app.env))
+                notifications.send_update_email(email_message)
+
+                #Send a text/push notification if any of the changes were considered important
+                if contains_important(send_new_specials) or contains_important(send_updated_specials):
+                    notifications.send_update_text_message()
+                    notifications.send_update_push_notification()
+
+
+        changes_made = (len(new_specials_list) + len(updated_specials_list) + len(removed_specials_list)) > 0
+        if changes_made and send_email:
+            print("Changes found, sending emails complete!")
+        elif changes_made and not send_email:
             print("Changes found, not sending email. Bada-bing, bada-BOOM!")
         else:
             print("No changes found. Nothing to update Cap'n. :-)")
@@ -166,67 +177,47 @@ def get_current_specials(local_specials):
         dvc_parser = Parser()
         local_special = local_special_for_parser(dvc_parser, local_specials)
         dvc_parser_specials = dvc_parser.get_all_specials(local_special)
-
-        #Probably want to move this check into 'update_specials'. Putting it there
-        #will allow for an error to be tracked but won't require an exception to
-        #be thrown. As an idea, I could make the following changes to implement
-        #this:
-        #   1) Rather than returning a dictionary with specials and their id's as
-        #      keys, I could add each parsers dict into a dict with the parser
-        #      name as the key.
-        #   2) In 'update_specials' check if any specific parser is empty.
-        #   3) If a parser is empty create a list with the bad (and also maybe
-        #      the good) parsers.
-        #   4) Use the good list to filter the database query with and use the
-        #      bad list in the error message
-
-        # if len(dvc_parser_specials) == 0:
-        #     msg = f"There is a problem getting data from the '{dvc_parser.source}' website."
-        #     print(msg)
-        #     raise Exception(msg)
         all_new_specials[dvc_parser.source] = dvc_parser_specials
     return all_new_specials
 
+def get_send_specials_list(specials, important_criteria):
+    is_important_special = important_criteria # Doing this just so the name makes more sense given that it is called
+    if important_criteria.important_only:
+        return [(special, True) for special in specials if is_important_special(special)]
+    else:
+        return [(special, is_important_special(special)) for special in specials]
+
+def contains_important(send_tuple):
+    importants = [element[1] for element in send_tuple] # Tested this a few different ways and for small lists this is fastest (and simplest)
+    return True in importants
+
 def store_new_specials(new_specials, stored_specials):
-    send_important_only = important_only()
-    new_important_specials = False
     new_specials_list = []
     for new_special_key in new_specials:
         special_entry = add_special(new_specials[new_special_key])
         stored_specials.append(special_entry)
-        important = important_special(special_entry)
-        if not (not important and send_important_only): #The only time it isn't added is when the special is not important and we only want to send important specials
-            new_specials_list.append(special_entry)
-        new_important_specials = new_important_specials or important
+        new_specials_list.append(special_entry)
 
     if len(new_specials_list) > 1:
         new_specials_list = sorted(new_specials_list, key=lambda special: (special.check_in if special.check_in else date(2000,1,1),
                                                                            special.check_out if special.check_out else date(2000,1,1)))
 
-    return new_specials_list, new_important_specials
+    return new_specials_list
 
 def update_old_specials(updated_specials_tuple):
-    send_important_only = important_only()
-    updated_important_specials = False
     updated_specials_list = []
     for special_tuple in updated_specials_tuple:
         parsed_special, stored_special = special_tuple
         stored_special.update_with_special(parsed_special)
-        important = important_special(stored_special)
-        if not (not important and send_important_only):
-            updated_specials_list.append(stored_special)
-        updated_important_specials = updated_important_specials or important
+        updated_specials_list.append(stored_special)
 
-    return updated_specials_list, updated_important_specials
+    return updated_specials_list
 
 def remove_old_specials(removed_specials):
-    send_important_only = important_only()
     removed_specials_list = []
     for stored_special in removed_specials:
         remove_special(stored_special)
-        important = important_special(stored_special)
-        if not (not important and send_important_only):
-            removed_specials_list.append(stored_special)
+        removed_specials_list.append(stored_special)
 
     return removed_specials_list
 
