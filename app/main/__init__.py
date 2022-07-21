@@ -1,6 +1,7 @@
 from flask import Blueprint
 from datetime import datetime
-from ..criteria import important_special
+from ..util import SpecialTypes
+from jinja2 import is_undefined
 import locale, sys
 
 main = Blueprint('main', __name__)
@@ -23,8 +24,8 @@ def currencyformat(value):
 
 @main.app_template_filter()
 def nullable(value):
-    return value if value is not None else '??'
+    return value if value is not None and not is_undefined(value) else '??'
 
 @main.app_context_processor
 def my_utility_processor():
-    return dict(date=datetime.now, important_special_format=important_special)
+    return dict(date=datetime.now, SpecialTypes=SpecialTypes)
