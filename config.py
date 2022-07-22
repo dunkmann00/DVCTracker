@@ -2,6 +2,7 @@ import os
 
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY')
+    STATIC_DATA_PATH = os.getenv('STATIC_DATA_PATH', "static_data.toml")
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
     if SQLALCHEMY_DATABASE_URI.startswith('postgres://'):
         SQLALCHEMY_DATABASE_URI = SQLALCHEMY_DATABASE_URI.replace('postgres://', 'postgresql://', 1)
@@ -25,7 +26,7 @@ class Config:
         pass
 
 class DevelopmentConfig(Config):
-    pass
+    SQLALCHEMY_ECHO = os.environ.get('SQLALCHEMY_ECHO', 'True') == 'True'
 
 class HerokuConfig(Config):
     @classmethod
