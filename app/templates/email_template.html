@@ -538,8 +538,8 @@
 		}
 
 }</style></head>
-{% macro old_value(value) -%}
-{% if value is defined %}({{ value|nullable }}){% endif %}
+{% macro old_value(value, attr=none) -%}
+{% if value is defined %}({% if attr is not none %}{{ value[attr]|nullable }}{% else %}{{ value|nullable }}{% endif %}){% endif %}
 {%- endmacro %}
     <body>
         <center>
@@ -658,14 +658,14 @@
 {% if specials %}
 {# This table is the discounted points table #}
 
-{% for special in specials if special.type == "disc_points" %}
+{% for special, important_special in specials if special.type == SpecialTypes.DISC_POINTS %}
 {% include 'disc_points_template.html' %}
 {% endfor %}
 
-{# This table is the pre-confirmeds table #}
+{# This table is the preconfirmeds table #}
 
-{% for special in specials if special.type == "preconfirm" %}
-{% include 'pre-confirmed_template.html' %}
+{% for special, important_special in specials if special.type == SpecialTypes.PRECONFIRM %}
+{% include 'preconfirmed_template.html' %}
 {% endfor %}
 
 {% else %}
