@@ -57,7 +57,7 @@ def current_important_criteria():
             user.important_criteria = criteria
         flash('Successfully Updated Important Criteria!', 'success')
     return render_template(
-        'criteria_template.html',
+        'criteria/criteria_template.html',
         env_label=env_label.get(current_app.env),
         form=form,
         template_form=template_form
