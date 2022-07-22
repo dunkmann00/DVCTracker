@@ -1,7 +1,7 @@
 from flask import json
 from datetime import datetime
 from .base_parser import BaseParser, special_error
-from ..models import SpecialTypes
+from ..util import SpecialTypes
 from ..errors import SpecialError
 
 class DVCRentalPointParser(BaseParser):
@@ -26,7 +26,7 @@ class DVCRentalPointParser(BaseParser):
         Parses Discounted Specials. Info is parsed out of a JSON dictionary.
         """
         parsed_special = self.new_parsed_special()
-        parsed_special.type = SpecialTypes.disc_points
+        parsed_special.type = SpecialTypes.DISC_POINTS
         parsed_special.raw_string = json.dumps(special_dict, indent=' '*4)
 
         for field, func in self.parse_fields.items():

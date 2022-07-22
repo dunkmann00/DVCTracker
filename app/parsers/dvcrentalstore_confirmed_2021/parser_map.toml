@@ -1,0 +1,64 @@
+[resorts]
+key   = "resort_key"
+
+[resorts.values]
+akv   = "resort_jambo"
+akv2  = "resort_kidani"
+aulv  = "resort_aulani"
+blt   = "resort_blt"
+bcv   = "resort_bcv"
+bwalk = "resort_boardwalk"
+vwl   = "resort_brv"
+wcc   = "resort_ccv"
+hiltn = "resort_hh"
+club  = "resort_okw"
+polyv = "resort_poly"
+rva   = "resort_riviera"
+ssr   = "resort_ssr"
+vero  = "resort_vbr"
+gcal  = "resort_vgc"
+vgf   = "resort_vgf"
+
+# For rooms I can't use the 'room_type_key' because it is unreliable. There were
+# a bunch of errors where it is used multiple times in the wrong place with
+# different actual room names...kind of strange
+[rooms]
+key = "room_type"
+
+[rooms.values]
+"Studio" = "room_studio"
+"Studio w/ Walk-In-Shower" = "room_studiowis"
+"Resort Studio" = "room_resort"
+"Tower Studio" = "room_tower"
+"Studio - Wheelchair Accessible" = "room_studiowc"
+"1 Bedroom" = "room_one"
+"2 Bedroom" = "room_two"
+"2 Bedroom Lock Off" = "room_2lo"
+"2 Bedroom Lock Off w/ Walk-In-Shower" = "room_2lowis" # This is a guess, this type currently isn't available so I can't be sure
+"Grand Villa" = "room_three"
+"Bungalow" = "room_bungalow" # This is a guess, this type currently isn't available so I can't be sure
+"Cabin" = "room_cabin" # This is a guess, this type currently isn't available so I can't be sure
+"Hotel" = "room_hotel"
+"Inn Room" = "room_inn"
+"Treehouse" = "room_treehouse"
+
+[views]
+key  = "room_view_key"
+
+[views.values]
+bw   = "view_boardwalk"
+isl  = "view_island"
+clu  = "view_kilimanjaro"
+lak  = "view_lake"
+lag  = "view_lagoon"
+hos  = "view_hospitality"
+ocn  = "view_ocean"
+pool = { key = "room_view" }
+pre  = "view_preferred"
+sav  = "view_savanna"
+std  = "view_standard"
+tp   = "view_themepark"
+val  = "view_value"
+
+"Garden/Pool" = "view_garden"
+"Poolside Gardens" = "view_poolside"

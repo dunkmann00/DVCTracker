@@ -115,6 +115,7 @@ class ParsedSpecial(object):
         self.check_out = kwargs.pop('check_out', None)
         self.resort = kwargs.pop('resort', None)
         self.room = kwargs.pop('room', None)
+        self.view = kwargs.pop('view', None)
         self.raw_string = kwargs.pop('raw_string', None)
         self.errors = []
         self._special_id = None
