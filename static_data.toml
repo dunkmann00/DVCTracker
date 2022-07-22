@@ -1,0 +1,261 @@
+# Resorts
+
+[[resorts]]
+resort_id = "resort_jambo"
+name = "Animal Kingdom Villas – Jambo House"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_kidani"
+name = "Animal Kingdom Villas – Kidani Village"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_aulani"
+name = "Aulani"
+category_id = "category_resort_other"
+
+[[resorts]]
+resort_id = "resort_blt"
+name = "Bay Lake Tower"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_bcv"
+name = "Beach Club Villas"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_boardwalk"
+name = "BoardWalk Villas"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_brv"
+name = "Boulder Ridge Villas"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_ccv"
+name = "Copper Creek Villas"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_hh"
+name = "Hilton Head Island Resort"
+category_id = "category_resort_other"
+
+[[resorts]]
+resort_id = "resort_okw"
+name = "Old Key West Resort"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_poly"
+name = "Polynesian Villas"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_riviera"
+name = "Riviera Resort"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_ssr"
+name = "Saratoga Springs Resort"
+category_id = "category_resort_wdw"
+
+[[resorts]]
+resort_id = "resort_vbr"
+name = "Vero Beach Resort"
+category_id = "category_resort_other"
+
+[[resorts]]
+resort_id = "resort_vgc"
+name = "The Villas at the Grand Californian Hotel"
+category_id = "category_resort_other"
+
+[[resorts]]
+resort_id = "resort_vgf"
+name = "The Villas at the Grand Floridian Resort"
+category_id = "category_resort_wdw"
+
+# Rooms
+
+[[rooms]]
+room_id = "room_studio"
+name = "Deluxe Studio"
+category_id = "category_room_studio"
+
+[[rooms]]
+room_id = "room_studiowis"
+name = "Deluxe Studio with Walk-In Shower"
+category_id = "category_room_studio"
+
+[[rooms]]
+room_id = "room_studiowc"
+name = "Deluxe Studio - Wheelchair Accessible"
+category_id = "category_room_studio"
+
+[[rooms]]
+room_id = "room_resort"
+name = "Resort Studio"
+category_id = "category_room_studio"
+
+[[rooms]]
+room_id = "room_tower"
+name = "Tower Studio"
+category_id = "category_room_studio"
+
+[[rooms]]
+room_id = "room_inn"
+name = "Deluxe Inn Room"
+category_id = "category_room_studio"
+
+[[rooms]]
+room_id = "room_hotel"
+name = "Hotel Room"
+category_id = "category_room_studio"
+
+[[rooms]]
+room_id = "room_one"
+name = "1-Bedroom Villa"
+
+[[rooms]]
+room_id = "room_two"
+name = "2-Bedroom Villa"
+category_id = "category_room_two"
+
+[[rooms]]
+room_id = "room_2lo"
+name = "2-Bedroom Lock-Off Villa"
+category_id = "category_room_two"
+
+[[rooms]]
+room_id = "room_2lowis"
+name = "2-Bedroom Lock-Off Villa with Walk-In Shower"
+category_id = "category_room_two"
+
+[[rooms]]
+room_id = "room_bungalow"
+name = "Bungalow"
+category_id = "category_room_two"
+
+[[rooms]]
+room_id = "room_cabin"
+name = "Cabin"
+category_id = "category_room_two"
+
+[[rooms]]
+room_id = "room_treehouse"
+name = "Treehouse Villa"
+category_id = "category_room_two"
+
+[[rooms]]
+room_id = "room_three"
+name = "3-Bedroom Grand Villa"
+
+# Views
+
+[[views]]
+view_id = "view_boardwalk"
+name = "Boardwalk View"
+
+[[views]]
+view_id = "view_island"
+name = "Island Gardens View"
+
+[[views]]
+view_id = "view_kilimanjaro"
+name = "Kilimanjaro Club Concierge"
+
+[[views]]
+view_id = "view_lake"
+name = "Lake View"
+category_id = "category_view_water"
+
+[[views]]
+view_id = "view_lagoon"
+name = "Lagoon View"
+category_id = "category_view_water"
+
+[[views]]
+view_id = "view_hospitality"
+name = "Near Hospitality House"
+
+[[views]]
+view_id = "view_ocean"
+name = "Ocean View"
+category_id = "category_view_water"
+
+[[views]]
+view_id = "view_poolside"
+name = "Poolside Gardens View"
+category_id = "category_view_pool"
+
+[[views]]
+view_id = "view_garden"
+name = "Garden/Pool View"
+category_id = "category_view_pool"
+
+[[views]]
+view_id = "view_preferred"
+name = "Preferred Room"
+
+[[views]]
+view_id = "view_savanna"
+name = "Savanna View"
+
+[[views]]
+view_id = "view_standard"
+name = "Standard View"
+
+[[views]]
+view_id = "view_themepark"
+name = "Theme Park View"
+
+[[views]]
+view_id = "view_value"
+name = "Value Accommodation"
+
+# Categories - Resorts
+
+[[resort_categories]]
+category_id = "category_resort_wdw"
+name = "Walt Disney World Locations"
+
+[[resort_categories]]
+category_id = "category_resort_other"
+name = "Other Club Resort Locations"
+
+# Categories - Rooms
+
+[[room_categories]]
+category_id = "category_room_studio"
+name = "Deluxe Studio"
+
+[[room_categories]]
+category_id = "category_room_two"
+name = "2-Bedroom"
+
+[[room_categories]]
+category_id = "category_room_none"
+
+# Categories - Views
+
+[[view_categories]]
+category_id = "category_view_pool"
+name = "Garden/Pool Views"
+
+[[view_categories]]
+category_id = "category_view_water"
+name = "Water Views"
+
+[[view_categories]]
+category_id = "category_view_none"
+
+# Defaults
+
+[defaults]
+rooms = { category_id = "category_room_none" }
+views = { category_id = "category_view_none" }
