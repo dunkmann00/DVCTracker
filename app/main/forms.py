@@ -138,6 +138,7 @@ class ImportantCriteriaForm(Form):
     points = IntegerField("Points (Minimum)", [Optional()])
     price = IntegerField("Price (Maximum)", [Optional()])
     price_per_night = IntegerField("Price/Night (Maximum)", [Optional()])
+    price_per_point = IntegerField("Price/Point (Maximum)", [Optional()])
     resorts = MultiCheckboxField('Resorts', [Optional()])
     rooms = MultiCheckboxField('Rooms', [Optional()])
     views = MultiCheckboxField('Views', [Optional()])

@@ -73,7 +73,7 @@
             {{ criteria.points.label(class="form-label") }}
             {{ criteria.points(class="form-control no-spinner", inputmode="numeric") }}
         </div>
-        <div class="mb-3">
+        <div class="mb-3 disc-points-hidden" {% if criteria.special_type.data == SpecialTypes.DISC_POINTS %}hidden{% endif %}>
             {{ criteria.price.label(class="form-label") }}
             <div class="input-group">
                 <span class="input-group-text" id="price-addon1">$</span>
@@ -86,6 +86,14 @@
                 <span class="input-group-text" id="pricePerNight-addon1">$</span>
                 {{ criteria.price_per_night(class="form-control no-spinner", inputmode="numeric") }}
                 <span class="input-group-text" id="pricePerNight-addon2">/night</span>
+            </div>
+        </div>
+        <div class="mb-3">
+            {{ criteria.price_per_point.label(class="form-label") }}
+            <div class="input-group">
+                <span class="input-group-text" id="pricePerPoint-addon1">$</span>
+                {{ criteria.price_per_point(class="form-control no-spinner", inputmode="numeric") }}
+                <span class="input-group-text" id="pricePerPoint-addon2">/night</span>
             </div>
         </div>
         <div class="mb-3 disc-points-hidden" {% if criteria.special_type.data == SpecialTypes.DISC_POINTS %}hidden{% endif %}>

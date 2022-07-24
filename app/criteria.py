@@ -87,7 +87,7 @@ class ImportantCriteria:
             return False
         return special.duration >= value
 
-    @criteria_map.mapped_func('price')
+    @criteria_map.mapped_func('price', SpecialTypes.PRECONFIRM)
     def is_important_price(self, special, value):
         if special.price is None:
             return False
@@ -98,6 +98,17 @@ class ImportantCriteria:
         if special.price_per_night is None:
             return False
         return special.price_per_night <= value
+
+    @criteria_map.mapped_func('price_per_point')
+    def is_important_price_per_point(self, special, value):
+        # In the model, only Preconfirmed reservations use the 'price_per_point'
+        # attribute. For discounted points the price per point is stored in
+        # 'points'.
+        if special.type == SpecialTypes.PRECONFIRM:
+            if special.price_per_point is None:
+                return False
+            return special.price_per_point <= value
+        return is_important_price(special, value)
 
     @criteria_map.mapped_func('points', SpecialTypes.DISC_POINTS)
     def is_important_points(self, special, value):
