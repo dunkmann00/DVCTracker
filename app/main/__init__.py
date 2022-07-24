@@ -11,7 +11,7 @@ from . import views
 locale.setlocale(locale.LC_ALL, '')
 
 @main.app_template_filter()
-def datetimeformat(value, format="%B %-d, %Y"):
+def datetimeformat(value, format="%-m/%-d/%Y"):
     if not value:    #using 'not' rather than 'is None' so that when a Jinja2
         return value  #Undefined value is passed in we will also exit
     if sys.platform == 'win32':

@@ -100,6 +100,30 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
             return None
         return self.price/self.duration
 
+    @hybrid_property
+    def price_per_point(self):
+        if self.price is None or self.points is None or self.points == 0:
+            return None
+        return self.price/self.points
+
+    @property
+    def price_increased(self):
+        if not hasattr(self, "old_price") or self.price is None:
+            return None
+        return self.price > self.old_price
+
+    @property
+    def price_per_night_increased(self):
+        if not hasattr(self, "old_price_per_night") or self.price_per_night is None:
+            return None
+        return self.price_per_night > self.old_price_per_night
+
+    @property
+    def price_per_point_increased(self):
+        if not hasattr(self, "old_price_per_point") or self.price_per_point is None:
+            return None
+        return self.price_per_point > self.old_price_per_point
+
     @classmethod
     def from_parsed_special(cls, parsed_special):
         new_special = StoredSpecial()

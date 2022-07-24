@@ -26,6 +26,8 @@ def create_app(config_name):
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
     app.json_encoder = CustomJSONEncoder
+    app.jinja_options['trim_blocks'] = True
+    app.jinja_options['lstrip_blocks'] = True
 
     db.init_app(app)
 
