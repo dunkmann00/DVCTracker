@@ -20,6 +20,7 @@ apns2 = {editable = true, ref = "b64_token_auth_key", git = "https://github.com/
 passlib = {extras = ["bcrypt"], version = "*"}
 flask-httpauth = "*"
 flask-wtf = "*"
+flask-talisman = "*"
 
 [requires]
 python_version = "3.9"

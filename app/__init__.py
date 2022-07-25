@@ -31,6 +31,16 @@ def create_app(config_name):
 
     db.init_app(app)
 
+    if app.config['SSL_REDIRECT']:
+        from flask_talisman import Talisman
+        csp = {
+            'default-src': '\'self\'',
+            'img-src': 'data:',
+            'script-src': ['https://cdn.jsdelivr.net', 'unsafe-inline'],
+            'style-src': 'unsafe-inline'
+        }
+        talisman = Talisman(app, content_security_policy=csp)
+
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint, url_prefix='/specials')
 

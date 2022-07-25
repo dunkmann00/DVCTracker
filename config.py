@@ -32,6 +32,8 @@ class DevelopmentConfig(Config):
     SQLALCHEMY_ECHO = os.getenv('SQLALCHEMY_ECHO', 'True') == 'True'
 
 class HerokuConfig(Config):
+    SSL_REDIRECT = True if os.getenv('DYNO') else False
+
     @classmethod
     def init_app(cls, app):
         Config.init_app(app)
