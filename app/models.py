@@ -530,6 +530,9 @@ class User(db.Model):
             return self.impl.coerce_compared_value(op, value)
 
         def process_bind_param(self, value, dialect):
+            if not isinstance(value, dict):
+                return value
+                
             for type in SpecialTypes:
                 self.replace_key(value, type, type.value)
             return value
