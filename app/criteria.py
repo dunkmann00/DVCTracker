@@ -26,6 +26,8 @@ class ImportantCriteria:
     criteria_map = DecoratorDict()
 
     def __init__(self, criteria=None):
+        if criteria is None:
+            criteria = {}
         self.criteria = criteria
 
     def __call__(self, special):
