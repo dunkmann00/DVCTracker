@@ -1,4 +1,4 @@
-from flask import Blueprint
+from flask import Blueprint, has_request_context, current_app, request
 from datetime import datetime
 from ..util import SpecialTypes
 from jinja2 import is_undefined
@@ -26,6 +26,13 @@ def currencyformat(value):
 def nullable(value):
     return value if value is not None and not is_undefined(value) else '??'
 
+def static_url(filename):
+    server_name = request.host if has_request_context() else current_app.config['EMAIL_SERVER_NAME']
+    url_scheme = request.scheme if has_request_context() else current_app.config['PREFERRED_URL_SCHEME']
+    urls = current_app.url_map.bind(server_name, '/', url_scheme=url_scheme)
+    url = urls.build('static', {'filename': filename}, force_external=not has_request_context())
+    return url
+
 @main.app_context_processor
 def my_utility_processor():
-    return dict(date=datetime.now, SpecialTypes=SpecialTypes)
+    return dict(date=datetime.now, SpecialTypes=SpecialTypes, static_url=static_url)

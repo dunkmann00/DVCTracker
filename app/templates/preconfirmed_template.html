@@ -1,8 +1,8 @@
 {% macro price_increased_img(increased) %}
 {% if increased %}
-<img src="{{ url_for('static', filename='glyphs/price-up-1.png') }}" alt="Price Increase" width="8" height="11" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%;">
+<img src="{{ static_url('glyphs/price-up-1.png') }}" alt="Price Increase" width="8" height="11" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%;">
 {%- elif increased is false %}
-<img src="{{ url_for('static', filename='glyphs/price-down-1.png') }}" alt="Price Drop" width="8" height="11" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%;">
+<img src="{{ static_url('glyphs/price-down-1.png') }}" alt="Price Drop" width="8" height="11" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%;">
 {%- endif %}
 {% endmacro %}
 
@@ -19,9 +19,9 @@
             <table class="left-column" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%; border-spacing: 0px;" width="100%">
               <tr>
                 <td class="item-resort" style="font-family: arial,helvetica neue,helvetica,sans-serif; vertical-align: top; padding-top: 0px; padding-bottom: 0px; padding-right: 40px; font-size: 22px; font-weight: 700;" valign="top">
-                  {%+ if important_special %}<img class="important-image" src="{{ url_for('static', filename='glyphs/star-green-1.png') }}" alt="Important Special" width="25" height="22" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%; vertical-align: text-top;">{% endif +%}
+                  {%+ if important_special %}<img class="important-image" src="{{ static_url('glyphs/star-green-1.png') }}" alt="Important Special" width="25" height="22" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%; vertical-align: text-top;">{% endif +%}
                   {{ special.resort.name|nullable }}
-                  {%+ if important_special %}<img class="important-image" src="{{ url_for('static', filename='glyphs/star-green-1.png') }}" alt="Important Special" width="25" height="22" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%; vertical-align: text-top;">{% endif +%}
+                  {%+ if important_special %}<img class="important-image" src="{{ static_url('glyphs/star-green-1.png') }}" alt="Important Special" width="25" height="22" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%; vertical-align: text-top;">{% endif +%}
                 </td>
               </tr>
               {% if special.old_resort is defined %}
@@ -73,7 +73,7 @@
             <table class="left-column" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; min-width: 100%; width: 100%; border-spacing: 0px;" width="100%">
               <tr>
                 <td class="item-dates" style="font-family: arial,helvetica neue,helvetica,sans-serif; vertical-align: top; padding-top: 0px; padding-bottom: 0px;" valign="top">
-                  <img class="item-image" src="{{ url_for('static', filename='glyphs/calendar-1.png') }}" alt="Dates" width="14" height="16" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%; margin-right: 8px; vertical-align: text-top; margin: 0px 11px 0px 2px;">
+                  <img class="item-image" src="{{ static_url('glyphs/calendar-1.png') }}" alt="Dates" width="14" height="16" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%; margin-right: 8px; vertical-align: text-top; margin: 0px 11px 0px 2px;">
                   {{ special.check_in|datetimeformat|nullable }} - {{ special.check_out|datetimeformat|nullable }}<span style="color: rgba(16,23,32,.7); font-size: .875em; margin-left: 0.3em;">({{ special.duration|nullable }} {% if special.duration %}night{{'s' if special.duration > 1}}{% endif %})</span>
                 </td>
               </tr>
@@ -86,7 +86,7 @@
               {% endif %}
               <tr>
                 <td class="item-room" style="font-family: arial,helvetica neue,helvetica,sans-serif; vertical-align: top; padding-bottom: 0px; padding-top: 10px;" valign="top">
-                  <img class="item-image" src="{{ url_for('static', filename='glyphs/bed-1.png') }}" alt="Room" width="20" height="16" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%; margin-right: 8px; vertical-align: text-top;">
+                  <img class="item-image" src="{{ static_url('glyphs/bed-1.png') }}" alt="Room" width="20" height="16" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%; margin-right: 8px; vertical-align: text-top;">
                   {{ special.room.name|nullable }}
                 </td>
               </tr>
@@ -99,7 +99,7 @@
               {% endif %}
               <tr>
                 <td class="item-view" style="font-family: arial,helvetica neue,helvetica,sans-serif; vertical-align: top; padding-bottom: 0px; padding-top: 10px;" valign="top">
-                  <img class="item-image" src="{{ url_for('static', filename='glyphs/cloud-sun-1.png') }}" alt="View" width="20" height="16" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%; margin-right: 8px; vertical-align: text-top;">
+                  <img class="item-image" src="{{ static_url('glyphs/cloud-sun-1.png') }}" alt="View" width="20" height="16" style="border: none; -ms-interpolation-mode: bicubic; max-width: 100%; margin-right: 8px; vertical-align: text-top;">
                   {{ special.view.name|nullable }}
                 </td>
               </tr>
