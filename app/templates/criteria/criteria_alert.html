@@ -1,7 +1,7 @@
 {% macro add_alert(form) %}
 <div id="messages" class="alert alert-danger alert-dismissible fade show" role="alert">
     <div class="d-flex align-items-center">
-        <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:"><use xlink:href="#exclamation-triangle-fill"/></svg>
+        <svg class="bi flex-shrink-0 me-2" width="24" height="24" role="img" aria-label="Danger:"><use xlink:href="{{ url_for('static', filename='images/bootstrap-icons-1.svg', _anchor='exclamation-triangle-fill') }}"/></svg>
         <h4 class="alert-heading mb-0">{% if form is string %}{{ form }}{% else %}There was a problem with the following items:{% endif %}</h4>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
