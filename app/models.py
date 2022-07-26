@@ -108,19 +108,19 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
 
     @property
     def price_increased(self):
-        if not hasattr(self, "old_price") or self.price is None:
+        if not hasattr(self, "old_price") or self.old_price is None or self.price is None:
             return None
         return self.price > self.old_price
 
     @property
     def price_per_night_increased(self):
-        if not hasattr(self, "old_price_per_night") or self.price_per_night is None:
+        if not hasattr(self, "old_price_per_night") or self.old_price_per_night is None or self.price_per_night is None:
             return None
         return self.price_per_night > self.old_price_per_night
 
     @property
     def price_per_point_increased(self):
-        if not hasattr(self, "old_price_per_point") or self.price_per_point is None:
+        if not hasattr(self, "old_price_per_point") or self.old_price_per_point is None or self.price_per_point is None:
             return None
         return self.price_per_point > self.old_price_per_point
 
@@ -532,7 +532,7 @@ class User(db.Model):
         def process_bind_param(self, value, dialect):
             if not isinstance(value, dict):
                 return value
-                
+
             for type in SpecialTypes:
                 self.replace_key(value, type, type.value)
             return value

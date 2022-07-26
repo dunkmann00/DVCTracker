@@ -97,6 +97,13 @@ class DVCRentalStoreConfirmed2021(BaseParser):
         return int(float(price))
 
     @special_error
+    def get_points(self, special_dict):
+        points = special_dict.get('points')
+        if points is None:
+            raise SpecialError('points', 'points = None')
+        return int(points)
+
+    @special_error
     def get_check_in_date(self, special_dict):
         date_str = special_dict.get('raw_check_in')
         if date_str is None:
@@ -142,6 +149,7 @@ class DVCRentalStoreConfirmed2021(BaseParser):
 
     parse_fields = {
         'price': get_price,
+        'points': get_points,
         'check_in': get_check_in_date,
         'check_out': get_check_out_date,
         'reservation_id': get_reservation_id,
