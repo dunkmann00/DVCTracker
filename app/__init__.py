@@ -37,7 +37,7 @@ def create_app(config_name):
             'default-src': '\'self\'',
             'img-src': ['\'self\'', 'data:'],
             'script-src': ['\'self\'', 'https://cdn.jsdelivr.net'],
-            'style-src': ['\'self\'' , '\'unsafe-inline\'']
+            'style-src': '\'self\''
         }
         talisman = Talisman(app, content_security_policy=csp)
 

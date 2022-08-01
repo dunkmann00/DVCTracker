@@ -1,14 +1,25 @@
 from flask import current_app
+from premailer import Premailer
 from .util import log_response, NotificationResponse
 from ... import env_label
 from ...models import Email
 import requests
+
+inliner = Premailer(
+    base_path="app/static/",
+    allow_loading_external_files=True,
+    strip_important=False,
+    disable_validation=True
+)
 
 def send_email(subject, email_message, addresses, html_message=True):
     if current_app.config['MAILGUN_API_KEY'] is None:
         print('No MAILGUN API Key, not sending email.')
         return
     msg_type = "html" if html_message else "text"
+
+    if html_message:
+        email_message = inliner.transform(email_message)
 
     sub_env = env_label.get(current_app.env)
     sub_env = f"({sub_env}) " if sub_env else ""

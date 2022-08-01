@@ -21,6 +21,7 @@ passlib = {extras = ["bcrypt"], version = "*"}
 flask-httpauth = "*"
 flask-wtf = "*"
 flask-talisman = "*"
+premailer = "*"
 
 [requires]
 python_version = "3.9"
