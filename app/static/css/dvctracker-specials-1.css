@@ -437,7 +437,10 @@
 
       .price-down img, .price-up img {
           margin-right: 4px;
-          margin-left: -12px;
+      }
+
+      .price-change-spacer {
+        padding-left: 12px;
       }
 
       .item-old-value {

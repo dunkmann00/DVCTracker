@@ -12,6 +12,11 @@
 {% endif %}
 {% endmacro %}
 
+{% macro price(price, increased) %}
+{{ price_increased_img(increased) }}{{ price|currencyformat|nullable }}
+{% if increased is not none%}<span class="price-change-spacer"></span>{% endif %}
+{% endmacro %}
+
 {% if important_special %}
 <table role="presentation" class="main important">
 {% else %}
@@ -113,7 +118,7 @@
                       {% set increased = special.price_increased %}
                       <td class="item-price {{ price_increased_class(increased) }}">
                         <span class="item-label">Total</span>
-                        {{ price_increased_img(increased) }}{{ special.price|currencyformat|nullable }}
+                        {{ price(special.price, increased) }}
                       </td>
                     </tr>
                     {% if special.old_price is defined %}
@@ -131,7 +136,7 @@
                       {% set increased = special.price_per_night_increased %}
                       <td class="item-price-pn {{ price_increased_class(increased) }}">
                         <span class="item-label">per night</span>
-                        {{ price_increased_img(increased) }}{{ special.price_per_night|currencyformat|nullable }}
+                        {{ price(special.price_per_night, increased) }}
                       </td>
                     </tr>
                     {% if special.old_price_per_night is defined %}
@@ -149,7 +154,7 @@
                       {% set increased = special.price_per_point_increased %}
                       <td class="item-price-pp {{ price_increased_class(increased) }}">
                         <span class="item-label">per point</span>
-                        {{ price_increased_img(increased) }}{{ special.price_per_point|currencyformat|nullable }}
+                        {{ price(special.price_per_point, increased) }}
                       </td>
                     </tr>
                     {% if special.old_price_per_point is defined %}
