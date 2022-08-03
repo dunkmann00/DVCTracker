@@ -1,23 +1,23 @@
-{% macro price_increased_img(increased) %}
+{%- macro price_increased_img(increased) %}
 {% if increased %}
 <img src="{{ static_url('images/price-up-1.png') }}" alt="Price Increase" width="8" height="11">
 {%- elif increased is false %}
 <img src="{{ static_url('images/price-down-1.png') }}" alt="Price Drop" width="8" height="11">
 {%- endif %}
-{% endmacro %}
+{%- endmacro %}
 
-{% macro price_increased_class(increased) %}
+{%- macro price_increased_class(increased) %}
 {% if increased is not none %}
 {{ 'price-up' if increased else 'price-down' }}
-{% endif %}
+{%- endif %}
 {% endmacro %}
 
-{% macro price(price, increased) %}
+{%- macro price(price, increased) %}
 {{ price_increased_img(increased) }}{{ price|currencyformat|nullable }}
-{% if increased is not none%}<span class="price-change-spacer"></span>{% endif %}
+{%- if increased is not none%}<span class="price-change-spacer"></span>{% endif %}
 {% endmacro %}
 
-{% if important_special %}
+{%- if important_special %}
 <table role="presentation" class="main important">
 {% else %}
 <table role="presentation" class="main">

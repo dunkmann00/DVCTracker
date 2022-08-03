@@ -37,20 +37,20 @@
             </table>
           </div>
           <div class="content">
-            {% if specials %}
+            {%- if specials %}
             {# As of now, there are no discounted point parsers and the discounted points template is not being used. #}
 
             {# This table is the discounted points table #}
             {#
-              {% for special, important_special in specials if special.type == SpecialTypes.DISC_POINTS %}
+              {%- for special, important_special in specials if special.type == SpecialTypes.DISC_POINTS %}
               {% include 'disc_points_template.html' %}
               {% endfor %}
             #}
 
 
-            {# This table is the preconfirmeds table #}
+            {#- This table is the preconfirmeds table #}
 
-            {% for special, important_special in specials if special.type == SpecialTypes.PRECONFIRM %}
+            {%- for special, important_special in specials if special.type == SpecialTypes.PRECONFIRM %}
             {% include 'preconfirmed_template.html' %}
             {% endfor %}
 
