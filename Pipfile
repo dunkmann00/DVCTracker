@@ -21,7 +21,7 @@ passlib = {extras = ["bcrypt"], version = "*"}
 flask-httpauth = "*"
 flask-wtf = "*"
 flask-talisman = "*"
-premailer = "*"
+premailer = {editable = true, ref = "parsestyle-validate-option", git = "https://github.com/dunkmann00/premailer.git"}
 
 [requires]
 python_version = "3.9"
