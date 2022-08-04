@@ -16,11 +16,6 @@ convention = {   #https://docs.sqlalchemy.org/en/latest/core/constraints.html#co
 metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(metadata=metadata, engine_options={"json_serializer": json.dumps})
 
-env_label = {
-    'development' : 'dev',
-    'staging' : 'beta'
-}
-
 def create_app(config_name):
     app = Flask(__name__)
     app.config.from_object(config[config_name])

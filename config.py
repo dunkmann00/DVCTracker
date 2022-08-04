@@ -29,6 +29,7 @@ class Config:
         pass
 
 class DevelopmentConfig(Config):
+    ENV_LABEL = "dev"
     SQLALCHEMY_ECHO = os.getenv('SQLALCHEMY_ECHO', 'True') == 'True'
 
 class HerokuConfig(Config):
@@ -41,10 +42,13 @@ class HerokuConfig(Config):
         from werkzeug.middleware.proxy_fix import ProxyFix
         app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_port=1)
 
+class HerokuStagingConfig(HerokuConfig):
+    ENV_LABEL = "beta"
+
 config = {
     'development': DevelopmentConfig,
     'heroku': HerokuConfig,
-
+    'staging': HerokuStagingConfig,
     'default': DevelopmentConfig
 
 }

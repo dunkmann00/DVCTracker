@@ -1,6 +1,5 @@
 from flask import current_app
 from .util import log_response, NotificationResponse
-from ... import env_label
 from ...models import PhoneNumber
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
@@ -10,7 +9,7 @@ def send_text_message(message, numbers):
         print('No Twilio SID, not sending txt.')
         return
 
-    msg_env = env_label.get(current_app.env)
+    msg_env = current_app.config.get("ENV_LABEL")
     msg_env = f"({msg_env}) " if msg_env else ""
     account_sid = current_app.config['TWILIO_SID']
     auth_token = current_app.config['TWILIO_TOKEN']

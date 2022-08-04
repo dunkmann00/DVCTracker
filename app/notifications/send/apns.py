@@ -1,6 +1,5 @@
 from flask import current_app
 from .util import log_response, NotificationResponse
-from ... import env_label
 from ...models import PushToken
 from apns2.client import APNsClient, Notification
 from apns2.payload import Payload
@@ -11,6 +10,8 @@ def create_notifications(push_tokens, message):
 
 
 def create_notification(push_token, message):
+    msg_env = current_app.config.get("ENV_LABEL")
+    message = f"({msg_env}) {message}" if msg_env else message
     payload = Payload(alert=message, sound='default')
     return Notification(token=push_token.push_token, payload=payload)
 

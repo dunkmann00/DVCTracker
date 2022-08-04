@@ -2,7 +2,7 @@ from flask import render_template, current_app, flash, request
 from . import main
 from .util import is_important_special, ResortChoices, RoomChoices, ViewChoices
 from .forms import ImportantCriteriaListForm
-from .. import env_label, db
+from .. import db
 from ..models import StoredSpecial as Special, CategoryModelLoader
 from ..auth import auth
 from itertools import chain
@@ -23,7 +23,7 @@ def current_specials():
     return render_template(
         'email_template.html',
         specials_group=(('All', all_stored_specials),),
-        env_label=env_label.get(current_app.env)
+        env_label=current_app.config.get("ENV_LABEL")
     )
 
 @main.route('/important')
@@ -34,7 +34,7 @@ def current_important_specials():
     return render_template(
         'email_template.html',
         specials_group=(('Important', all_stored_specials),),
-        env_label=env_label.get(current_app.env)
+        env_label=current_app.config.get("ENV_LABEL")
     )
 
 @main.route('/criteria', methods=['GET', 'POST'])
@@ -58,7 +58,7 @@ def current_important_criteria():
         flash('Successfully Updated Important Criteria!', 'success')
     return render_template(
         'criteria/criteria_template.html',
-        env_label=env_label.get(current_app.env),
+        env_label=current_app.config.get("ENV_LABEL"),
         form=form,
         template_form=template_form
     )
@@ -69,4 +69,4 @@ def current_error_specials():
     all_stored_specials = Special.query.filter_by(error=True).order_by(Special.check_in, Special.check_out).all()
     return render_template('email_template.html',
                            specials_group=(('Errors', all_stored_specials),),
-                           env_label=env_label.get(current_app.env))
+                           env_label=current_app.config.get("ENV_LABEL"))

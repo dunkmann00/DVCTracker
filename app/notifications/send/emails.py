@@ -1,7 +1,6 @@
 from flask import current_app
 from premailer import Premailer
 from .util import log_response, NotificationResponse
-from ... import env_label
 from ...models import Email
 import requests
 
@@ -21,7 +20,7 @@ def send_email(subject, email_message, addresses, html_message=True):
     if html_message:
         email_message = inliner.transform(email_message)
 
-    sub_env = env_label.get(current_app.env)
+    sub_env = current_app.config.get("ENV_LABEL")
     sub_env = f"({sub_env}) " if sub_env else ""
     response = requests.post(
         f"https://api.mailgun.net/v3/{current_app.config['MAILGUN_DOMAIN_NAME']}/messages",
