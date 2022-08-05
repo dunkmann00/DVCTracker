@@ -29,17 +29,12 @@
           <td>
             <table class="resort-group">
               <tr>
-                {% if important_special %}
-                <td>
-                  <img class="important-image" src="{{ static_url('images/star-green-1.png') }}" alt="Important Special" width="32" height="28">
-                </td>
-                {% endif %}
                 <td class="item-resort">
                   {{ special.resort.name|nullable }}
                 </td>
                 {% if important_special %}
                 <td class="align-right">
-                  <img class="important-image" src="{{ static_url('images/star-green-1.png') }}" alt="Important Special" width="32" height="28">
+                  <img class="important-image" src="{{ static_url('images/star-green-1.png') }}" alt="Important Special" width="36" height="32">
                 </td>
                 {% endif %}
               </tr>
@@ -55,15 +50,10 @@
         </tr>
         <tr>
           <td>
-            <hr>
-          </td>
-        </tr>
-        <tr>
-          <td>
             <table class="characteristic-group">
               <tr>
                 <td class="item-dates">
-                  <img class="item-image" src="{{ static_url('images/calendar-1.png') }}" alt="Dates" width="14" height="16">
+                  <img class="item-image" src="{{ static_url('images/calendar-1.png') }}" alt="Dates" width="14" height="16">{# This will remove the space between the image and the following text. -#}
                   {{ special.check_in|datetimeformat|nullable }} - {{ special.check_out|datetimeformat|nullable }}<span>({{ special.duration|nullable }} {% if special.duration %}night{{'s' if special.duration > 1}}{% endif %})</span>
                 </td>
               </tr>
@@ -76,7 +66,7 @@
               {% endif %}
               <tr>
                 <td class="item-room">
-                  <img class="item-image" src="{{ static_url('images/bed-1.png') }}" alt="Room" width="20" height="16">
+                  <img class="item-image" src="{{ static_url('images/bed-1.png') }}" alt="Room" width="20" height="16">{# -#}
                   {{ special.room.name|nullable }}
                 </td>
               </tr>
@@ -89,7 +79,7 @@
               {% endif %}
               <tr>
                 <td class="item-view">
-                  <img class="item-image" src="{{ static_url('images/cloud-sun-1.png') }}" alt="View" width="20" height="16">
+                  <img class="item-image" src="{{ static_url('images/cloud-sun-1.png') }}" alt="View" width="20" height="16">{# -#}
                   {{ special.view.name|nullable }}
                 </td>
               </tr>

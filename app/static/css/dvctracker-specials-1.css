@@ -279,16 +279,15 @@
       }
 
       .main {
-        border: 2px solid #0c4176; /* #0c3a76; #e5e5e5; #418fde */
+        border: 2px solid #e5e5e5;
         border-radius: 10px;
         margin: 20px 0px;
-        /* background-color: #f6f9fd; */
       }
 
       .main.important {
         border-width: 4px;
         border-color: #049d05;
-        border-radius: 0.75em;
+        border-radius: 10px;
       }
 
       .important hr {
@@ -311,12 +310,12 @@
       }
 
       img.item-image {
-        margin-right: 8px;
+        margin-right: 11px;
         vertical-align: text-top;
       }
 
       .item-dates .item-image {
-        margin: 0px 11px 0px 2px;
+        margin: 0px 15px 0px 2px;
       }
 
       .important-image {
@@ -326,11 +325,6 @@
       hr {
         border-bottom: 1px solid #e5e5e5;
         Margin: 0px 0px;
-      }
-
-      hr.category-hr {
-        border-width: 2px;
-        margin: 0px 10px;
       }
 
       .right-column {
@@ -345,31 +339,28 @@
         padding-left: 32px;
       }
 
-      .category{
+      .category {
         font-weight: 700;
-        margin: 10px 15px;
+        color: #f4f9ff;
+        background-color: #285b8e;
+        padding: 10px 15px;
+        margin-bottom: 0px;
+        border-radius: 10px;
       }
 
       .resort-group {
         padding: 8px 20px;
-        /* border-color: #ffffff;
-        border-style: double;
-        border-width: 6px; */
-        border-radius: 7px 7px 0 0;
-        color: #f4f9ff;
-        /* background-color: #ffe0e3; */
-        background-color: #0c4176;
-      }
-
-      .important .resort-group {
-        /* background-color: #049d05; */
       }
 
       table.resort-group td{
           vertical-align: middle;
       }
 
-      .characteristic-group, .price-group, .source-group {
+      .characteristic-group {
+        padding: 5px 0px 15px 0px;
+      }
+
+      .price-group, .source-group {
           padding: 15px 0px;
       }
 
@@ -388,11 +379,6 @@
           padding-right: 20px;
       }
 
-      .item-resort.item-old-value {
-        padding-left: 0px;
-        color: #919191;
-      }
-
       .item-label {
         color: #585d63;
         display: block;
@@ -402,9 +388,8 @@
       }
 
       .item-resort {
-        font-size: 28px;
+        font-size: 24px;
         font-weight: 700;
-        text-align: center;
         width: 75%;
       }
 
@@ -426,7 +411,7 @@
       }
 
       .item-dates span {
-        color: rgba(16,23,32,.7);
+        color: #5d646d;
         font-size: .875em;
         margin-left: 0.3em;
       }
@@ -470,11 +455,7 @@
           background-color: #f6f9fd !important;
         }
 
-        hr.category-hr {
-          margin: 0px !important;
-        }
-
-        .resort-group {
+        .category {
           border-radius: 0 !important;
         }
       }
