@@ -251,6 +251,10 @@
         text-transform: none;
       }
 
+      h2 {
+        font-size: 24px;
+      }
+
       body, .body {
         background-color: #f6f9fd;
       }
@@ -357,16 +361,11 @@
       }
 
       .characteristic-group {
-        padding: 5px 0px 15px 0px;
+        padding: 5px 20px 15px 20px;
       }
 
       .price-group, .source-group {
           padding: 15px 0px;
-      }
-
-      .characteristic-group {
-          padding-left: 20px;
-          padding-right: 20px;
       }
 
       .price-group {
@@ -377,6 +376,11 @@
       .source-group {
           padding-left: 20px;
           padding-right: 20px;
+      }
+
+      .body table {
+        font-size: 16px;
+        line-height: 1.4
       }
 
       .item-label {
@@ -401,7 +405,7 @@
         font-weight: 700;
       }
 
-      table.price-group {
+      .price-group table {
           table-layout: fixed;
           text-align: center;
       }
