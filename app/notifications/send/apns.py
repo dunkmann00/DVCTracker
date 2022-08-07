@@ -25,7 +25,7 @@ def send_notifications(notifications):
     token_credentials = TokenCredentials(
         auth_key_path=None,
         auth_key_id=current_app.config['APNS_KEY_ID'],
-        team_id=current_app.config['TEAM_ID'],
+        team_id=current_app.config['APNS_TEAM_ID'],
         auth_key_base64=current_app.config['APNS_AUTH_KEY'],
         token_lifetime=60
     )
