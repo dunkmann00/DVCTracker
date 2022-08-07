@@ -328,7 +328,7 @@
 
       hr {
         border-bottom: 1px solid #e5e5e5;
-        Margin: 0px 0px;
+        margin: 0px 20px;
       }
 
       .right-column {
@@ -461,6 +461,10 @@
 
         .category {
           border-radius: 0 !important;
+        }
+
+        hr {
+          margin: 0;
         }
       }
 
