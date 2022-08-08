@@ -200,7 +200,7 @@ category_id = "category_view_pool"
 
 [[views]]
 view_id = "view_preferred"
-name = "Preferred Room"
+name = "Preferred View"
 
 [[views]]
 view_id = "view_savanna"
