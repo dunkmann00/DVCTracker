@@ -37,7 +37,7 @@ def create_app(config_name):
         talisman = Talisman(app, content_security_policy=csp)
 
     from .main import main as main_blueprint
-    app.register_blueprint(main_blueprint, url_prefix='/specials')
+    app.register_blueprint(main_blueprint)
 
     from .notifications import notifications as notifications_blueprint
     app.register_blueprint(notifications_blueprint)
@@ -51,12 +51,14 @@ def create_app(config_name):
         reset_errors,
         store_specials_data,
         encode_auth_key,
-        make_new_user
+        make_new_user,
+        send_test_email,
     )
     app.cli.add_command(update_specials_cli)
     app.cli.add_command(reset_errors)
     app.cli.add_command(store_specials_data)
     app.cli.add_command(encode_auth_key)
     app.cli.add_command(make_new_user)
+    app.cli.add_command(send_test_email)
 
     return app

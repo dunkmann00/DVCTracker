@@ -1,10 +1,12 @@
 from flask import Blueprint, has_request_context, current_app, request
 from datetime import datetime
+from .specials import specials as specials_blueprint
 from ..util import SpecialTypes
 from jinja2 import is_undefined
 import locale, sys
 
 main = Blueprint('main', __name__)
+main.register_blueprint(specials_blueprint, url_prefix="/specials")
 
 from . import views
 

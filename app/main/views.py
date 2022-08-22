@@ -1,9 +1,9 @@
-from flask import render_template, current_app, flash, request
+from flask import render_template, current_app, flash
 from . import main
-from .util import is_important_special, ResortChoices, RoomChoices, ViewChoices
+from .util import ResortChoices, RoomChoices, ViewChoices
 from .forms import ImportantCriteriaListForm
 from .. import db
-from ..models import StoredSpecial as Special, CategoryModelLoader
+from ..models import CategoryModelLoader
 from ..auth import auth
 from itertools import chain
 
@@ -15,28 +15,6 @@ def after_request(response):
         db.session.commit()
     return response
 
-@main.route('')
-@auth.login_required
-def current_specials():
-    query = Special.query.order_by(Special.check_in, Special.check_out)
-    all_stored_specials = [(special, is_important_special(special)) for special in query]
-    return render_template(
-        'specials/email_template.html',
-        specials_group=(('All', all_stored_specials),),
-        env_label=current_app.config.get("ENV_LABEL")
-    )
-
-@main.route('/important')
-@auth.login_required
-def current_important_specials():
-    query = Special.query.order_by(Special.check_in, Special.check_out)
-    all_stored_specials = [(special, True) for special in query if is_important_special(special)]
-    return render_template(
-        'specials/email_template.html',
-        specials_group=(('Important', all_stored_specials),),
-        title='Important',
-        env_label=current_app.config.get("ENV_LABEL")
-    )
 
 @main.route('/criteria', methods=['GET', 'POST'])
 @auth.login_required
@@ -62,14 +40,4 @@ def current_important_criteria():
         env_label=current_app.config.get("ENV_LABEL"),
         form=form,
         template_form=template_form
-    )
-
-@main.route('/errors')
-@auth.login_required
-def current_error_specials():
-    all_stored_specials = Special.query.filter_by(error=True).order_by(Special.check_in, Special.check_out).all()
-    return render_template(
-        'specials/email_template.html',
-        specials_group=(('Errors', all_stored_specials),),
-        env_label=current_app.config.get("ENV_LABEL")
     )

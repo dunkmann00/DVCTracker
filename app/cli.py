@@ -5,6 +5,7 @@ from . import db
 from .models import StoredSpecial, Status, ParserStatus, User
 from .criteria import ImportantCriteria
 from .parsers import PARSERS
+from .util import test_old_values
 from . import notifications
 from base64 import b64encode
 import click, os, traceback
@@ -73,6 +74,23 @@ def store_specials_data(name, extension):
             print(f"'{dvc_parser.source}' data has been stored!")
             return
     print(f"No parser with the name '{name}' was found.")
+
+@click.command(help="Send a test email with a few specials and old values.")
+def send_test_email():
+    specials = StoredSpecial.query.limit(3).all()
+    up_special = specials[1]
+    down_special = specials[2]
+    test_old_values(up_special, True)
+    test_old_values(down_special, False)
+    group = [(specials[0], False), (up_special, False), (down_special, True)]
+    email = render_template(
+        'specials/email_template.html',
+        specials_group=(('All', group),
+            ('Update', group),
+            ('Removed', group)),
+        env_label=current_app.config.get("ENV_LABEL")
+    )
+    notifications.send_update_email(email)
 
 @click.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
 @click.option('--local', 'local_specials', multiple=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True),
