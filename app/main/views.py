@@ -21,7 +21,7 @@ def current_specials():
     query = Special.query.order_by(Special.check_in, Special.check_out)
     all_stored_specials = [(special, is_important_special(special)) for special in query]
     return render_template(
-        'email_template.html',
+        'specials/email_template.html',
         specials_group=(('All', all_stored_specials),),
         env_label=current_app.config.get("ENV_LABEL")
     )
@@ -32,8 +32,9 @@ def current_important_specials():
     query = Special.query.order_by(Special.check_in, Special.check_out)
     all_stored_specials = [(special, True) for special in query if is_important_special(special)]
     return render_template(
-        'email_template.html',
+        'specials/email_template.html',
         specials_group=(('Important', all_stored_specials),),
+        title='Important',
         env_label=current_app.config.get("ENV_LABEL")
     )
 
@@ -67,6 +68,8 @@ def current_important_criteria():
 @auth.login_required
 def current_error_specials():
     all_stored_specials = Special.query.filter_by(error=True).order_by(Special.check_in, Special.check_out).all()
-    return render_template('email_template.html',
-                           specials_group=(('Errors', all_stored_specials),),
-                           env_label=current_app.config.get("ENV_LABEL"))
+    return render_template(
+        'specials/email_template.html',
+        specials_group=(('Errors', all_stored_specials),),
+        env_label=current_app.config.get("ENV_LABEL")
+    )

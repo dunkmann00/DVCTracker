@@ -177,7 +177,7 @@ def coerce_bool(value):
     return value in ["True", "true", True]
 
 class ImportantCriteriaListForm(FlaskForm):
-    important_only = RadioField("Send Important Only", [InputRequired()], choices=[(False, "No"), (True, "Yes")], coerce=coerce_bool)
+    important_only = RadioField("Send Important Updates Only", [InputRequired()], choices=[(False, "No"), (True, "Yes")], coerce=coerce_bool)
     important_criteria = FieldList(FormField(ImportantCriteriaForm), min_entries=1)
 
     @classmethod

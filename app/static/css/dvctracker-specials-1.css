@@ -259,16 +259,12 @@
         background-color: #f6f9fd;
       }
 
-      .body {
-        padding-top: 30px;
-      }
-
       .wrapper {
           padding: 0px;
       }
 
       a {
-        color: #dc3545;
+        color: #1a4b7c;
       }
 
       table td {
@@ -280,6 +276,11 @@
 
       .block {
         display: block;
+      }
+
+      #env_label {
+        font-weight: 700;
+        margin-bottom: 0px;
       }
 
       .main {
@@ -346,7 +347,7 @@
       .category {
         font-weight: 700;
         color: #f4f9ff;
-        background-color: #285b8e;
+        background-color: #1a4b7c;
         padding: 10px 15px;
         margin-bottom: 0px;
         border-radius: 10px;
@@ -457,6 +458,11 @@
       @media only screen and (max-width: 620px) {
         .container {
           background-color: #f6f9fd !important;
+        }
+
+        .header {
+          padding-left: 10px;
+          padding-right: 10px;
         }
 
         .category {

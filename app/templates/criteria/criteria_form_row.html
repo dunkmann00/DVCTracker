@@ -2,7 +2,7 @@
 {% for option in options %}
 <li class="mb-1">
     <div class="form-check">
-        {{ option(class="form-check-input red-input") }}
+        {{ option(class="form-check-input dvc-input") }}
         {{ option.label(class="form-check-label") }}
     </div>
 </li>
@@ -15,11 +15,11 @@
     {% for group, options in choices %}
     {% if not group %}
     {{ add_options(options) }}
-    {% else %}
+    {%- else %}
     <li>
         {% set targetID = choices.name ~ "-group-" ~ loop.index0 %}
         <div>
-            <input class="form-check-input red-input select-all-input" type="checkbox" value="{{ targetID }}">
+            <input class="form-check-input dvc-input select-all-input" type="checkbox" value="{{ targetID }}">
             <button class="btn collapse-btn d-inline-flex align-items-center" type="button" data-bs-toggle="collapse" data-bs-target="#{{ targetID }}" aria-expanded="false" aria-controls="{{ targetID }}">
                 {{ group }}
             </button>
@@ -39,7 +39,7 @@
 {% endmacro %}
 
 {% macro add_row(index, criteria) %}
-<div class="row criteria-row mb-4 p-2 border border-danger rounded-3 fade show">
+<div class="row criteria-row mb-4 p-2 border rounded-3 fade show">
     <div class="col-sm-12 py-2">
         <button type="button" class="btn symbol-button x-button remove-criteria-button float-end">
             <svg class="bi bg-white rounded-circle" width="38" height="38">
@@ -49,42 +49,42 @@
         </button>
         <div class="mb-3 mt-4">
             {{ criteria.special_type.label(class="form-label") }}
-            {{ criteria.special_type(class="form-select", aria_label="Select Special Type") }}
+            {{ criteria.special_type(class="form-select dvc-input", aria_label="Select Special Type") }}
         </div>
         <div class="mb-3 disc-points-hidden" {% if criteria.special_type.data == SpecialTypes.DISC_POINTS %}hidden{% endif %}>
             {{ criteria.check_in_date.label(class="form-label") }}
-            {{ criteria.check_in_date(class="form-control")}}
+            {{ criteria.check_in_date(class="form-control dvc-input")}}
             <div class="invalid-feedback">
                 This field is required when setting a Check Out date for a Preconfirmed Reservation.
             </div>
         </div>
         <div class="mb-3">
             {{ criteria.check_out_date.label(class="form-label") }}
-            {{ criteria.check_out_date(class="form-control")}}
+            {{ criteria.check_out_date(class="form-control dvc-input")}}
             <div class="invalid-feedback">
                 This field is required when setting a Check In date.
             </div>
         </div>
         <div class="mb-3 disc-points-hidden" {% if criteria.special_type.data == SpecialTypes.DISC_POINTS %}hidden{% endif %}>
             {{ criteria.length_of_stay.label(class="form-label") }}
-            {{ criteria.length_of_stay(class="form-control", inputmode="numeric") }}
+            {{ criteria.length_of_stay(class="form-control dvc-input", inputmode="numeric") }}
         </div>
         <div class="mb-3 preconfirm-hidden" {% if criteria.special_type.data == SpecialTypes.PRECONFIRM %}hidden{% endif %}>
             {{ criteria.points.label(class="form-label") }}
-            {{ criteria.points(class="form-control no-spinner", inputmode="numeric") }}
+            {{ criteria.points(class="form-control no-spinner dvc-input", inputmode="numeric") }}
         </div>
         <div class="mb-3 disc-points-hidden" {% if criteria.special_type.data == SpecialTypes.DISC_POINTS %}hidden{% endif %}>
             {{ criteria.price.label(class="form-label") }}
             <div class="input-group">
                 <span class="input-group-text" id="price-addon1">$</span>
-                {{ criteria.price(class="form-control no-spinner", inputmode="numeric") }}
+                {{ criteria.price(class="form-control no-spinner dvc-input", inputmode="numeric") }}
             </div>
         </div>
         <div class="mb-3 disc-points-hidden" {% if criteria.special_type.data == SpecialTypes.DISC_POINTS %}hidden{% endif %}>
             {{ criteria.price_per_night.label(class="form-label") }}
             <div class="input-group">
                 <span class="input-group-text" id="pricePerNight-addon1">$</span>
-                {{ criteria.price_per_night(class="form-control no-spinner", inputmode="numeric") }}
+                {{ criteria.price_per_night(class="form-control no-spinner dvc-input", inputmode="numeric") }}
                 <span class="input-group-text" id="pricePerNight-addon2">/night</span>
             </div>
         </div>
@@ -92,7 +92,7 @@
             {{ criteria.price_per_point.label(class="form-label") }}
             <div class="input-group">
                 <span class="input-group-text" id="pricePerPoint-addon1">$</span>
-                {{ criteria.price_per_point(class="form-control no-spinner", inputmode="numeric") }}
+                {{ criteria.price_per_point(class="form-control no-spinner dvc-input", inputmode="numeric") }}
                 <span class="input-group-text" id="pricePerPoint-addon2">/night</span>
             </div>
         </div>

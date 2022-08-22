@@ -144,7 +144,7 @@ def update_specials(local_specials, send_email, send_error_report):
             if len(send_removed_specials) > 0:
                 changes.append(('Removed', send_removed_specials))
             if changes and send_email:
-                email_message = render_template('email_template.html',
+                email_message = render_template('specials/email_template.html',
                                                 specials_group=changes,
                                                 env_label=current_app.config.get("ENV_LABEL"))
                 notifications.send_update_email(email_message)
@@ -249,7 +249,7 @@ def handle_errors(new_specials, stored_specials):
         new_specials_flat.update(new_specials[key])
     new_specials_errors = [new_specials_flat[stored_special.special_id] for stored_special in stored_specials if stored_special.new_error]
     if len(new_specials_errors) > 0:
-        error_msg = render_template('error_template.html', specials=new_specials_errors,
+        error_msg = render_template('specials/error_template.html', specials=new_specials_errors,
                                     env_label=current_app.config.get("ENV_LABEL"))
         print('Uhh-ohh, Houston, we have a problem. There appears to be an error.')
         notifications.send_error_email(error_msg)
@@ -260,7 +260,7 @@ def handle_errors(new_specials, stored_specials):
         all_specials_errors = [new_specials_flat[stored_special.special_id] for stored_special in stored_specials if stored_special.error]
         all_empty_parsers = ParserStatus.query.filter_by(healthy=False).all()
         if len(all_specials_errors) > 0 or len(all_empty_parsers) > 0:
-            error_msg = render_template('error_template.html', specials=all_specials_errors,
+            error_msg = render_template('specials/error_template.html', specials=all_specials_errors,
                                         empty_parsers=all_empty_parsers,
                                         env_label=current_app.config.get("ENV_LABEL"), error_report=True)
             print('So, about that bug...when are you going to catch it? Producing Error Report.')
@@ -271,7 +271,7 @@ def empty_parser_error(parser_source):
     if parser_status.healthy and not parser_status.empty_okay:
         parser_status.healthy = False
         print('Umm hello?...Anyone Home?')
-        error_msg = render_template('empty_parser_template.html', parser_source=parser_source,
+        error_msg = render_template('specials/empty_parser_template.html', parser_source=parser_source,
                                     env_label=current_app.config.get("ENV_LABEL"))
         notifications.send_error_email(error_msg)
         notifications.send_error_text_messsage()
