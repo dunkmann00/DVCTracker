@@ -278,6 +278,10 @@
         display: block;
       }
 
+      .display-none {
+          display: none;
+      }
+
       #env_label {
         font-weight: 700;
         margin-bottom: 0px;
