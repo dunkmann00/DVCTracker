@@ -48,13 +48,13 @@ def send_notifications(notifications):
 @log_response('APNS', 'Update Push Notification Sent')
 def send_update_push_notification():
     push_tokens = PushToken.query.all()
-    msg = "Hey this is DVCTracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
+    msg = "Hey this is DVC Tracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
     notifications = create_notifications(push_tokens, msg)
     return send_notifications(notifications)
 
 @log_response('APNS', 'Error Push Notification Sent')
 def send_error_push_notification():
     push_tokens = PushToken.query.filter_by(get_errors=True).all()
-    msg = "Hey this is DVCTracker!\nThere seems to be a problem checking for updates and/or sending emails. Check your emails for more info!"
+    msg = "Hey this is DVC Tracker!\nThere seems to be a problem checking for updates and/or sending emails. Check your emails for more info!"
     notifications = create_notifications(push_tokens, msg)
     return send_notifications(notifications)

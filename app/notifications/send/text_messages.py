@@ -36,11 +36,11 @@ def send_text_message(message, numbers):
 @log_response("Twilio", "Update Text Sent")
 def send_update_text_message():
     phone_numbers = [phone_number.phone_number for phone_number in PhoneNumber.query]
-    msg = "Hey this is DVCTracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
+    msg = "Hey this is DVC Tracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
     return send_text_message(msg, phone_numbers)
 
 @log_response("Twilio", "Error Text Sent")
 def send_error_text_messsage():
     phone_numbers = [phone_number.phone_number for phone_number in PhoneNumber.query.filter_by(get_errors=True)]
-    msg = "Hey this is DVCTracker!\nThere seems to be a problem checking for updates and/or sending emails. Check your emails for more info!"
+    msg = "Hey this is DVC Tracker!\nThere seems to be a problem checking for updates and/or sending emails. Check your emails for more info!"
     return send_text_message(msg, phone_numbers)

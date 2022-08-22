@@ -430,7 +430,7 @@ class ViewCategory(Category):
 
 class Status(db.Model):
     """
-    The database model for the status of the app. DVCTracker will create one
+    The database model for the status of the app. DVC Tracker will create one
     of these automatically. If an error is thrown that is not caught by any
     specific special, healthy will get set to False.
     """
