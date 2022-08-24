@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm, Form
 from wtforms import SelectField, DateField, IntegerField, StringField, SelectMultipleField, RadioField
 from wtforms import FormField, FieldList
 from wtforms import widgets
-from wtforms.validators import InputRequired, Optional, StopValidation
+from wtforms.validators import InputRequired, Optional, StopValidation, NumberRange
 from collections import namedtuple
 from datetime import date
 from ..util import SpecialTypes
@@ -26,7 +26,6 @@ class RequiredWhen:
         self.field_flags = {"optional": True}
 
     def __call__(self, form, field):
-        # import pdb; pdb.set_trace()
         if self.check_func(field, form):
             setattr(field.flags, "required", True)
             if field.raw_data and field.raw_data[0]:
@@ -134,11 +133,11 @@ class ImportantCriteriaForm(Form):
     special_type = SelectField("Special Type", [InputRequired()], choices=[(SpecialTypes.PRECONFIRM, "Preconfirmed Reservation"), (SpecialTypes.DISC_POINTS, "Discounted Points")], coerce=SpecialTypes, default=SpecialTypes.PRECONFIRM)
     check_in_date = DateField("Check In", [RequiredWhen(lambda field, form: form.special_type.data == SpecialTypes.PRECONFIRM and bool(form.check_out_date.data), message="This field is required when setting a Check Out date for a Preconfirmed Reservation.")])
     check_out_date = DateField("Check Out", [RequiredIf("check_in_date", message="This field is required when setting a Check In date.")])
-    length_of_stay = IntegerField("Length of Stay (Nights - Minimum)", [Optional()], render_kw={"min": 1, "max": 30})
-    points = IntegerField("Points (Minimum)", [Optional()])
-    price = IntegerField("Price (Maximum)", [Optional()])
-    price_per_night = IntegerField("Price/Night (Maximum)", [Optional()])
-    price_per_point = IntegerField("Price/Point (Maximum)", [Optional()])
+    length_of_stay = IntegerField("Length of Stay (Nights - Minimum)", [Optional(), NumberRange(min=1, max=30, message="Must be between 1 and 30.")])
+    points = IntegerField("Points (Minimum)", [Optional(), NumberRange(min=1, message="Must be greater than 0.")])
+    price = IntegerField("Price (Maximum)", [Optional(), NumberRange(min=1, message="Must be greater than 0.")])
+    price_per_night = IntegerField("Price/Night (Maximum)", [Optional(), NumberRange(min=1, message="Must be greater than 0.")])
+    price_per_point = IntegerField("Price/Point (Maximum)", [Optional(), NumberRange(min=1, message="Must be greater than 0.")])
     resorts = MultiCheckboxField('Resorts', [Optional()])
     rooms = MultiCheckboxField('Rooms', [Optional()])
     views = MultiCheckboxField('Views', [Optional()])

@@ -68,16 +68,25 @@
         <div class="mb-3 disc-points-hidden" {% if criteria.special_type.data == SpecialTypes.DISC_POINTS %}hidden{% endif %}>
             {{ criteria.length_of_stay.label(class="form-label") }}
             {{ criteria.length_of_stay(class="form-control dvc-input", inputmode="numeric") }}
+            <div class="invalid-feedback">
+                Must be between 1 and 30.
+            </div>
         </div>
         <div class="mb-3 preconfirm-hidden" {% if criteria.special_type.data == SpecialTypes.PRECONFIRM %}hidden{% endif %}>
             {{ criteria.points.label(class="form-label") }}
             {{ criteria.points(class="form-control no-spinner dvc-input", inputmode="numeric") }}
+            <div class="invalid-feedback">
+                Must be greater than 0.
+            </div>
         </div>
         <div class="mb-3 disc-points-hidden" {% if criteria.special_type.data == SpecialTypes.DISC_POINTS %}hidden{% endif %}>
             {{ criteria.price.label(class="form-label") }}
             <div class="input-group">
                 <span class="input-group-text" id="price-addon1">$</span>
                 {{ criteria.price(class="form-control no-spinner dvc-input", inputmode="numeric") }}
+                <div class="invalid-feedback">
+                    Must be greater than 0.
+                </div>
             </div>
         </div>
         <div class="mb-3 disc-points-hidden" {% if criteria.special_type.data == SpecialTypes.DISC_POINTS %}hidden{% endif %}>
@@ -86,6 +95,9 @@
                 <span class="input-group-text" id="pricePerNight-addon1">$</span>
                 {{ criteria.price_per_night(class="form-control no-spinner dvc-input", inputmode="numeric") }}
                 <span class="input-group-text" id="pricePerNight-addon2">/night</span>
+                <div class="invalid-feedback">
+                    Must be greater than 0.
+                </div>
             </div>
         </div>
         <div class="mb-3">
@@ -94,6 +106,9 @@
                 <span class="input-group-text" id="pricePerPoint-addon1">$</span>
                 {{ criteria.price_per_point(class="form-control no-spinner dvc-input", inputmode="numeric") }}
                 <span class="input-group-text" id="pricePerPoint-addon2">/night</span>
+                <div class="invalid-feedback">
+                    Must be greater than 0.
+                </div>
             </div>
         </div>
         <div class="mb-3 disc-points-hidden" {% if criteria.special_type.data == SpecialTypes.DISC_POINTS %}hidden{% endif %}>
