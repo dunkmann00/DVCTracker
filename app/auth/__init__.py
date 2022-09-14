@@ -7,5 +7,5 @@ auth = HTTPBasicAuth()
 def verify_password(username, password):
     if username == '' or password == '':
         return None
-    user = User.query.get(username)
+    user = User.query.filter_by(username=username).first()
     return user if user is not None and user.verify_password(password) else None

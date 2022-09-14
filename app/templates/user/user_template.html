@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Account{% endblock %}
+{% block css %}
+<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/intl-tel-input@17.0.18/build/css/intlTelInput.min.css" integrity="sha256-xpVuhxDPR39wFEQDha4W7kuMx+z9Av3dTS8MbH/RWEU=" crossorigin="anonymous"></link>
+{% endblock css %}
+{% macro add_row() %}
+<div class="row border rounded-3 contact-row mb-4 p-2">
+    <div class="col-sm-12">
+        {{ caller() -}}
+    </div>
+</div>
+{% endmacro %}
+{% block content %}
+    {% call add_row() %}
+        <h2>Email Addresses</h2>
+        <div id="email_container">
+            {% include 'user/user_email_list.html' %}
+        </div>
+    {% endcall %}
+    {% call add_row() %}
+        <h2>Phone Numbers</h2>
+        <div id="phone_container">
+            {% include 'user/user_phone_list.html' %}
+        </div>
+    {% endcall %}
+{% endblock content %}
+{% block javascript %}
+    {{ super() }}
+    <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@17.0.18/build/js/intlTelInput.min.js" integrity="sha256-B59tg1fQLJTf1b/7MvziVaCT8AmEOftoNAfBJqsAwBU=" crossorigin="anonymous"></script>
+    <script src="{{ url_for('static', filename='js/dvctracker-user-1.js') }}"></script>
+{% endblock javascript %}

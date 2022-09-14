@@ -39,9 +39,6 @@ def create_app(config_name):
     from .main import main as main_blueprint
     app.register_blueprint(main_blueprint)
 
-    from .notifications import notifications as notifications_blueprint
-    app.register_blueprint(notifications_blueprint)
-
     @app.route('/')
     def index():
         return redirect(url_for('main.current_specials'))

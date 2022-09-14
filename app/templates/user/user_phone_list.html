@@ -1,0 +1,4 @@
+{% from 'user/user_form_row.html' import add_phone_form %}
+{% for phone in contact_list.phone_forms %}
+    {{- add_phone_form(phone, form_errors, loop.last) -}}
+{% endfor %}

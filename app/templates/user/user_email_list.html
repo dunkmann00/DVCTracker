@@ -1,0 +1,4 @@
+{% from 'user/user_form_row.html' import add_email_form %}
+{% for email in contact_list.email_forms %}
+    {{- add_email_form(email, form_errors, loop.last) -}}
+{% endfor %}

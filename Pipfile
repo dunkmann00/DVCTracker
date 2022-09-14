@@ -19,9 +19,10 @@ twilio = "*"
 apns2 = {editable = true, ref = "b64_token_auth_key", git = "https://github.com/dunkmann00/PyAPNs2.git"}
 passlib = {extras = ["bcrypt"], version = "*"}
 flask-httpauth = "*"
-flask-wtf = "*"
+flask-wtf = {extras = ["email"], version = "*"}
 flask-talisman = "*"
 premailer = {editable = true, ref = "parsestyle-validate-option", git = "https://github.com/dunkmann00/premailer.git"}
+phonenumbers = "*"
 
 [requires]
 python_version = "3.9"

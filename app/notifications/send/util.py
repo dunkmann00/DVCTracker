@@ -5,12 +5,15 @@ class NotificationResponse:
         self.success = success
         self.msg = msg
 
+NotificationResponse.Success = NotificationResponse(True)
+NotificationResponse.Fail = NotificationResponse(False)
+
 def log_response(service, success_msg, raise_on_fail=False):
     def decorated_function(f):
         @wraps(f)
         def decorator(*args, **kwargs):
             response = f(*args, **kwargs)
-            if response:
+            if response.success:
                 if success_msg:
                     print(f'{service}: {success_msg}')
             else:

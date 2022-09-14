@@ -11,7 +11,7 @@ inliner = Premailer(
     disable_validation=True
 )
 
-def send_email(subject, email_message, addresses, html_message=True):
+def send_email(subject, email_message, email_addresses, html_message=True):
     if current_app.config['MAILGUN_API_KEY'] is None:
         print('No MAILGUN API Key, not sending email.')
         return
@@ -26,7 +26,7 @@ def send_email(subject, email_message, addresses, html_message=True):
         f"https://api.mailgun.net/v3/{current_app.config['MAILGUN_DOMAIN_NAME']}/messages",
         auth=("api", current_app.config['MAILGUN_API_KEY']),
         data={"from": f"DVC Tracker <mailgun@{current_app.config['MAILGUN_DOMAIN_NAME']}>",
-              "to": addresses,
+              "to": email_addresses,
               "subject": sub_env + subject,
               msg_type: email_message}
     )
@@ -38,19 +38,26 @@ def send_email(subject, email_message, addresses, html_message=True):
 
     return notification_response
 
-
-
-@log_response("Mailgun", "Update Message Sent", True)
-def send_update_email(email_message):
-    email_addresses = [email_address.email for email_address in Email.query]
+@log_response("Mailgun", "Update Message Complete", True)
+def send_update_email(email_message, user):
+    email_addresses = [email.email_address for email in user.emails]
+    if len(email_addresses) == 0:
+        print(f"No email addresses associated with {user}. Not sending update email.")
+        return NotificationResponse.Success
     return send_email("DVC Tracker Updates", email_message, email_addresses)
 
-@log_response("Mailgun", "Error Message Sent")
+@log_response("Mailgun", "Error Message Complete")
 def send_error_email(email_message, html_message=True):
-    email_addresses = [email_address.email for email_address in Email.query.filter_by(get_errors=True)]
+    email_addresses = [email.email_address for email in Email.query.filter_by(get_errors=True)]
+    if len(email_addresses) == 0:
+        print(f"No email addresses requested error messages. Not sending error email.")
+        return NotificationResponse.Success
     return send_email("DVC Tracker Error", email_message, email_addresses, html_message)
 
-@log_response("Mailgun", "Error Report Sent")
+@log_response("Mailgun", "Error Report Complete")
 def send_error_report_email(email_message, html_message=True):
-    email_addresses = [email_address.email for email_address in Email.query.filter_by(get_errors=True)]
+    email_addresses = [email.email_address for email in Email.query.filter_by(get_errors=True)]
+    if len(email_addresses) == 0:
+        print(f"No email addresses requested error messages. Not sending error report email.")
+        return NotificationResponse.Success
     return send_email("DVC Tracker Error Report", email_message, email_addresses, html_message)

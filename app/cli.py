@@ -2,7 +2,7 @@ from flask import current_app, g, render_template, json
 from flask.cli import with_appcontext
 from datetime import date
 from . import db
-from .models import StoredSpecial, Status, ParserStatus, User
+from .models import StoredSpecial, Status, ParserStatus, User, Email
 from .criteria import ImportantCriteria
 from .parsers import PARSERS
 from .util import test_old_values
@@ -75,8 +75,22 @@ def store_specials_data(name, extension):
             return
     print(f"No parser with the name '{name}' was found.")
 
-@click.command(help="Send a test email with a few specials and old values.")
-def send_test_email():
+# TODO: Also make commands to send test text messages and notifications
+@click.command(help="Send a test email with a few specials and old values to the provided user.")
+@click.option('-u', '--username')
+@click.option('-e', '--email-address', multiple=True)
+def send_test_email(username, email_address):
+    if username:
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            print(f"Could not find user '{username}'")
+            return
+    else:
+        emails = [Email(email_address=email_address_input) for email_address_input in email_address]
+        if len(emails) == 0:
+            print("No email addresses provided.")
+            return
+        user = User(emails=emails)
     specials = StoredSpecial.query.limit(3).all()
     up_special = specials[1]
     down_special = specials[2]
@@ -90,7 +104,7 @@ def send_test_email():
             ('Removed', group)),
         env_label=current_app.config.get("ENV_LABEL")
     )
-    notifications.send_update_email(email)
+    notifications.send_update_email(email, user)
 
 @click.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
 @click.option('--local', 'local_specials', multiple=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True),
@@ -165,12 +179,12 @@ def update_specials(local_specials, send_email, send_error_report):
                 email_message = render_template('specials/email_template.html',
                                                 specials_group=changes,
                                                 env_label=current_app.config.get("ENV_LABEL"))
-                notifications.send_update_email(email_message)
+                notifications.send_update_email(email_message, user)
 
                 #Send a text/push notification if any of the changes were considered important
                 if contains_important(send_new_specials) or contains_important(send_updated_specials):
-                    notifications.send_update_text_message()
-                    notifications.send_update_push_notification()
+                    notifications.send_update_text_message(user)
+                    notifications.send_update_push_notification(user)
 
 
         changes_made = (len(new_specials_list) + len(updated_specials_list) + len(removed_specials_list)) > 0

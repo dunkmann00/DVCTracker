@@ -25,6 +25,15 @@ class CharacteristicTypes(Enum):
     ROOM   = "room"
     VIEW   = "view"
 
+class ContactTypes(Enum):
+    """
+    Specifies the different kinds of Contact types.
+    """
+    BASE  = "base"
+    EMAIL = "email"
+    PHONE = "phone"
+    APN   = "apn"
+
 
 class InheritedModelLoader:
     model = None
@@ -79,3 +88,6 @@ def test_old_values(special, increase):
             special.old_price_per_night = special.old_price / (special.old_duration or 1)
         if special.price_per_point:
             special.old_price_per_point = special.old_price / (special.points or 1)
+
+def first_index_or_none(iterable, predicate):
+    return next((index for index, item in enumerate(iterable) if predicate(item)), None)

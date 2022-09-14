@@ -17,15 +17,12 @@ html, body {
 
 body {
     background-color: #f6f9fd;
-    /* padding:
-      env(safe-area-inset-top, 20px)
-      env(safe-area-inset-right, 20px)
-      env(safe-area-inset-bottom, 20px)
-      env(safe-area-inset-left, 20px); */
 }
 
-#add_criteria_button {
-  /* bottom: env(safe-area-inset-bottom, 0px); */
+input[type="email"]:read-only:focus,
+input[type="tel"]:read-only:focus {
+    box-shadow: none;
+    border: 1px solid #ced4da;
 }
 
 #header {
@@ -54,7 +51,7 @@ body {
   border-color: #1a4b7c !important;
 }
 
-.criteria-row {
+.criteria-row, .contact-row {
     background-color: #ffffff;
     border-color: #1a4b7c !important;
 }
@@ -94,6 +91,10 @@ body {
   border-color: #1a4b7c;
 }
 
+.btn.dvc-button:hover {
+    color: #fff;
+}
+
 .dvc-input:checked, .dvc-input:indeterminate {
     background-color: #1a4b7c !important; /* BLUE COLOR #143dc4 */
     border-color: #1a4b7c !important;
@@ -107,6 +108,100 @@ body {
     padding: 0px;
     border-radius: 50%!important;
     border: none;
+}
+
+.contact-submit-button {
+    padding: 0px;
+}
+
+.contact-remove-button {
+    color: #fff;
+    background-color: #6c757d;
+}
+
+.contact-remove-button:hover, .contact-remove-button:focus {
+    background-color: #5c636a;
+}
+
+.contact-remove-button:focus {
+    box-shadow: 0 0 0 0.25rem rgb(130 138 145 / 50%);
+}
+
+.contact-add-button {
+    color: #fff;
+    background-color: #1a4b7c;
+}
+
+.contact-add-button:hover, .contact-add-button:focus {
+    background-color: #003366;
+}
+
+.contact-add-button:focus {
+    box-shadow: 0 0 0 0.25rem #00336645;
+}
+
+.contact-spinner-container {
+    width: 40px;
+    height: 40px;
+    color: #fff;
+    pointer-events: none;
+}
+
+.contact-add-spinner-container {
+    background-color: #003366;
+}
+
+.contact-remove-spinner-container {
+    background-color: #5c636a;
+}
+
+.user-form-error {
+    display: block;
+    width: 100%;
+    margin-top: -18px;
+    font-size: .875em;
+    color: #dc3545;
+}
+
+.user-form-error ~ .user-form-error {
+    margin-top: 0.25rem;
+}
+
+/*
+    Fixes for intl-tel-input
+ */
+
+.input-group>.iti {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+}
+
+.iti>.form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.iti__flag-container {
+    z-index: 10;
+}
+
+.phone-number-form.was-validated:invalid .invalid-feedback {
+    display: block;
+}
+
+.svg-container {
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    height: 40px;
+}
+
+.has-svg-decorator input.form-control {
+    padding-left: 52px;
 }
 
 .plus-button {

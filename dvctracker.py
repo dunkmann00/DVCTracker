@@ -1,11 +1,11 @@
 from flask_migrate import Migrate, upgrade
 from app import create_app, db
-from app.models import (StoredSpecial, Status, Email, PhoneNumber,
+from app.models import (StoredSpecial, Status, Email, Phone,
                         Characteristic, CharacteristicModelLoader,
                         Resort, Room, View, Category, CategoryModelLoader,
                         ResortCategory, RoomCategory, ViewCategory, User)
 from app.parsers import DVCRentalPointParser, ParsedSpecial
-from app.util import SpecialTypes, ProxyAttribute
+from app.util import SpecialTypes, ContactTypes, ProxyAttribute
 from app.cli import update_specials
 from app.criteria import ImportantCriteria
 import os
@@ -30,11 +30,12 @@ def make_shell_context():
         ViewCategory=ViewCategory,
         Status=Status,
         Email=Email,
-        PhoneNumber=PhoneNumber,
+        Phone=Phone,
         User=User,
         CharacteristicModelLoader=CharacteristicModelLoader,
         CategoryModelLoader=CategoryModelLoader,
         SpecialTypes=SpecialTypes,
+        ContactTypes=ContactTypes,
         ProxyAttribute=ProxyAttribute,
         DVCRentalPointParser=DVCRentalPointParser,
         ImportantCriteria=ImportantCriteria

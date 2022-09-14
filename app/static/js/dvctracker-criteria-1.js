@@ -36,11 +36,7 @@ function addCriteria() {
 
     const criteriaRow = criteriaRowFragment.querySelector(".criteria-row");
     replaceAttributesWithCurrentIndex(criteriaRow);
-    addEventListenerForDates(criteriaRow);
-    addEventListenerForCriteriaTypeChange(criteriaRow);
-    addEventListenerForRemoveButton(criteriaRow);
-    addEventListenersForCharacteristicCheckboxes(criteriaRow);
-
+    addListenersForCriteria(criteriaRow);
 
     destination.appendChild(criteriaRowFragment);
     destination.lastElementChild.scrollIntoView();
@@ -113,7 +109,7 @@ function addEventListenerForDates(row) {
 function addEventListenerForCriteriaTypeChange(row) {
     const criteriaType = row.querySelector("[id$=\"special_type\"]");
     criteriaType.addEventListener("change", function(event) {
-        isPreconfirm = criteriaType.value == "{{ SpecialTypes.PRECONFIRM }}";
+        isPreconfirm = criteriaType.value == "preconfirm";
         showPreconfirmFields(isPreconfirm, row);
         checkDateRequirements(row);
     });

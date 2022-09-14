@@ -39,7 +39,7 @@
             {# This table is the discounted points table #}
             {#
               {%- for special, important_special in specials if special.type == SpecialTypes.DISC_POINTS %}
-              {% include 'disc_points_template.html' %}
+              {% include 'specials/disc_points_template.html' %}
               {% endfor %}
             #}
 

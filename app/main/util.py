@@ -3,6 +3,7 @@ from werkzeug.local import LocalProxy
 from ..auth import auth
 from ..criteria import ImportantCriteria
 from ..models import Category
+from ..util import ContactTypes
 
 def get_important_special():
     if "is_important_special" not in g:
@@ -95,3 +96,9 @@ class ViewChoices(CategoryChoices):
 
     def _get_characteristics(self, category):
         return category.views
+
+def get_template_for_type(contact_type):
+    if contact_type is ContactTypes.EMAIL:
+        return "user/user_email_list.html"
+    elif contact_type is ContactTypes.PHONE:
+        return "user/user_phone_list.html"

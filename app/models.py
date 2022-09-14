@@ -2,7 +2,14 @@ from werkzeug.utils import cached_property
 from werkzeug.datastructures import MultiDict
 from datetime import datetime
 from . import db
-from .util import SpecialTypes, CharacteristicTypes, ProxyAttribute, InheritedModelLoader
+from .util import (
+    SpecialTypes,
+    CharacteristicTypes,
+    ContactTypes,
+    ProxyAttribute,
+    InheritedModelLoader,
+    first_index_or_none
+)
 from sqlalchemy import orm, inspect, ForeignKeyConstraint
 from sqlalchemy.ext.hybrid import hybrid_property, HYBRID_PROPERTY
 from .security import pwd_context
@@ -36,7 +43,7 @@ class ProxyConversionMixin():
         if orm_attr is None: # This can happen if no queries have been performed yet
             orm.configure_mappers()
             orm_attr = getattr(cls, proxy.attr)
-        model = getattr(cls, proxy.attr).mapper.class_
+        model = orm_attr.mapper.class_
         entity = model.query.get(proxy.id)
         if entity is None:
             raise RuntimeError(
@@ -241,8 +248,6 @@ class Characteristic(StaticDataMixin, db.Model):
     category_id = db.Column(db.String(100), db.ForeignKey("categories.category_id", ondelete="SET NULL"))
     type = db.Column(db.Enum(CharacteristicTypes), nullable=False)
 
-    # index = db.Column(db.Integer)
-
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.BASE,
         "polymorphic_on": type,
@@ -428,6 +433,7 @@ class ViewCategory(Category):
         "polymorphic_load": "inline"
     }
 
+# TODO: Add last_updated to record the date and time of the last update
 class Status(db.Model):
     """
     The database model for the status of the app. DVC Tracker will create one
@@ -445,7 +451,7 @@ class ParserStatus(db.Model):
     The model for the status of a Parser. Parsers don't need to have a Status
     but if there are no specials found from a parser a status will be created
     and will have its healthy attribute set to False. The empty_okay attribute
-    can be set to True in order to process the parser with noo specials. The
+    can be set to True in order to process the parser with no specials. The
     idea for providing this option is to avoid all the specials from being
     deleted when something wrong happens with the site they are from. If they
     all disappear and reappear it results in unnecessary notifications being
@@ -456,55 +462,97 @@ class ParserStatus(db.Model):
     healthy = db.Column(db.Boolean)
     empty_okay = db.Column(db.Boolean, default=False)
 
-class Email(db.Model):
+class Contact(db.Model):
     """
-    The email addresses that updates should be sent to. If get_errors is set
-    to True, the address will also receive error messages. The email addresses
-    aren't checked in any way so it is up to you to make sure they are valid
-    and correct.
+    The database base model for all contacts. If get_errors is set to True, the
+    contact will also receive error messages.
     """
-    __tablename__ = 'emails'
-
-    email = db.Column(db.String(80), primary_key=True)
+    __tablename__ = "contacts"
+    contact_id = db.Column(db.Integer, primary_key=True)
+    contact = db.Column(db.String())
     get_errors = db.Column(db.Boolean, default=False)
-
-    def __repr__(self):
-        return f'<Email: {self.email}>'
-
-class PhoneNumber(db.Model):
-    """
-    The phone numbers that important update messages should get sent to. If
-    get_errors is set to True, the number will also receive error messages. The
-    phone numbers aren't checked in any way so it is up to you to make sure they
-    are valid and correct.
-    """
-    __tablename__ = 'phone_numbers'
-
-    phone_number = db.Column(db.String(11), primary_key=True)
-    get_errors = db.Column(db.Boolean, default=False)
-
-    def __repr__(self):
-        return f'<Phone Number: {self.phone_number}>'
-
-class PushToken(db.Model):
-    """
-    The Apple Push Tokens that updates should be sent to.
-    """
-    __tablename__ = 'push_tokens'
-
-    push_token = db.Column(db.String(), primary_key=True)
-    get_errors = db.Column(db.Boolean, default=False)
+    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"))
     last_updated = db.Column(db.DateTime(), default=datetime.utcnow)
+    contact_type = db.Column(db.Enum(ContactTypes), nullable=False)
+
+    __mapper_args__ = {
+        "polymorphic_identity": ContactTypes.BASE,
+        "polymorphic_on": contact_type,
+        "with_polymorphic": "*"
+    }
 
     def ping(self):
         self.last_updated = datetime.utcnow()
 
     @staticmethod
-    def on_set_push_token(target, value, oldvalue, initiator):
+    def on_set_contact(target, value, oldvalue, initiator):
         target.ping()
 
-db.event.listen(PushToken.push_token, 'set', PushToken.on_set_push_token)
+db.event.listen(Contact.contact, 'set', Contact.on_set_contact)
 
+class Email(Contact):
+    """
+    The email addresses that updates should be sent to. The email addresses
+    aren't checked in any way so it is up to you to make sure they are valid
+    and correct.
+    """
+
+    @hybrid_property
+    def email_address(self):
+        return self.contact
+
+    @email_address.setter
+    def email_address(self, value):
+        self.contact = value
+
+    __mapper_args__ = {
+        "polymorphic_identity": ContactTypes.EMAIL,
+        "polymorphic_load": "inline"
+    }
+
+    def __repr__(self):
+        return f'<Email: {self.email_address}>'
+
+class Phone(Contact):
+    """
+    The phone numbers that important update messages should get sent to. The
+    phone numbers aren't checked in any way so it is up to you to make sure they
+    are valid and correct.
+    """
+
+    @hybrid_property
+    def phone_number(self):
+        return self.contact
+
+    @phone_number.setter
+    def phone_number(self, value):
+        self.contact = value
+
+    __mapper_args__ = {
+        "polymorphic_identity": ContactTypes.PHONE,
+        "polymorphic_load": "inline"
+    }
+
+    def __repr__(self):
+        return f'<Phone Number: {self.phone_number}>'
+
+class APN(Contact):
+    """
+    The Apple Push Tokens that updates should be sent to.
+    """
+
+    @hybrid_property
+    def push_token(self):
+        return self.contact
+
+    @push_token.setter
+    def push_token(self, value):
+        self.contact = value
+
+    __mapper_args__ = {
+        "polymorphic_identity": ContactTypes.APN,
+        "polymorphic_load": "inline"
+    }
 
 class User(db.Model):
     """
@@ -553,10 +601,30 @@ class User(db.Model):
             return value
 
     __tablename__ = 'users'
-    username = db.Column(db.String(), primary_key=True)
+    user_id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(), unique=True)
     password_hash = db.Column(db.String())
     important_criteria = db.Column(ImportantCriteriaType)
     last_accessed = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    emails = db.relationship(
+        "Email",
+        order_by="Email.contact_id",
+        backref=db.backref("user", lazy="select"),
+        lazy="joined"
+    )
+    phones = db.relationship(
+        "Phone",
+        order_by="Phone.contact_id",
+        backref=db.backref("user", lazy="select"),
+        lazy="joined"
+    )
+    apns = db.relationship(
+        "APN",
+        order_by="APN.contact_id",
+        backref=db.backref("user", lazy="select"),
+        lazy="joined"
+    )
 
     @property
     def password(self):
@@ -574,5 +642,46 @@ class User(db.Model):
             db.session.commit()
         return valid
 
+    def get_contacts_for(self, contact_type):
+        if contact_type is ContactTypes.EMAIL:
+            return self.emails
+        elif contact_type is ContactTypes.PHONE:
+            return self.phones
+        elif contact_type is ContactTypes.APN:
+            return self.apns
+        else:
+            return None
+
+    @classmethod
+    def contact_class_for(cls, contact_type):
+        return cls.get_contacts_for(cls, contact_type).property.mapper.class_
+
+    def get_contact(self, contact_id, contact_type):
+        if contact_id is None:
+            return None
+        # Doing it this way avoids another potential db query. The key should
+        # already be in the identity map, if it isn't it means it isn't a
+        # contact that belongs to this user, and therefore is not valid
+        key = db.session.identity_key(Contact, contact_id)
+        contact = db.session.identity_map.get(key)
+
+        # Shouldn't need the 'contact.user == self' check, because only the
+        # user's contacts should be loaded into the identity map, but putting it
+        # here anyway as an extra precaution
+        if contact and contact.user == self and contact.contact_type == contact_type:
+            return contact
+        return None
+
+    def is_valid_contact_id(self, contact_id, contact_type):
+        return self.get_contact(contact_id, contact_type) is not None
+
+    def is_new_contact(self, contact_value, contact_type):
+        # For now this will work in such a way where a contact can be reused
+        # across different accounts
+        return first_index_or_none(self.get_contacts_for(contact_type), lambda x: x.contact == contact_value) is None
+
     def ping(self):
         self.last_accessed = datetime.utcnow()
+
+    def __repr__(self):
+        return f'<User: {self.username}>'
