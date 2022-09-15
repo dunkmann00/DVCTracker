@@ -24,6 +24,7 @@ class Config:
     APNS_TOPIC = os.getenv('APNS_TOPIC')
     SEND_EMAIL_ON_DEPLOY = os.getenv('SEND_EMAIL_ON_DEPLOY', 'False') == 'True'
     SSL_REDIRECT = False
+    TZ = os.getenv('TZ', 'America/New_York')
     @staticmethod
     def init_app(app):
         pass

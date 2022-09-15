@@ -44,7 +44,7 @@ def make_new_user(username, password):
 def reset_errors():
     for special in StoredSpecial.query:
         special.error = False
-    set_health(True)
+    Status.default.healthy = True
     db.session.commit()
 
 @click.command(help="Store contents of website data from parser NAME to use with local_specials.")
@@ -161,6 +161,9 @@ def update_specials(local_specials, send_email, send_error_report):
         #Deleting Removed Specials
         removed_specials_list = remove_old_specials(all_removed_specials_list)
 
+        #Record that we have just updated the specials.
+        Status.default.update()
+
         for user in User.query:
             important_criteria = ImportantCriteria(user.important_criteria)
             #Send an email if we need to.... i.e. if there were any kind of updates
@@ -197,7 +200,7 @@ def update_specials(local_specials, send_email, send_error_report):
 
         #Handle any errors that were generated during the parsing of the specials
         handle_errors(all_current_specials, all_stored_specials)
-        set_health(True)
+        Status.default.healthy = True
     except Exception as e:
         unhandled_error(e)
 
@@ -328,15 +331,14 @@ def get_parser_status(parser_source):
 def unhandled_error(error):
     traceback.print_exc()
     db.session.rollback()
-    healthy = check_health()
-    if healthy or g.send_error_report:
+    if Status.default.healthy or g.send_error_report:
         error_msg = f'Unhandled Exception: {error_type(error)}\n\n{error}\n\n{traceback.format_exc()}'
         send_error_func = notifications.send_error_report_email if g.send_error_report else notifications.send_error_email
         send_error_func(error_msg, html_message=False)
-        if healthy:
+        if Status.default.healthy:
             notifications.send_error_text_messsage()
             notifications.send_error_push_notification()
-        set_health(False)
+        Status.default.healthy = False
 
 # From traceback.py in CPython Line #563
 def error_type(error):
@@ -345,21 +347,6 @@ def error_type(error):
     if err_mod not in ("__main__", "builtins"):
         err_type = err_mod + '.' + err_type
     return err_type
-
-def get_status():
-    status = Status.query.first()
-    if not status:
-        status = Status(healthy=True)
-        db.session.add(status)
-    return status
-
-def check_health():
-    return get_status().healthy
-
-def set_health(healthy):
-    status = get_status()
-    if status.healthy != healthy:
-        status.healthy = healthy
 
 def local_special_for_parser(parser, local_specials):
     for local_special in local_specials:

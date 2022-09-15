@@ -1,7 +1,9 @@
 from flask import Blueprint, has_request_context, current_app, request
 from datetime import datetime
+from dateutil import tz
 from .specials import specials as specials_blueprint
 from .user import user as user_blueprint
+from ..models import Status
 from ..util import SpecialTypes
 from jinja2 import is_undefined
 import locale, sys
@@ -23,6 +25,11 @@ def datetimeformat(value, format="%-m/%-d/%Y"):
     return value.strftime(format)
 
 @main.app_template_filter()
+def convert_from_utc(value, tzinfo=None):
+    utc_value = value.replace(tzinfo=tz.tzutc())
+    return utc_value.astimezone(tz.gettz(tzinfo or current_app.config['TZ']))
+
+@main.app_template_filter()
 def currencyformat(value):
     return locale.currency(value, grouping=True) if value else value
 
@@ -39,4 +46,4 @@ def static_url(filename):
 
 @main.app_context_processor
 def my_utility_processor():
-    return dict(date=datetime.now, SpecialTypes=SpecialTypes, static_url=static_url)
+    return dict(status=Status.default, SpecialTypes=SpecialTypes, static_url=static_url)

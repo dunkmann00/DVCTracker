@@ -52,6 +52,19 @@ class ProxyConversionMixin():
             )
         return entity
 
+class DefaultEntityMixin():
+    class DefaultEntity():
+        def __get__(self, instance, owner):
+            entity = owner.query.get(owner.default_id)
+            if not entity:
+                entity = owner()
+                owner_pk = inspect(owner).primary_key[0]
+                setattr(entity, owner_pk.key, owner.default_id)
+                db.session.add(entity)
+            return entity
+
+    default_id = 0
+    default = DefaultEntity()
 
 class StoredSpecial(ProxyConversionMixin, db.Model):
     """
@@ -433,18 +446,22 @@ class ViewCategory(Category):
         "polymorphic_load": "inline"
     }
 
-# TODO: Add last_updated to record the date and time of the last update
-class Status(db.Model):
+class Status(DefaultEntityMixin, db.Model):
     """
     The database model for the status of the app. DVC Tracker will create one
     of these automatically. If an error is thrown that is not caught by any
-    specific special, healthy will get set to False.
+    specific special, healthy will get set to False. Status also keeps track of
+    the last time that the specials were updated.
     """
     status_id = db.Column(db.Integer, primary_key=True)
-    healthy = db.Column(db.Boolean)
+    healthy = db.Column(db.Boolean, default=True)
+    last_updated = db.Column(db.DateTime(), default=datetime.utcnow)
+
+    def update(self):
+        self.last_updated = datetime.utcnow()
 
     def __repr__(self):
-        return '<Healthy: ' + 'Yes' if self.healthy else 'No'
+        return f"<Status - Healthy: {'Yes' if self.healthy else 'No'}>"
 
 class ParserStatus(db.Model):
     """

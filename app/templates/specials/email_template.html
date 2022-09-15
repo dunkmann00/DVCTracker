@@ -16,7 +16,7 @@
               <tr>
                 <td class="align-center">
                   <img src="{{ static_url('images/dvctracker-logo-1.png') }}" alt="DVC Tracker Logo">
-                  <span>Up-to-date as of: {{ date()|datetimeformat('%b %-d, %Y %-I:%M:%S%p') }}</span>
+                  <span>Up-to-date as of: {{ status.last_updated|convert_from_utc|datetimeformat('%b %-d, %Y %-I:%M:%S%p %Z') }}</span>
                   {% if env_label %}<h2 id="env_label">- {{ env_label }} -</h2>{% endif %}
                 </td>
               </tr>
