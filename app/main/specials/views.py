@@ -24,14 +24,14 @@ def current_important_specials():
     return render_template(
         'specials/email_template.html',
         specials_group=(('Important', all_stored_specials),),
-        title='Important',
         env_label=current_app.config.get("ENV_LABEL")
     )
 
 @specials.route('/errors')
 @auth.login_required
 def current_error_specials():
-    all_stored_specials = Special.query.filter_by(error=True).order_by(Special.check_in, Special.check_out).all()
+    query = Special.query.filter_by(error=True).order_by(Special.check_in, Special.check_out)
+    all_stored_specials = [(special, is_important_special(special)) for special in query]
     return render_template(
         'specials/email_template.html',
         specials_group=(('Errors', all_stored_specials),),
