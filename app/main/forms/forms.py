@@ -156,7 +156,7 @@ class EmailForm(ContactForm):
                 raise ValidationError("Email address has already been added.")
 
 class PhoneForm(ContactForm):
-    phone_number = TelField("Phone Number", [InputRequired(), Tel(region="US", message="The phone number provided is not valid.", onlyRegions=["US"])])
+    phone_number = TelField("Phone Number", [InputRequired(message="Phone number is required."), Tel(region="US", message="The phone number provided is not valid.", onlyRegions=["US"])])
 
     contact_type = ContactTypes.PHONE
 
