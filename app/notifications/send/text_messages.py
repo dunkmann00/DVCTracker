@@ -18,7 +18,7 @@ def send_text_message(message, phone_numbers):
     err_messages = []
     for phone_number in phone_numbers:
         try:
-            message = client.messages.create(
+            message_result = client.messages.create(
                 messaging_service_sid=current_app.config['TWILIO_MSG_SRVC'],
                 body = "- \n\n" + msg_env + message,
                 to = phone_number
