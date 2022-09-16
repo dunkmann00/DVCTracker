@@ -75,8 +75,9 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
     """
     __tablename__ = 'stored_specials'
 
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
         self.new_error = False
+        super().__init__(*args, **kwargs)
 
     special_id = db.Column(db.String(), primary_key=True)
     reservation_id = db.Column(db.String(64))
@@ -306,10 +307,10 @@ class Room(Characteristic):
     _static_data_name = "rooms"
     _index_count = 0
 
-    def __init__(self, **kwargs):
+    def __init__(self, *args, **kwargs):
         if "room_index" not in kwargs:
             kwargs["room_index"] = self.next_index()
-        super().__init__(**kwargs)
+        super().__init__(*args, **kwargs)
 
     room_index = db.Column(db.Integer)
 
