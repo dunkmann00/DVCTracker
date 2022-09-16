@@ -93,11 +93,6 @@ name = "Deluxe Studio with Walk-In Shower"
 category_id = "category_room_studio"
 
 [[rooms]]
-room_id = "room_studiowc"
-name = "Deluxe Studio - Wheelchair Accessible"
-category_id = "category_room_studio"
-
-[[rooms]]
 room_id = "room_resort"
 name = "Resort Studio"
 category_id = "category_room_studio"
