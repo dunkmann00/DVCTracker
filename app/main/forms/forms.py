@@ -146,7 +146,7 @@ class EmailForm(ContactForm):
 
     def to_json(self):
         json = super().to_json()
-        json["email_address"] = self.email_address.normalized_data or self.email_address.data
+        json["email_address"] = self.email_address.normalized_data if not self.errors else self.email_address.data
         return json
 
     def validate_email_address(self, field):
@@ -162,7 +162,7 @@ class PhoneForm(ContactForm):
 
     def to_json(self):
         json = super().to_json()
-        json["phone_number"] = self.phone_number.normalized_data or self.phone_number.raw_phone_data
+        json["phone_number"] = self.phone_number.normalized_data if not self.errors else self.phone_number.raw_phone_data
         return json
 
     def validate_phone_number(self, field):

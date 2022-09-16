@@ -82,8 +82,6 @@ class HiddenIntegerField(wtforms.IntegerField):
 class EmailField(wtforms.EmailField):
     @property
     def normalized_data(self):
-        if self.errors:
-            return None
         try:
             if self.data is None:
                 raise email_validator.EmailNotValidError()
@@ -101,8 +99,6 @@ class TelField(wtforms.TelField):
 
     @property
     def normalized_data(self):
-        if self.errors:
-            return None
         try:
             phone_number = phonenumbers.parse(self.data, "US")
             if not phonenumbers.is_valid_number(phone_number):
