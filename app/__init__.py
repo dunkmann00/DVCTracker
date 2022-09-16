@@ -30,9 +30,9 @@ def create_app(config_name):
         from flask_talisman import Talisman
         csp = {
             'default-src': '\'self\'',
-            'img-src': ['\'self\'', 'data:'],
+            'img-src': ['\'self\'', 'https://cdn.jsdelivr.net', 'data:'],
             'script-src': ['\'self\'', 'https://cdn.jsdelivr.net'],
-            'style-src': '\'self\''
+            'style-src': ['\'self\'', 'https://cdn.jsdelivr.net']
         }
         talisman = Talisman(app, content_security_policy=csp)
 
