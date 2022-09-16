@@ -44,8 +44,8 @@ def test_specials():
     specials = Special.query.limit(3).all()
     up_special = specials[1]
     down_special = specials[2]
-    test_old_values(up_special, True)
-    test_old_values(down_special, False)
+    up_special = test_old_values(up_special, True)
+    down_special = test_old_values(down_special, False)
     group = [(specials[0], False), (up_special, False), (down_special, True)]
     return render_template(
         'specials/email_template.html',

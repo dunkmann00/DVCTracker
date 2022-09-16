@@ -1,3 +1,4 @@
+from . import db
 from collections import namedtuple
 from enum import Enum
 from itertools import groupby
@@ -69,25 +70,35 @@ class InheritedModelLoader:
             setattr(self, self.convert_group_key(key), results)
 
 def test_old_values(special, increase):
-    special.old_resort = {'name': 'Copper Creek'}
-    special.old_room = {'name': '2-Bedroom'}
-    special.old_view = {'name': 'Standard View'}
+    Special = type(special) # This avoids having to import StoredSpecial, which causes a CircularImport Error
+                            # Since this is just for testing I don't think this is a big deal
+    resort_proxy = ProxyAttribute("resort_ccv", "resort")
+    room_proxy = ProxyAttribute("room_two", "room")
+    view_proxy = ProxyAttribute("view_standard", "view")
+
+    test_special = Special(
+        resort=Special.convert_proxy(resort_proxy),
+        room=Special.convert_proxy(room_proxy),
+        view=Special.convert_proxy(view_proxy)
+    )
+
     if special.check_in:
-        special.old_check_in = special.check_in - timedelta(1)
+        test_special.check_in = special.check_in - timedelta(1)
     if special.check_out:
-        special.old_check_out = special.check_out + timedelta(1)
-    if special.check_in and special.check_out:
-        delta = special.old_check_out - special.old_check_in
-        special.old_duration = delta.days
-    special.old_reservation_id = 98765
+        test_special.check_out = special.check_out + timedelta(1)
+
+    test_special.reservation_id = 98765
 
     if special.price:
         price_change = -500 if increase else 500
-        special.old_price = special.price + price_change
-        if special.price_per_night:
-            special.old_price_per_night = special.old_price / (special.old_duration or 1)
-        if special.price_per_point:
-            special.old_price_per_point = special.old_price / (special.points or 1)
+        test_special.price = special.price + price_change
+    if special.points:
+        test_special.points = special.points
+
+    test_special.update_with_special(special)
+    db.session.expunge(test_special) # This prevents test_special from getting commited to the db
+
+    return test_special
 
 def first_index_or_none(iterable, predicate):
     return next((index for index, item in enumerate(iterable) if predicate(item)), None)

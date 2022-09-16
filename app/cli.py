@@ -97,8 +97,8 @@ def send_test_email(username, email_address):
     specials = StoredSpecial.query.limit(3).all()
     up_special = specials[1]
     down_special = specials[2]
-    test_old_values(up_special, True)
-    test_old_values(down_special, False)
+    up_special = test_old_values(up_special, True)
+    down_special = test_old_values(down_special, False)
     group = [(specials[0], False), (up_special, False), (down_special, True)]
     email = render_template(
         'specials/email_template.html',
