@@ -1,11 +1,12 @@
 {% macro add_form(contact, contact_field, form_errors, form_class, button_title, last_form, svg_decorator=None) %}
-<form method="post" class="{{ form_class }} {{ 'add-user-contact' if last_form else 'remove-user-contact' }}" novalidate>
+<form method="post" class="{{ form_class }} {{ 'add-user-contact' if last_form else 'remove-user-contact' }} mb-2rem" novalidate>
     {{ contact.csrf_token() }}
     {{ contact.contact_id() }}
     <div class="form-check d-flex justify-content-end">
         {{ contact.get_errors(class="form-check-input dvc-input user-get-errors") }}
+        {{ contact.get_errors.label(class="form-check-label") }}
     </div>
-    <div class="input-group has-validation {{ 'has-svg-decorator ' if svg_decorator }}mb-3 bottom-spacing">
+    <div class="input-group has-validation {{ 'has-svg-decorator ' if svg_decorator }}">
         {{ contact[contact_field](class="form-control dvc-input", readonly=not last_form, **kwargs) }}
         {% if svg_decorator %}
         <div class="svg-container">

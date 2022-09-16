@@ -158,13 +158,17 @@ input[type="tel"]:read-only:focus {
 .user-form-error {
     display: block;
     width: 100%;
-    margin-top: -18px;
+    margin-top: 0.25rem;
     font-size: .875em;
     color: #dc3545;
 }
 
-.user-form-error ~ .user-form-error {
-    margin-top: 0.25rem;
+.form-check .dvc-input.user-get-errors {
+    margin-right: 8px;
+}
+
+.mb-2rem {
+    margin-bottom: 2rem!important;
 }
 
 /*
@@ -228,10 +232,6 @@ input[type="tel"]:read-only:focus {
 
 .x-button:focus {
     box-shadow: 0 0 0 0.25rem rgb(130 138 145 / 50%);
-}
-
-.bottom-spacing {
-    margin-bottom: 22px!important;
 }
 
 .select-all-btn {

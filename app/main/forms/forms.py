@@ -117,7 +117,7 @@ class ImportantCriteriaListForm(FlaskForm):
 
 class ContactForm(FlaskForm):
     contact_id = HiddenIntegerField("Contact ID", [RequiredWhen(lambda _, form: not form.new_contact, message="Missing contact id.")])
-    get_errors = BooleanField("Get Error Messages", default=False)
+    get_errors = BooleanField("Get Errors", default=False)
 
     contact_type = None
     new_contact = False
