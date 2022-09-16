@@ -50,12 +50,12 @@ def send_push_notification(message, push_tokens):
     return send_notifications(notifications)
 
 @log_response('APNS', 'Update Push Notification Sent')
-def send_update_push_notification(user):
+def send_update_push_notification(user, message=None):
     push_tokens = [apn.push_token for apn in user.apns]
     if len(push_tokens) == 0:
         print(f"No push tokens associated with {user}. Not sending push notification.")
         return NotificationResponse.Success
-    message = "Hey this is DVC Tracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
+    message = message or "Hey this is DVC Tracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
     return send_push_notification(message, push_tokens)
 
 @log_response('APNS', 'Error Push Notification Sent')

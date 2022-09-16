@@ -34,13 +34,13 @@ def send_text_message(message, phone_numbers):
     return response
 
 @log_response("Twilio", "Update Text Sent")
-def send_update_text_message(user):
+def send_update_text_message(user, message=None):
     phone_numbers = [phone.phone_number for phone in user.phones]
     if len(phone_numbers) == 0:
         print(f"No phone numbers associated with {user}. Not sending update text message.")
         return NotificationResponse.Success
-    msg = "Hey this is DVC Tracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
-    return send_text_message(msg, phone_numbers)
+    message = message or "Hey this is DVC Tracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
+    return send_text_message(message, phone_numbers)
 
 @log_response("Twilio", "Error Text Sent")
 def send_error_text_messsage():

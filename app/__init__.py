@@ -43,19 +43,8 @@ def create_app(config_name):
     def index():
         return redirect(url_for('main.current_specials'))
 
-    from .cli import (
-        update_specials_cli,
-        reset_errors,
-        store_specials_data,
-        encode_auth_key,
-        make_new_user,
-        send_test_email,
-    )
-    app.cli.add_command(update_specials_cli)
-    app.cli.add_command(reset_errors)
-    app.cli.add_command(store_specials_data)
-    app.cli.add_command(encode_auth_key)
-    app.cli.add_command(make_new_user)
-    app.cli.add_command(send_test_email)
+    from .cli import cli
+    for command in cli.commands.values():
+        app.cli.add_command(command)
 
     return app

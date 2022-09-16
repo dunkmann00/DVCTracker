@@ -2,7 +2,7 @@ from flask import current_app, g, render_template, json
 from flask.cli import with_appcontext
 from datetime import date
 from . import db
-from .models import StoredSpecial, Status, ParserStatus, User, Email
+from .models import StoredSpecial, Status, ParserStatus, User, Email, Phone, APN
 from .criteria import ImportantCriteria
 from .parsers import PARSERS
 from .util import test_old_values
@@ -11,7 +11,11 @@ from base64 import b64encode
 import click, os, traceback
 import sqlalchemy.exc
 
-@click.command(help="Encode the AuthKey p8 file into base64 for storing as an environment variable.")
+@click.group()
+def cli():
+    pass
+
+@cli.command(help="Encode the AuthKey p8 file into base64 for storing as an environment variable.")
 @click.argument('auth_key_path')
 def encode_auth_key(auth_key_path):
     with open(auth_key_path, 'rb') as f:
@@ -19,7 +23,7 @@ def encode_auth_key(auth_key_path):
     print("Base64 Encoded AuthKey:")
     print(auth_key_base64)
 
-@click.command(help="Create a new User with the provided Username")
+@cli.command(help="Create a new User with the provided Username")
 @click.option('-u', '--username', prompt=True)
 @click.option(
     '-p', '--password',
@@ -39,7 +43,7 @@ def make_new_user(username, password):
     else:
         print("New user created successfully!")
 
-@click.command(help="Reset all specials' error attributes to false & overall health to true.")
+@cli.command(help="Reset all specials' error attributes to false & overall health to true.")
 @with_appcontext
 def reset_errors():
     for special in StoredSpecial.query:
@@ -47,7 +51,7 @@ def reset_errors():
     Status.default.healthy = True
     db.session.commit()
 
-@click.command(help="Store contents of website data from parser NAME to use with local_specials.")
+@cli.command(help="Store contents of website data from parser NAME to use with local_specials.")
 @click.argument('name')
 @click.option('-e', '--extension', default='html', help=("The extension you would like to use for "
                                                          "the file that will be created. The "
@@ -75,8 +79,7 @@ def store_specials_data(name, extension):
             return
     print(f"No parser with the name '{name}' was found.")
 
-# TODO: Also make commands to send test text messages and notifications
-@click.command(help="Send a test email with a few specials and old values to the provided user.")
+@cli.command(help="Send a test email with a few specials and old values to the provided user or email addresses.")
 @click.option('-u', '--username')
 @click.option('-e', '--email-address', multiple=True)
 def send_test_email(username, email_address):
@@ -106,7 +109,43 @@ def send_test_email(username, email_address):
     )
     notifications.send_update_email(email, user)
 
-@click.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
+@cli.command(help="Send a test text message to the provided user or phone numbers.")
+@click.option('-u', '--username')
+@click.option('-p', '--phone-number', multiple=True)
+@click.option('-m', '--message')
+def send_test_text_message(username, phone_number, message):
+    if username:
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            print(f"Could not find user '{username}'")
+            return
+    else:
+        phones = [Phone(phone_number=phone_number_input) for phone_number_input in phone_number]
+        if len(phones) == 0:
+            print("No phone numbers provided.")
+            return
+        user = User(phones=phones)
+    notifications.send_update_text_message(user, message)
+
+@cli.command(help="Send a test apn (push notification) to the provided user or push token.")
+@click.option('-u', '--username')
+@click.option('-t', '--push-token', multiple=True)
+@click.option('-m', '--message')
+def send_test_apn(username, push_token, message):
+    if username:
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            print(f"Could not find user '{username}'")
+            return
+    else:
+        apns = [APN(push_token=push_token_input) for push_token_input in push_token]
+        if len(apns) == 0:
+            print("No apns provided.")
+            return
+        user = User(apns=apns)
+    notifications.send_update_push_notification(user, message)
+
+@cli.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
 @click.option('--local', 'local_specials', multiple=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True),
                          envvar="LOCAL_SPECIALS",
                          help=('Load specials from the given files. The files must be named the name of '
