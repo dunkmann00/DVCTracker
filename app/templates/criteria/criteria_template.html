@@ -11,7 +11,7 @@
         {% endif %}
     {% endif %}
 
-    <form id="criteria_form" method="post"{% if request.method == "POST" %} class="was-validated"{% endif %} novalidate>
+    <form id="criteria_form" class="mb-4" method="post"{% if request.method == "POST" %} class="was-validated"{% endif %} novalidate>
     {{ form.csrf_token }}
         <div id="important_only_input" class="mb-3 py-3 border rounded-3">
             <h4 class="mb-2">{{ form.important_only.label.text }}</h4>
