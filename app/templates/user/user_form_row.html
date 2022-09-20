@@ -1,0 +1,61 @@
+{% macro add_form(contact, contact_field, form_errors, form_class, button_title, last_form, svg_decorator=None) %}
+<form method="post" class="{{ form_class }} {{ 'add-user-contact' if last_form else 'remove-user-contact' }} mb-2rem" novalidate>
+    {{ contact.csrf_token() }}
+    {{ contact.contact_id() }}
+    <div class="form-check d-flex justify-content-end">
+        {{ contact.get_errors(class="form-check-input dvc-input user-get-errors") }}
+        {{ contact.get_errors.label(class="form-check-label") }}
+    </div>
+    <div class="input-group has-validation {{ 'has-svg-decorator ' if svg_decorator }}">
+        {{ contact[contact_field](class="form-control dvc-input", readonly=not last_form, **kwargs) }}
+        {% if svg_decorator %}
+        <div class="svg-container">
+            <svg class="bi" width="40" height="20">
+                <title>{{ contact_field|replace("_", " ") }}</title>
+                <use xlink:href="{{ url_for('static', filename='images/bootstrap-icons-1.svg', _anchor=svg_decorator) }}"/>
+            </svg>
+        </div>
+        {% endif %}
+        {% if last_form %}
+        <div class="btn btn-outline-secondary contact-spinner-container contact-add-spinner-container d-none">
+            <div class="spinner-border spinner-border-sm"></div>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary contact-submit-button contact-add-button">
+            <svg class="bi" width="38" height="38">
+                <title>Add {{ button_title }}</title>
+                <use xlink:href="{{ url_for('static', filename='images/bootstrap-icons-1.svg', _anchor='bi-plus') }}"/>
+            </svg>
+        </button>
+        {% else %}
+        <div class="btn btn-outline-secondary contact-spinner-container contact-remove-spinner-container d-none">
+            <div class="spinner-border spinner-border-sm"></div>
+        </div>
+        <button type="submit" class="btn btn-outline-secondary contact-submit-button contact-remove-button">
+            <svg class="bi" width="38" height="38">
+                <title>Remove {{ button_title }}</title>
+                <use xlink:href="{{ url_for('static', filename='images/bootstrap-icons-1.svg', _anchor='bi-x') }}"/>
+            </svg>
+        </button>
+        {% endif %}
+        <div class="invalid-feedback">
+            Please provide a valid {{ contact_field|replace("_", " ") }}.
+        </div>
+    </div>
+    {% set errors = form_errors and form_errors.get(contact.contact_id.data) %}
+    {% if errors %}
+    {% for error in errors %}
+    <div class="user-form-error">
+        {{ error }}
+    </div>
+    {% endfor %}
+    {% endif %}
+</form>
+{% endmacro %}
+
+{% macro add_email_form(email, form_errors, last_form) %}
+{{ add_form(email, "email_address", form_errors, "email-address-form", "Email", last_form, "envelope-fill", placeholder="Enter email") -}}
+{% endmacro -%}
+
+{% macro add_phone_form(phone, form_errors, last_form) -%}
+{{ add_form(phone, "phone_number", form_errors, "phone-number-form", "Phone Number", last_form, placeholder="Enter number") -}}
+{% endmacro %}

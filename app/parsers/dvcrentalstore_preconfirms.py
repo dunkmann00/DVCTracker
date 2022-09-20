@@ -1,7 +1,7 @@
 from flask import json, current_app
 from datetime import datetime
 from .base_parser import BaseParser, special_error
-from ..models import SpecialTypes
+from ..util import SpecialTypes
 from ..errors import SpecialError
 import requests, time, random
 
@@ -57,7 +57,7 @@ class DVCRentalPreconfirmParser(BaseParser):
         Parses Preconfirmed specials. Info is parsed out of a JSON dictionary.
         """
         parsed_special = self.new_parsed_special()
-        parsed_special.type = SpecialTypes.preconfirm
+        parsed_special.type = SpecialTypes.PRECONFIRM
         parsed_special.raw_string = json.dumps(special_dict, indent=' '*4)
 
         for field, func in self.parse_fields.items():

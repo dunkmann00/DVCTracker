@@ -1,0 +1,190 @@
+{%- macro price_increased_img(increased) %}
+{% if increased %}
+<img src="{{ static_url('images/price-up-1.png') }}" alt="Price Increase" width="8" height="11">
+{%- elif increased is false %}
+<img src="{{ static_url('images/price-down-1.png') }}" alt="Price Drop" width="8" height="11">
+{%- endif %}
+{%- endmacro %}
+
+{%- macro price_increased_class(increased) %}
+{% if increased is not none %}
+{{ 'price-up' if increased else 'price-down' }}
+{%- endif %}
+{% endmacro %}
+
+{%- macro price(price, increased) %}
+{{ price_increased_img(increased) }}{{ price|currencyformat|nullable }}
+{%- if increased is not none%}<span class="price-change-spacer"></span>{% endif %}
+{% endmacro %}
+
+{%- if important_special %}
+<table role="presentation" class="main important">
+{% else %}
+<table role="presentation" class="main">
+{% endif %}
+  <tr>
+    <td class="wrapper">
+      <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+        <tr>
+          <td>
+            <table class="resort-group">
+              <tr>
+                <td class="item-resort">
+                  {{ special.resort.name|nullable }}
+                </td>
+                {% if important_special %}
+                <td class="align-right">
+                  <img class="important-image" src="{{ static_url('images/star-green-1.png') }}" alt="Important Special" width="36" height="32">
+                </td>
+                {% endif %}
+              </tr>
+              {% if special.old_resort is defined %}
+              <tr>
+                <td {% if important_special %}colspan="3"{% endif %} class="item-resort item-old-value">
+                  {{ special.old_resort.name|nullable }}
+                </td>
+              </tr>
+              {% endif %}
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <table class="characteristic-group">
+              <tr>
+                <td class="item-dates">
+                  <img class="item-image" src="{{ static_url('images/calendar-1.png') }}" alt="Dates" width="14" height="16">{# This will remove the space between the image and the following text. -#}
+                  {{ special.check_in|datetimeformat|nullable }} - {{ special.check_out|datetimeformat|nullable }}<span>({{ special.duration|nullable }} {% if special.duration %}night{{'s' if special.duration > 1}}{% endif %})</span>
+                </td>
+              </tr>
+              {% if special.old_check_in is defined or special.old_check_out is defined %}
+              <tr>
+                <td class="item-dates item-old-value">
+                  {{ special.old_check_in|datetimeformat|nullable if special.old_check_in is defined else special.check_in|datetimeformat|nullable }} - {{ special.old_check_out|datetimeformat|nullable if special.old_check_out is defined else special.check_out|datetimeformat|nullable }}<span>({{ special.old_duration|nullable }} {% if special.old_duration %}night{{'s' if special.old_duration > 1}}{% endif %})</span>
+                </td>
+              </tr>
+              {% endif %}
+              <tr>
+                <td class="item-room">
+                  <img class="item-image" src="{{ static_url('images/bed-1.png') }}" alt="Room" width="20" height="16">{# -#}
+                  {{ special.room.name|nullable }}
+                </td>
+              </tr>
+              {% if special.old_room is defined %}
+              <tr>
+                <td class="item-room item-old-value">
+                  {{ special.old_room.name|nullable }}
+                </td>
+              </tr>
+              {% endif %}
+              <tr>
+                <td class="item-view">
+                  <img class="item-image" src="{{ static_url('images/cloud-sun-1.png') }}" alt="View" width="20" height="16">{# -#}
+                  {{ special.view.name|nullable }}
+                </td>
+              </tr>
+              {% if special.old_view is defined %}
+              <tr>
+                <td class="item-view item-old-value">
+                  {{ special.old_view.name|nullable }}
+                </td>
+              </tr>
+              {% endif %}
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <hr>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <table class="price-group">
+              <tr>
+                <td>
+                  <table>
+                    <tr>
+                      {% set increased = special.price_increased %}
+                      <td class="item-price {{ price_increased_class(increased) }}">
+                        <span class="item-label">Total</span>
+                        {{ price(special.price, increased) }}
+                      </td>
+                    </tr>
+                    {% if special.old_price is defined %}
+                    <tr>
+                      <td class="item-price item-old-value">
+                        {{ special.old_price|currencyformat|nullable }}
+                      </td>
+                    </tr>
+                    {% endif %}
+                  </table>
+                </td>
+                <td>
+                  <table>
+                    <tr>
+                      {% set increased = special.price_per_night_increased %}
+                      <td class="item-price-pn {{ price_increased_class(increased) }}">
+                        <span class="item-label">per night</span>
+                        {{ price(special.price_per_night, increased) }}
+                      </td>
+                    </tr>
+                    {% if special.old_price_per_night is defined %}
+                    <tr>
+                      <td class="item-price-pn item-old-value">
+                        {{ special.old_price_per_night|currencyformat|nullable }}
+                      </td>
+                    </tr>
+                    {% endif %}
+                  </table>
+                </td>
+                <td>
+                  <table>
+                    <tr>
+                      {% set increased = special.price_per_point_increased %}
+                      <td class="item-price-pp {{ price_increased_class(increased) }}">
+                        <span class="item-label">per point</span>
+                        {{ price(special.price_per_point, increased) }}
+                      </td>
+                    </tr>
+                    {% if special.old_price_per_point is defined %}
+                    <tr>
+                      <td class="item-price-pp item-old-value">
+                        {{ special.old_price_per_point|currencyformat|nullable }}
+                      </td>
+                    </tr>
+                    {% endif %}
+                  </table>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <hr>
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <table class="source-group">
+              <tr>
+                <td class="item-rid">
+                  Reservation ID: {{ special.reservation_id|nullable }}
+                  {% if special.old_reservation_id is defined %}
+                  <span class="item-old-value">{{ special.old_reservation_id|nullable }}</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="item-source">
+                  Source: <a href="{{ special.url }}" target="_blank" rel="noopener noreferrer">{{ special.source_name }}</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "criteria/criteria_form_row.html" import add_row with context %}
+{% from "criteria/criteria_alert.html" import add_alert %}
+{% block title %}Important Criteria{% endblock %}
+{% block content %}
+    {% if form.errors %}
+        {% if form.csrf_token.errors or form.important_only.errors %}
+            {{ add_alert(form) }}
+        {% else %}
+            {{ add_alert("Please check the errors below.") }}
+        {% endif %}
+    {% endif %}
+
+    <form id="criteria_form" class="mb-4" method="post"{% if request.method == "POST" %} class="was-validated"{% endif %} novalidate>
+    {{ form.csrf_token }}
+        <div id="important_only_input" class="mb-3 py-3 border rounded-3">
+            <h4 class="mb-2">{{ form.important_only.label.text }}</h4>
+            {% for choice in form.important_only %}
+            <div class="form-check form-check-inline me-5">
+                {{ choice(class="form-check-input dvc-input") }}
+                {{ choice.label(class="form-check-label") }}
+            </div>
+            {% endfor %}
+        </div>
+        <button id="add_criteria_button" type="button" class="btn symbol-button plus-button position-fixed bottom-0 end-0 m-4">
+            <svg class="bi bg-white rounded-circle" width="38" height="38">
+                <title>Add Criteria</title>
+                <use xlink:href="{{ url_for('static', filename='images/bootstrap-icons-1.svg', _anchor='plus-circle-fill') }}"/>
+            </svg>
+        </button>
+        <div id="criteriaRows">
+            {% for criteria in form.important_criteria %}
+                {% if criteria.errors %}
+                    {{ add_alert(criteria) }}
+                {% endif %}
+                {{ add_row(loop.index0, criteria) }}
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn dvc-button bottom-spacing ms-1">Submit</button>
+    </form>
+{% endblock content %}
+{% block container %}
+    {{ super() }}
+    <template id="template_form_row">
+        {{ add_row(0, template_form.important_criteria|first) }}
+    </template>
+{% endblock container %}
+{% block javascript %}
+    {{ super() }}
+    <script src="{{ url_for('static', filename='js/dvctracker-criteria-1.js') }}"></script>
+{% endblock javascript %}

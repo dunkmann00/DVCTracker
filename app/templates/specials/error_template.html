@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>{% if env_label %}({{ env_label }}) {% endif %}DVCTracker Errors</title>
+    <title>{% if env_label %}({{ env_label }}) {% endif %}Errors - DVC Tracker</title>
     <style type="text/css">
       body{
         color: #444444;
@@ -53,7 +53,7 @@
 <body>
     <div id="email-header">
         <h1>{% if env_label %}({{ env_label }}) {% endif %}DVC Tracker {% if error_report is defined and error_report %}Error Report:{% else %}recently encountered the following errors:{% endif %}</h1>
-        <h3>{{ date()|datetimeformat('%B %-d, %Y %-I:%M%p') }}</h3>
+        <h3>{{ status.last_updated|convert_from_utc|datetimeformat('%b %-d, %Y %-I:%M:%S%p %Z') }}</h3>
     </div>
     {% for special in specials %}
     <div class="special">

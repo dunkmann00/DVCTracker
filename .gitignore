@@ -8,3 +8,5 @@ dvcrentalstore_preconfirms.json
 dvcrentalstore_confirmed_2021.html
 *.pyc
 .env
+*.p8
+postdrop_template/

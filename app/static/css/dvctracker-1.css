@@ -1,0 +1,270 @@
+.no-spinner::-webkit-outer-spin-button,
+.no-spinner::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    margin: 0;
+}
+
+h1 {
+  font-size: 30px;
+}
+
+/* Prevents horizontal scrolling, which I'm not sure why is happening.
+   Seems like a bootstrap alignment thing. */
+html, body {
+  overflow-x: hidden;
+}
+
+body {
+    background-color: #f6f9fd;
+}
+
+input[type="email"]:read-only:focus,
+input[type="tel"]:read-only:focus {
+    box-shadow: none;
+    border: 1px solid #ced4da;
+}
+
+#header {
+  background-color: #fff;
+  margin-left: -10px;
+  margin-right: -10px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 20px;
+}
+
+#base_column {
+  padding: 0px 10px;
+}
+
+#env_label {
+  font-weight: 700;
+}
+
+#important_only_input {
+  margin-left: -0.75rem;
+  margin-right: -0.75rem;
+  padding-left: 1.25rem;
+  padding-right: 1.25rem;
+  background-color: #ffffff;
+  border-color: #1a4b7c !important;
+}
+
+.criteria-row, .contact-row {
+    background-color: #ffffff;
+    border-color: #1a4b7c !important;
+}
+
+.dvc-fill {
+  font-weight: 700;
+  color: #f4f9ff;
+  background-color: #1a4b7c;
+  padding: 10px 15px;
+  margin-bottom: 0px;
+  border-radius: 10px;
+}
+
+@media (max-width: 576px) {
+  .dvc-fill {
+    border-radius: 0 !important;
+    margin-left: -10px;
+    margin-right: -10px;
+  }
+
+  .criteria-row {
+    border-left-width: 0 !important;
+    border-radius: 0 !important;
+    border-right-width: 0 !important;
+  }
+
+  #important_only_input {
+    border-left-width: 0 !important;
+    border-radius: 0 !important;
+    border-right-width: 0 !important;
+  }
+}
+
+.dvc-button {
+  color: #fff;
+  background-color: #1a4b7c;
+  border-color: #1a4b7c;
+}
+
+.btn.dvc-button:hover {
+    color: #fff;
+}
+
+.dvc-input:checked, .dvc-input:indeterminate {
+    background-color: #1a4b7c !important; /* BLUE COLOR #143dc4 */
+    border-color: #1a4b7c !important;
+}
+
+.dvc-input:focus {
+    box-shadow: 0 0 0 0.25rem #1a4b7c45;
+}
+
+.symbol-button {
+    padding: 0px;
+    border-radius: 50%!important;
+    border: none;
+}
+
+.contact-submit-button {
+    padding: 0px;
+}
+
+.contact-remove-button {
+    color: #fff;
+    background-color: #6c757d;
+}
+
+.contact-remove-button:hover, .contact-remove-button:focus {
+    background-color: #5c636a;
+}
+
+.contact-remove-button:focus {
+    box-shadow: 0 0 0 0.25rem rgb(130 138 145 / 50%);
+}
+
+.contact-add-button {
+    color: #fff;
+    background-color: #1a4b7c;
+}
+
+.contact-add-button:hover, .contact-add-button:focus {
+    background-color: #003366;
+}
+
+.contact-add-button:focus {
+    box-shadow: 0 0 0 0.25rem #00336645;
+}
+
+.contact-spinner-container {
+    width: 40px;
+    height: 40px;
+    color: #fff;
+    pointer-events: none;
+}
+
+.contact-add-spinner-container {
+    background-color: #003366;
+}
+
+.contact-remove-spinner-container {
+    background-color: #5c636a;
+}
+
+.user-form-error {
+    display: block;
+    width: 100%;
+    margin-top: 0.25rem;
+    font-size: .875em;
+    color: #dc3545;
+}
+
+.form-check .dvc-input.user-get-errors {
+    margin-right: 8px;
+}
+
+.mb-2rem {
+    margin-bottom: 2rem!important;
+}
+
+/*
+    Fixes for intl-tel-input
+ */
+
+.input-group>.iti {
+    position: relative;
+    display: flex;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+}
+
+.iti>.form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.iti__flag-container {
+    z-index: 10;
+}
+
+.phone-number-form.was-validated:invalid .invalid-feedback {
+    display: block;
+}
+
+.svg-container {
+    position: absolute;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    height: 40px;
+}
+
+.has-svg-decorator input.form-control {
+    padding-left: 52px;
+}
+
+.plus-button {
+    color: #1a4b7c;
+    z-index: 1000;
+    box-shadow: 2px 2px 7px rgba(0, 0, 0, .7);
+}
+
+.plus-button:hover, .plus-button:focus {
+    color: #003366;
+}
+
+.plus-button:focus {
+    box-shadow: 0 0 0 0.25rem #00336645;
+}
+
+.x-button {
+    color: #6c757d;
+}
+
+.x-button:hover, .x-button:focus {
+    color: #5c636a;
+}
+
+.x-button:focus {
+    box-shadow: 0 0 0 0.25rem rgb(130 138 145 / 50%);
+}
+
+.select-all-btn {
+    font-size: 0.875em;
+    padding: 0px;
+    padding-left: 4px;
+    padding-bottom: 4px;
+}
+
+.select-all-input {
+    margin-right: 2px;
+}
+
+.collapse-content .form-check {
+    margin-left: 1.5em;
+}
+
+.collapse-btn {
+    font-weight: 600;
+    font-size: 1.0rem;
+    border: none;
+    padding: 0px;
+    padding-bottom: 4px;
+}
+
+.collapse-btn::before {
+    width: 1.5em;
+    line-height: 0;
+    content: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='rgba%280,0,0,.5%29' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 14l6-6-6-6'/%3e%3c/svg%3e");
+    transition: transform 0.35s ease;
+    transform-origin: 0.625em 50%;
+}
+
+.collapse-btn[aria-expanded="true"]::before {
+    transform: rotate(90deg);
+}

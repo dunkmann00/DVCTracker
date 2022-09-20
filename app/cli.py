@@ -1,23 +1,57 @@
 from flask import current_app, g, render_template, json
 from flask.cli import with_appcontext
 from datetime import date
-from . import db, env_label
-from .models import StoredSpecial, Status, ParserStatus
-from .criteria import important_only, important_special
+from . import db
+from .models import StoredSpecial, Status, ParserStatus, User, Email, Phone, APN
+from .criteria import ImportantCriteria
 from .parsers import PARSERS
-import app.message as message
+from .util import test_old_values
+from . import notifications
+from base64 import b64encode
 import click, os, traceback
+import sqlalchemy.exc
 
+@click.group()
+def cli():
+    pass
 
-@click.command(help="Reset all specials' error attributes to false & overall health to true.")
+@cli.command(help="Encode the AuthKey p8 file into base64 for storing as an environment variable.")
+@click.argument('auth_key_path')
+def encode_auth_key(auth_key_path):
+    with open(auth_key_path, 'rb') as f:
+        auth_key_base64 = b64encode(f.read()).decode()
+    print("Base64 Encoded AuthKey:")
+    print(auth_key_base64)
+
+@cli.command(help="Create a new User with the provided Username")
+@click.option('-u', '--username', prompt=True)
+@click.option(
+    '-p', '--password',
+    prompt=True,
+    hide_input=True,
+    confirmation_prompt=True,
+)
+@with_appcontext
+def make_new_user(username, password):
+    print(f"Making new user with username: {username}")
+    user = User(username=username, password=password)
+    db.session.add(user)
+    try:
+        db.session.commit()
+    except sqlalchemy.exc.IntegrityError:
+        print("Making new user failed. The username already exists.")
+    else:
+        print("New user created successfully!")
+
+@cli.command(help="Reset all specials' error attributes to false & overall health to true.")
 @with_appcontext
 def reset_errors():
     for special in StoredSpecial.query:
         special.error = False
-    set_health(True)
+    Status.default.healthy = True
     db.session.commit()
 
-@click.command(help="Store contents of website data from parser NAME to use with local_specials.")
+@cli.command(help="Store contents of website data from parser NAME to use with local_specials.")
 @click.argument('name')
 @click.option('-e', '--extension', default='html', help=("The extension you would like to use for "
                                                          "the file that will be created. The "
@@ -45,7 +79,73 @@ def store_specials_data(name, extension):
             return
     print(f"No parser with the name '{name}' was found.")
 
-@click.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
+@cli.command(help="Send a test email with a few specials and old values to the provided user or email addresses.")
+@click.option('-u', '--username')
+@click.option('-e', '--email-address', multiple=True)
+def send_test_email(username, email_address):
+    if username:
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            print(f"Could not find user '{username}'")
+            return
+    else:
+        emails = [Email(email_address=email_address_input) for email_address_input in email_address]
+        if len(emails) == 0:
+            print("No email addresses provided.")
+            return
+        user = User(emails=emails)
+    specials = StoredSpecial.query.limit(3).all()
+    up_special = specials[1]
+    down_special = specials[2]
+    up_special = test_old_values(up_special, True)
+    down_special = test_old_values(down_special, False)
+    group = [(specials[0], False), (up_special, False), (down_special, True)]
+    email = render_template(
+        'specials/email_template.html',
+        specials_group=(('All', group),
+            ('Update', group),
+            ('Removed', group)),
+        env_label=current_app.config.get("ENV_LABEL")
+    )
+    notifications.send_update_email(email, user)
+
+@cli.command(help="Send a test text message to the provided user or phone numbers.")
+@click.option('-u', '--username')
+@click.option('-p', '--phone-number', multiple=True)
+@click.option('-m', '--message')
+def send_test_text_message(username, phone_number, message):
+    if username:
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            print(f"Could not find user '{username}'")
+            return
+    else:
+        phones = [Phone(phone_number=phone_number_input) for phone_number_input in phone_number]
+        if len(phones) == 0:
+            print("No phone numbers provided.")
+            return
+        user = User(phones=phones)
+    notifications.send_update_text_message(user, message)
+
+@cli.command(help="Send a test apn (push notification) to the provided user or push token.")
+@click.option('-u', '--username')
+@click.option('-t', '--push-token', multiple=True)
+@click.option('-m', '--message')
+def send_test_apn(username, push_token, message):
+    if username:
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            print(f"Could not find user '{username}'")
+            return
+    else:
+        apns = [APN(push_token=push_token_input) for push_token_input in push_token]
+        if len(apns) == 0:
+            print("No apns provided.")
+            return
+        user = User(apns=apns)
+    notifications.send_update_push_notification(user, message)
+
+@cli.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
 @click.option('--local', 'local_specials', multiple=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True),
                          envvar="LOCAL_SPECIALS",
                          help=('Load specials from the given files. The files must be named the name of '
@@ -92,39 +192,54 @@ def update_specials(local_specials, send_email, send_error_report):
             all_removed_specials_list.extend(removed_specials_list)
 
         #Adding new Specials
-        new_specials_list, new_important_specials = store_new_specials(all_new_specials, all_stored_specials)
+        new_specials_list = store_new_specials(all_new_specials, all_stored_specials)
 
         #Updating Old Specials
-        updated_specials_list, updated_important_specials = update_old_specials(all_updated_specials_tuple)
+        updated_specials_list = update_old_specials(all_updated_specials_tuple)
 
         #Deleting Removed Specials
         removed_specials_list = remove_old_specials(all_removed_specials_list)
 
-        #Send an email if we need to.... i.e. if there were any kind of updates
-        changes = []
-        if len(new_specials_list) > 0:
-            changes.append(('Added', new_specials_list))
-        if len(updated_specials_list) > 0:
-            changes.append(('Updated', updated_specials_list))
-        if len(removed_specials_list) > 0:
-            changes.append(('Removed', removed_specials_list))
-        if changes and send_email:
-            email_message = render_template('email_template.html',
-                                            specials_group=changes,
-                                            env_label=env_label.get(current_app.env))
-            message.send_update_email(email_message)
+        #Record that we have just updated the specials.
+        Status.default.update()
 
-            #Send a text if any of the changes were considered important
-            if new_important_specials or updated_important_specials:
-                message.send_update_text_message()
-        elif changes and not send_email:
+        for user in User.query:
+            important_criteria = ImportantCriteria(user.important_criteria)
+            #Send an email if we need to.... i.e. if there were any kind of updates
+            send_new_specials = get_send_specials_list(new_specials_list, important_criteria)
+            send_updated_specials = get_send_specials_list(updated_specials_list, important_criteria)
+            send_removed_specials = get_send_specials_list(removed_specials_list, important_criteria)
+
+            changes = []
+            if len(send_new_specials) > 0:
+                changes.append(('Added', send_new_specials))
+            if len(send_updated_specials) > 0:
+                changes.append(('Updated', send_updated_specials))
+            if len(send_removed_specials) > 0:
+                changes.append(('Removed', send_removed_specials))
+            if changes and send_email:
+                email_message = render_template('specials/email_template.html',
+                                                specials_group=changes,
+                                                env_label=current_app.config.get("ENV_LABEL"))
+                notifications.send_update_email(email_message, user)
+
+                #Send a text/push notification if any of the changes were considered important
+                if contains_important(send_new_specials) or contains_important(send_updated_specials):
+                    notifications.send_update_text_message(user)
+                    notifications.send_update_push_notification(user)
+
+
+        changes_made = (len(new_specials_list) + len(updated_specials_list) + len(removed_specials_list)) > 0
+        if changes_made and send_email:
+            print("Changes found, sending emails complete!")
+        elif changes_made and not send_email:
             print("Changes found, not sending email. Bada-bing, bada-BOOM!")
         else:
             print("No changes found. Nothing to update Cap'n. :-)")
 
         #Handle any errors that were generated during the parsing of the specials
         handle_errors(all_current_specials, all_stored_specials)
-        set_health(True)
+        Status.default.healthy = True
     except Exception as e:
         unhandled_error(e)
 
@@ -136,67 +251,47 @@ def get_current_specials(local_specials):
         dvc_parser = Parser()
         local_special = local_special_for_parser(dvc_parser, local_specials)
         dvc_parser_specials = dvc_parser.get_all_specials(local_special)
-
-        #Probably want to move this check into 'update_specials'. Putting it there
-        #will allow for an error to be tracked but won't require an exception to
-        #be thrown. As an idea, I could make the following changes to implement
-        #this:
-        #   1) Rather than returning a dictionary with specials and their id's as
-        #      keys, I could add each parsers dict into a dict with the parser
-        #      name as the key.
-        #   2) In 'update_specials' check if any specific parser is empty.
-        #   3) If a parser is empty create a list with the bad (and also maybe
-        #      the good) parsers.
-        #   4) Use the good list to filter the database query with and use the
-        #      bad list in the error message
-
-        # if len(dvc_parser_specials) == 0:
-        #     msg = f"There is a problem getting data from the '{dvc_parser.source}' website."
-        #     print(msg)
-        #     raise Exception(msg)
         all_new_specials[dvc_parser.source] = dvc_parser_specials
     return all_new_specials
 
+def get_send_specials_list(specials, important_criteria):
+    is_important_special = important_criteria # Doing this just so the name makes more sense given that it is called
+    if important_criteria.important_only:
+        return [(special, True) for special in specials if is_important_special(special)]
+    else:
+        return [(special, is_important_special(special)) for special in specials]
+
+def contains_important(send_tuple):
+    importants = [element[1] for element in send_tuple] # Tested this a few different ways and for small lists this is fastest (and simplest)
+    return True in importants
+
 def store_new_specials(new_specials, stored_specials):
-    send_important_only = important_only()
-    new_important_specials = False
     new_specials_list = []
     for new_special_key in new_specials:
         special_entry = add_special(new_specials[new_special_key])
         stored_specials.append(special_entry)
-        important = important_special(special_entry)
-        if not (not important and send_important_only): #The only time it isn't added is when the special is not important and we only want to send important specials
-            new_specials_list.append(special_entry)
-        new_important_specials = new_important_specials or important
+        new_specials_list.append(special_entry)
 
     if len(new_specials_list) > 1:
         new_specials_list = sorted(new_specials_list, key=lambda special: (special.check_in if special.check_in else date(2000,1,1),
                                                                            special.check_out if special.check_out else date(2000,1,1)))
 
-    return new_specials_list, new_important_specials
+    return new_specials_list
 
 def update_old_specials(updated_specials_tuple):
-    send_important_only = important_only()
-    updated_important_specials = False
     updated_specials_list = []
     for special_tuple in updated_specials_tuple:
         parsed_special, stored_special = special_tuple
         stored_special.update_with_special(parsed_special)
-        important = important_special(stored_special)
-        if not (not important and send_important_only):
-            updated_specials_list.append(stored_special)
-        updated_important_specials = updated_important_specials or important
+        updated_specials_list.append(stored_special)
 
-    return updated_specials_list, updated_important_specials
+    return updated_specials_list
 
 def remove_old_specials(removed_specials):
-    send_important_only = important_only()
     removed_specials_list = []
     for stored_special in removed_specials:
         remove_special(stored_special)
-        important = important_special(stored_special)
-        if not (not important and send_important_only):
-            removed_specials_list.append(stored_special)
+        removed_specials_list.append(stored_special)
 
     return removed_specials_list
 
@@ -228,31 +323,33 @@ def handle_errors(new_specials, stored_specials):
         new_specials_flat.update(new_specials[key])
     new_specials_errors = [new_specials_flat[stored_special.special_id] for stored_special in stored_specials if stored_special.new_error]
     if len(new_specials_errors) > 0:
-        error_msg = render_template('error_template.html', specials=new_specials_errors,
-                                    env_label=env_label.get(current_app.env))
+        error_msg = render_template('specials/error_template.html', specials=new_specials_errors,
+                                    env_label=current_app.config.get("ENV_LABEL"))
         print('Uhh-ohh, Houston, we have a problem. There appears to be an error.')
-        message.send_error_email(error_msg)
-        message.send_error_text_messsage()
+        notifications.send_error_email(error_msg)
+        notifications.send_error_text_messsage()
+        notifications.send_error_push_notification()
 
     if g.send_error_report:
         all_specials_errors = [new_specials_flat[stored_special.special_id] for stored_special in stored_specials if stored_special.error]
         all_empty_parsers = ParserStatus.query.filter_by(healthy=False).all()
         if len(all_specials_errors) > 0 or len(all_empty_parsers) > 0:
-            error_msg = render_template('error_template.html', specials=all_specials_errors,
+            error_msg = render_template('specials/error_template.html', specials=all_specials_errors,
                                         empty_parsers=all_empty_parsers,
-                                        env_label=env_label.get(current_app.env), error_report=True)
+                                        env_label=current_app.config.get("ENV_LABEL"), error_report=True)
             print('So, about that bug...when are you going to catch it? Producing Error Report.')
-            message.send_error_report_email(error_msg)
+            notifications.send_error_report_email(error_msg)
 
 def empty_parser_error(parser_source):
     parser_status = get_parser_status(parser_source)
     if parser_status.healthy and not parser_status.empty_okay:
         parser_status.healthy = False
         print('Umm hello?...Anyone Home?')
-        error_msg = render_template('empty_parser_template.html', parser_source=parser_source,
-                                    env_label=env_label.get(current_app.env))
-        message.send_error_email(error_msg)
-        message.send_error_text_messsage()
+        error_msg = render_template('specials/empty_parser_template.html', parser_source=parser_source,
+                                    env_label=current_app.config.get("ENV_LABEL"))
+        notifications.send_error_email(error_msg)
+        notifications.send_error_text_messsage()
+        notifications.send_error_push_notification()
     elif not parser_status.healthy and parser_status.empty_okay:
         parser_status.healthy = True
     return parser_status.empty_okay
@@ -273,14 +370,14 @@ def get_parser_status(parser_source):
 def unhandled_error(error):
     traceback.print_exc()
     db.session.rollback()
-    healthy = check_health()
-    if healthy or g.send_error_report:
+    if Status.default.healthy or g.send_error_report:
         error_msg = f'Unhandled Exception: {error_type(error)}\n\n{error}\n\n{traceback.format_exc()}'
-        send_error_func = message.send_error_report_email if g.send_error_report else message.send_error_email
+        send_error_func = notifications.send_error_report_email if g.send_error_report else notifications.send_error_email
         send_error_func(error_msg, html_message=False)
-        if healthy:
-            message.send_error_text_messsage()
-        set_health(False)
+        if Status.default.healthy:
+            notifications.send_error_text_messsage()
+            notifications.send_error_push_notification()
+        Status.default.healthy = False
 
 # From traceback.py in CPython Line #563
 def error_type(error):
@@ -289,21 +386,6 @@ def error_type(error):
     if err_mod not in ("__main__", "builtins"):
         err_type = err_mod + '.' + err_type
     return err_type
-
-def get_status():
-    status = Status.query.first()
-    if not status:
-        status = Status(healthy=True)
-        db.session.add(status)
-    return status
-
-def check_health():
-    return get_status().healthy
-
-def set_health(healthy):
-    status = get_status()
-    if status.healthy != healthy:
-        status.healthy = healthy
 
 def local_special_for_parser(parser, local_specials):
     for local_special in local_specials:

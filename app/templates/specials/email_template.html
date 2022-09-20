@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta name="viewport" content="width=device-width{% if request %} initial-scale=1, user-scalable=no{% endif %}" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>{% if env_label %}({{ env_label }}) {% endif %}{% if title %}{{ title }} {% endif %}Specials - DVC Tracker</title>
+    {% set css_filename = "css/dvctracker-specials-1.css" %}
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename=css_filename) if request else css_filename }}">
+  </head>
+  <body>
+    <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body">
+      <tr class="block">
+        <td class="container">
+          <div class="header">
+            <table role="presentation" border="0" cellpadding="0" cellspacing="0">
+              <tr>
+                <td class="align-center">
+                  <img src="{{ static_url('images/dvctracker-logo-1.png') }}" alt="DVC Tracker Logo">
+                  <span>Up-to-date as of: {{ status.last_updated|convert_from_utc|datetimeformat('%b %-d, %Y %-I:%M:%S%p %Z') }}</span>
+                  {% if env_label %}<h2 id="env_label">- {{ env_label }} -</h2>{% endif %}
+                </td>
+              </tr>
+            </table>
+          </div>
+          {% for heading, specials in specials_group %}
+          <div class="heading">
+            <table border="0" cellpadding="0" cellspacing="0">
+              <tr>
+                <td>
+                  <h2 class="category">{{ heading }} ({{ "{:,}".format(specials|count) }})</h2>
+                </td>
+              </tr>
+            </table>
+          </div>
+          <div class="content">
+            {%- if specials %}
+            {# As of now, there are no discounted point parsers and the discounted points template is not being used. #}
+
+            {# This table is the discounted points table #}
+            {#
+              {%- for special, important_special in specials if special.type == SpecialTypes.DISC_POINTS %}
+              {% include 'specials/disc_points_template.html' %}
+              {% endfor %}
+            #}
+
+
+            {#- This table is the preconfirmeds table #}
+
+            {%- for special, important_special in specials if special.type == SpecialTypes.PRECONFIRM %}
+            {% include 'specials/preconfirmed_template.html' %}
+            {% endfor %}
+
+            {% else %}
+
+            <h2 class="no-specials" >No Specials at this time</h2>
+
+            {% endif %}
+          </div>
+          {% endfor %}
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>
