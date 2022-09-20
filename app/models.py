@@ -10,11 +10,11 @@ from .util import (
     InheritedModelLoader,
     first_index_or_none
 )
-from sqlalchemy import orm, inspect, ForeignKeyConstraint
+from sqlalchemy import orm
 from sqlalchemy.ext.hybrid import hybrid_property, HYBRID_PROPERTY
 from .security import pwd_context
 from datetime import date
-import tomlkit, os
+import tomlkit
 
 @orm.declarative_mixin
 class StaticDataMixin():
@@ -58,7 +58,7 @@ class DefaultEntityMixin():
             entity = owner.query.get(owner.default_id)
             if not entity:
                 entity = owner()
-                owner_pk = inspect(owner).primary_key[0]
+                owner_pk = db.inspect(owner).primary_key[0]
                 setattr(entity, owner_pk.key, owner.default_id)
                 db.session.add(entity)
             return entity
@@ -110,10 +110,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
 
     @duration.expression
     def duration(cls):
-        if cls.check_out is None or cls.check_in is None:
-            return None
-        delta = cls.check_out - cls.check_in
-        return delta
+        return cls.check_out - cls.check_in
 
     @hybrid_property
     def price_per_night(self):
@@ -171,6 +168,13 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
                 self.set_old_key(key)
                 setattr(self, key, new_value)
 
+        # Check if every old_key is necessary. If multiple things change we may
+        # store an old key unnecessarily.
+        for key in self.get_hybrid_keys():
+            old_key = f"old_{key}"
+            if hasattr(self, old_key) and getattr(self, old_key) == getattr(self, key):
+                delattr(self, old_key)
+
     def set_old_key(self, key):
         dependents = self.attribute_deps.getlist(key)
         if dependents:
@@ -222,7 +226,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
         We want this to only yield columns that are not foreign keys and also
         relationships.
         """
-        inspector = inspect(cls)
+        inspector = db.inspect(cls)
         for column in inspector.c:
             if not column.foreign_keys:
                 yield column.key
@@ -231,7 +235,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
 
     @classmethod
     def get_hybrid_keys(cls):
-        inspector = inspect(cls)
+        inspector = db.inspect(cls)
         return (key for key, descriptor in inspector.all_orm_descriptors.items() if descriptor.extension_type == HYBRID_PROPERTY)
 
     @classmethod
