@@ -10,3 +10,4 @@ dvcrentalstore_confirmed_2021.html
 .env
 *.p8
 postdrop_template/
+gh_pages_source/
