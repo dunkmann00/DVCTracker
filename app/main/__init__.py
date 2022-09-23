@@ -1,4 +1,5 @@
 from flask import Blueprint, has_request_context, current_app, request
+from werkzeug.urls import url_quote
 from datetime import datetime
 from dateutil import tz
 from .specials import specials as specials_blueprint
@@ -37,11 +38,18 @@ def currencyformat(value):
 def nullable(value):
     return value if value is not None and not is_undefined(value) else '??'
 
-def static_url(filename):
-    server_name = request.host if has_request_context() else current_app.config['EMAIL_SERVER_NAME']
-    url_scheme = request.scheme if has_request_context() else current_app.config['PREFERRED_URL_SCHEME']
-    urls = current_app.url_map.bind(server_name, '/', url_scheme=url_scheme)
-    url = urls.build('static', {'filename': filename}, force_external=not has_request_context())
+def static_url(filename, _anchor=None, **kwargs):
+    use_static_server = current_app.config['ALWAYS_STATIC_SERVER'] or not has_request_context()
+    if use_static_server and not current_app.config['STATIC_SERVER_NAME']:
+        raise RuntimeError("Building static url requires 'STATIC_SERVER_NAME' not be none.")
+    server_name = current_app.config['STATIC_SERVER_NAME'] if use_static_server else request.host
+    script_name = current_app.config['STATIC_DIRECTORY'] if use_static_server else '/'
+    url_scheme = current_app.config['PREFERRED_URL_SCHEME'] if use_static_server else request.scheme
+    urls = current_app.url_map.bind(server_name, script_name=script_name, url_scheme=url_scheme)
+    kwargs['filename'] = filename
+    url = urls.build('static', kwargs, force_external=use_static_server)
+    if _anchor is not None:
+        url = f"{url}#{url_quote(_anchor)}"
     return url
 
 @main.app_context_processor

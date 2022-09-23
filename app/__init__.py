@@ -28,11 +28,12 @@ def create_app(config_name):
 
     if app.config['SSL_REDIRECT']:
         from flask_talisman import Talisman
+        static = f"{app.config['PREFERRED_URL_SCHEME']}://{app.config['STATIC_SERVER_NAME']}"
         csp = {
             'default-src': '\'self\'',
-            'img-src': ['\'self\'', 'https://cdn.jsdelivr.net', 'data:'],
-            'script-src': ['\'self\'', 'https://cdn.jsdelivr.net'],
-            'style-src': ['\'self\'', 'https://cdn.jsdelivr.net']
+            'img-src': ['\'self\'', 'https://cdn.jsdelivr.net', static, 'data:'],
+            'script-src': ['\'self\'', 'https://cdn.jsdelivr.net', static],
+            'style-src': ['\'self\'', 'https://cdn.jsdelivr.net', static]
         }
         talisman = Talisman(app, content_security_policy=csp)
 

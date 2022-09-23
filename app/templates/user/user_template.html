@@ -27,5 +27,5 @@
 {% block javascript %}
     {{ super() }}
     <script src="https://cdn.jsdelivr.net/npm/intl-tel-input@17.0.18/build/js/intlTelInput.min.js" integrity="sha256-B59tg1fQLJTf1b/7MvziVaCT8AmEOftoNAfBJqsAwBU=" crossorigin="anonymous"></script>
-    <script src="{{ url_for('static', filename='js/dvctracker-user-1.js') }}"></script>
+    <script src="{{ static_url('js/dvctracker-user-1.js') }}"></script>
 {% endblock javascript %}

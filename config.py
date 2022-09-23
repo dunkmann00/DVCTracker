@@ -3,7 +3,9 @@ import os
 class Config:
     SECRET_KEY = os.getenv('SECRET_KEY')
     SEND_FILE_MAX_AGE_DEFAULT = int(os.getenv('SEND_FILE_MAX_AGE_DEFAULT', 31536000))
-    EMAIL_SERVER_NAME = os.getenv('EMAIL_SERVER_NAME')
+    ALWAYS_STATIC_SERVER = os.getenv('ALWAYS_STATIC_SERVER', 'True') == 'True'
+    STATIC_SERVER_NAME = os.getenv('STATIC_SERVER_NAME')
+    STATIC_DIRECTORY = os.getenv('STATIC_DIRECTORY')
     PREFERRED_URL_SCHEME = os.getenv('PREFERRED_URL_SCHEME', 'https')
     STATIC_DATA_PATH = os.getenv('STATIC_DATA_PATH', "static_data.toml")
     SQLALCHEMY_DATABASE_URI = os.getenv('DATABASE_URL')
