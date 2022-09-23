@@ -5,7 +5,7 @@
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
     <title>{% if env_label %}({{ env_label }}) {% endif %}{% if title %}{{ title }} {% endif %}Specials - DVC Tracker</title>
     {% set css_filename = "css/dvctracker-specials-1.css" %}
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename=css_filename) if request else css_filename }}">
+    <link rel="stylesheet" type="text/css" href="{{ static_url(css_filename) if request else css_filename }}">
   </head>
   <body>
     <table role="presentation" border="0" cellpadding="0" cellspacing="0" class="body">
