@@ -1,6 +1,8 @@
 # DVC Tracker
 Track DVC Specials and get notified of changes as they happen.
 
+***This needs to be updated. Much of the configuration information is out of date. The `criteria.toml` file is no longer used and details on running the app could use a refresh as well. I plan to update this in the near future!***
+
 ---
 
 The description says it all. DVC Tracker will allow you to track the specials that are posted on https://dvcrentalstore.com/. This will enable you to find the perfect special for your next vacation or to keep track of all the changes that are happening. DVC Tracker will scrape the website and track everything it finds, comparing it to the data it has stored from previous runs. Any additions, removals, or changes in price to any of the specials, will be sent to you via an email. You can also configure DVC Tracker to send a text when an important special has been either added or updated.

@@ -18,7 +18,6 @@ class Config:
     TWILIO_SID = os.getenv('TWILIO_SID')
     TWILIO_TOKEN = os.getenv('TWILIO_TOKEN')
     TWILIO_MSG_SRVC = os.getenv('TWILIO_MSG_SRVC')
-    DVC_CRITERIA = os.getenv('DVC_CRITERIA', 'criteria.toml')
     DVCRENTALSTORE_PRECONFIRM_RPP = int(os.getenv('DVCRENTALSTORE_PRECONFIRM_RPP', 100))
     APNS_KEY_ID = os.getenv('APNS_KEY_ID')
     APNS_TEAM_ID = os.getenv('APNS_TEAM_ID')
