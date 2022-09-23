@@ -131,7 +131,8 @@ def send_test_text_message(username, phone_number, message):
 @click.option('-u', '--username')
 @click.option('-t', '--push-token', multiple=True)
 @click.option('-m', '--message')
-def send_test_apn(username, push_token, message):
+@click.option('--message-id')
+def send_test_apn(username, push_token, message, message_id):
     if username:
         user = User.query.filter_by(username=username).first()
         if user is None:
@@ -143,7 +144,7 @@ def send_test_apn(username, push_token, message):
             print("No apns provided.")
             return
         user = User(apns=apns)
-    notifications.send_update_push_notification(user, message)
+    notifications.send_update_push_notification(user, message, message_id)
 
 @cli.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
 @click.option('--local', 'local_specials', multiple=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True),
@@ -221,12 +222,12 @@ def update_specials(local_specials, send_email, send_error_report):
                 email_message = render_template('specials/email_template.html',
                                                 specials_group=changes,
                                                 env_label=current_app.config.get("ENV_LABEL"))
-                notifications.send_update_email(email_message, user)
+                notification_response = notifications.send_update_email(email_message, user)
 
                 #Send a text/push notification if any of the changes were considered important
                 if contains_important(send_new_specials) or contains_important(send_updated_specials):
                     notifications.send_update_text_message(user)
-                    notifications.send_update_push_notification(user)
+                    notifications.send_update_push_notification(user, message_id=notification_response.data)
 
 
         changes_made = (len(new_specials_list) + len(updated_specials_list) + len(removed_specials_list)) > 0
@@ -326,9 +327,9 @@ def handle_errors(new_specials, stored_specials):
         error_msg = render_template('specials/error_template.html', specials=new_specials_errors,
                                     env_label=current_app.config.get("ENV_LABEL"))
         print('Uhh-ohh, Houston, we have a problem. There appears to be an error.')
-        notifications.send_error_email(error_msg)
+        notification_response = notifications.send_error_email(error_msg)
         notifications.send_error_text_messsage()
-        notifications.send_error_push_notification()
+        notifications.send_error_push_notification(message_id=notification_response.data)
 
     if g.send_error_report:
         all_specials_errors = [new_specials_flat[stored_special.special_id] for stored_special in stored_specials if stored_special.error]
@@ -347,9 +348,9 @@ def empty_parser_error(parser_source):
         print('Umm hello?...Anyone Home?')
         error_msg = render_template('specials/empty_parser_template.html', parser_source=parser_source,
                                     env_label=current_app.config.get("ENV_LABEL"))
-        notifications.send_error_email(error_msg)
+        notification_response = notifications.send_error_email(error_msg)
         notifications.send_error_text_messsage()
-        notifications.send_error_push_notification()
+        notifications.send_error_push_notification(message_id=notification_response.data)
     elif not parser_status.healthy and parser_status.empty_okay:
         parser_status.healthy = True
     return parser_status.empty_okay
@@ -373,10 +374,10 @@ def unhandled_error(error):
     if Status.default.healthy or g.send_error_report:
         error_msg = f'Unhandled Exception: {error_type(error)}\n\n{error}\n\n{traceback.format_exc()}'
         send_error_func = notifications.send_error_report_email if g.send_error_report else notifications.send_error_email
-        send_error_func(error_msg, html_message=False)
+        notification_response = send_error_func(error_msg, html_message=False)
         if Status.default.healthy:
             notifications.send_error_text_messsage()
-            notifications.send_error_push_notification()
+            notifications.send_error_push_notification(message_id=notification_response.data)
         Status.default.healthy = False
 
 # From traceback.py in CPython Line #563

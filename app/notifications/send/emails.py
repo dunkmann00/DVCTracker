@@ -36,6 +36,9 @@ def send_email(subject, email_message, email_addresses, html_message=True):
     if not notification_response.success:
         notification_response.msg = f"{response.status_code} {response.reason}"
 
+    if notification_response.success:
+        notification_response.data = response.json().get("id")
+
     return notification_response
 
 @log_response("Mailgun", "Update Message Complete", True)
