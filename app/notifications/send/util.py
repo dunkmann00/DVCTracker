@@ -1,9 +1,10 @@
 from functools import wraps
 
 class NotificationResponse:
-    def __init__(self, success=None, msg=None):
+    def __init__(self, success=None, msg=None, data=None):
         self.success = success
         self.msg = msg
+        self.data = data
 
 NotificationResponse.Success = NotificationResponse(True)
 NotificationResponse.Fail = NotificationResponse(False)

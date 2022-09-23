@@ -5,14 +5,14 @@ from apns2.client import APNsClient, Notification
 from apns2.payload import Payload
 from apns2.credentials import TokenCredentials
 
-def create_notifications(push_tokens, message):
-    return (create_notification(push_token, message) for push_token in push_tokens)
+def create_notifications(push_tokens, message, custom=None):
+    return (create_notification(push_token, message, custom) for push_token in push_tokens)
 
 
-def create_notification(push_token, message):
+def create_notification(push_token, message, custom=None):
     msg_env = current_app.config.get("ENV_LABEL")
     message = f"({msg_env}) {message}" if msg_env else message
-    payload = Payload(alert=message, sound='default')
+    payload = Payload(alert=message, sound='default', custom=custom)
     return Notification(token=push_token, payload=payload)
 
 
@@ -45,24 +45,26 @@ def send_notifications(notifications):
 
     return response
 
-def send_push_notification(message, push_tokens):
-    notifications = create_notifications(push_tokens, message)
+def send_push_notification(message, push_tokens, custom=None):
+    notifications = create_notifications(push_tokens, message, custom)
     return send_notifications(notifications)
 
 @log_response('APNS', 'Update Push Notification Sent')
-def send_update_push_notification(user, message=None):
+def send_update_push_notification(user, message=None, message_id=None):
     push_tokens = [apn.push_token for apn in user.apns]
     if len(push_tokens) == 0:
         print(f"No push tokens associated with {user}. Not sending push notification.")
         return NotificationResponse.Success
     message = message or "Hey this is DVC Tracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
-    return send_push_notification(message, push_tokens)
+    custom = message_id and {"messageID": message_id}
+    return send_push_notification(message, push_tokens, custom)
 
 @log_response('APNS', 'Error Push Notification Sent')
-def send_error_push_notification():
+def send_error_push_notification(message_id=None):
     push_tokens = [apn.push_token for apn in APN.query.filter_by(get_errors=True)]
     if len(push_tokens) == 0:
         print(f"No push tokens requested error messages. Not sending error push notification.")
         return NotificationResponse.Success
     message = "Hey this is DVC Tracker!\nThere seems to be a problem checking for updates and/or sending emails. Check your emails for more info!"
-    return send_push_notification(message, push_tokens)
+    custom = message_id and {"messageID": message_id}
+    return send_push_notification(message, push_tokens, custom)
