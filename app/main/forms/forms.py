@@ -34,7 +34,7 @@ from ...util import SpecialTypes, ContactTypes
 FieldTuple = namedtuple("FieldTuple", ["data"])
 
 class ImportantCriteriaForm(Form):
-    special_type = SelectField("Special Type", [InputRequired()], choices=[(SpecialTypes.PRECONFIRM, "Preconfirmed Reservation"), (SpecialTypes.DISC_POINTS, "Discounted Points")], coerce=SpecialTypes, default=SpecialTypes.PRECONFIRM)
+    special_type = SelectField("Special Type", [Optional()], choices=[(SpecialTypes.PRECONFIRM, "Preconfirmed Reservation"), (SpecialTypes.DISC_POINTS, "Discounted Points")], coerce=SpecialTypes, default=SpecialTypes.PRECONFIRM)
     check_in_date = DateField("Check In", [RequiredWhen(lambda field, form: form.special_type.data == SpecialTypes.PRECONFIRM and bool(form.check_out_date.data), message="This field is required when setting a Check Out date for a Preconfirmed Reservation.")])
     check_out_date = DateField("Check Out", [RequiredIf("check_in_date", message="This field is required when setting a Check In date.")])
     length_of_stay = IntegerField("Length of Stay (Nights - Minimum)", [Optional(), NumberRange(min=1, max=30, message="Must be between 1 and 30.")])
