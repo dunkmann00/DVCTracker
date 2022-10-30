@@ -55,7 +55,7 @@ def send_update_push_notification(user, message=None, message_id=None):
     if len(push_tokens) == 0:
         print(f"No push tokens associated with {user}. Not sending push notification.")
         return NotificationResponse.Success
-    message = message or "Hey this is DVC Tracker!\nA special you are interested in was either just added or updated. Check your emails for more info!"
+    message = message or "A special you are interested in was either just added or updated. Check your emails for more info!"
     custom = message_id and {"messageID": message_id}
     return send_push_notification(message, push_tokens, custom)
 
@@ -65,6 +65,6 @@ def send_error_push_notification(message_id=None):
     if len(push_tokens) == 0:
         print(f"No push tokens requested error messages. Not sending error push notification.")
         return NotificationResponse.Success
-    message = "Hey this is DVC Tracker!\nThere seems to be a problem checking for updates and/or sending emails. Check your emails for more info!"
+    message = "There seems to be a problem checking for updates and/or sending emails. Check your emails for more info!"
     custom = message_id and {"messageID": message_id}
     return send_push_notification(message, push_tokens, custom)
