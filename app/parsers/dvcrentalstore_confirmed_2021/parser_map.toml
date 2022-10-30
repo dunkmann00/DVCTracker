@@ -46,6 +46,7 @@ key = "room_type"
 "Hotel" = "room_hotel"
 "Inn Room" = "room_inn"
 "Treehouse" = "room_treehouse"
+"Beach Cottage" = "room_cottage"
 
 [views]
 key  = "room_view_key"
