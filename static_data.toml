@@ -149,6 +149,12 @@ category_id = "category_room_two"
 [[rooms]]
 room_id = "room_three"
 name = "3-Bedroom Grand Villa"
+category_id = "category_room_three"
+
+[[rooms]]
+room_id = "room_cottage"
+name = "3-Bedroom Beach Cottage"
+category_id = "category_room_three"
 
 # Views
 
@@ -232,6 +238,10 @@ name = "Deluxe Studio"
 [[room_categories]]
 category_id = "category_room_two"
 name = "2-Bedroom"
+
+[[room_categories]]
+category_id = "category_room_three"
+name = "3-Bedroom"
 
 [[room_categories]]
 category_id = "category_room_none"
