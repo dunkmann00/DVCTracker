@@ -60,7 +60,7 @@
               {% if special.old_check_in is defined or special.old_check_out is defined %}
               <tr>
                 <td class="item-dates item-old-value">
-                  {{ special.old_check_in|datetimeformat|nullable if special.old_check_in is defined else special.check_in|datetimeformat|nullable }} - {{ special.old_check_out|datetimeformat|nullable if special.old_check_out is defined else special.check_out|datetimeformat|nullable }}<span>({{ special.old_duration|nullable }} {% if special.old_duration %}night{{'s' if special.old_duration > 1}}{% endif %})</span>
+                  {{ special.old_check_in|datetimeformat|nullable if special.old_check_in is defined else special.check_in|datetimeformat|nullable }} - {{ special.old_check_out|datetimeformat|nullable if special.old_check_out is defined else special.check_out|datetimeformat|nullable }}<span>{% if special.old_duration is defined %}({{ special.old_duration|nullable }} {% if special.old_duration %}night{{'s' if special.old_duration > 1}}{% endif %}){% endif %}</span>
                 </td>
               </tr>
               {% endif %}
