@@ -42,7 +42,7 @@ def create_app(config_name):
 
     @app.route('/')
     def index():
-        return redirect(url_for('main.current_specials'))
+        return redirect(url_for('main.specials.current_specials'))
 
     from .cli import cli
     for command in cli.commands.values():
