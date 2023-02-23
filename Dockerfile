@@ -1,7 +1,8 @@
-FROM python:3.9
+FROM python:3.9-slim
 
 RUN apt-get clean && apt-get -y update && \
-    apt-get install -y locales
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+    locales gcc libpq-dev python3-dev git
 
 # Set the locale
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
