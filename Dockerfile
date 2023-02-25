@@ -40,6 +40,7 @@ RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
 FROM base AS runtime
 
 ENV PATH="/usr/src/app/.venv/bin:$PATH"
+ENV GUNICORN_CMD_ARGS="--access-logfile -"
 
 COPY --from=build /usr/src/app/.venv /usr/src/app/.venv
 COPY --from=build /usr/src/app/overmind/overmind /usr/local/bin
