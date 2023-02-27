@@ -15,8 +15,7 @@ convention = {   #https://docs.sqlalchemy.org/en/latest/core/constraints.html#co
 
 metadata = MetaData(naming_convention=convention)
 db = SQLAlchemy(metadata=metadata, engine_options={
-    "json_serializer": json.dumps,
-    "pool_recycle": 3600
+    "json_serializer": json.dumps
 })
 
 def create_app(config_name):
