@@ -11,6 +11,8 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
+ENV PYTHONUNBUFFERED=1
+
 RUN mkdir -p /usr/src/app
 WORKDIR /usr/src/app
 
