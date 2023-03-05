@@ -1,0 +1,10 @@
+# At every 30th minute.
+*/30 * * * * flask update-specials > /proc/1/fd/1 2> /proc/1/fd/2
+
+# Every day at 2am
+0 2 * * * flask update-specials --error-report > /proc/1/fd/1 2> /proc/1/fd/2
+
+# Test
+* * * * * echo "Hello cron!" > /proc/1/fd/1 2> /proc/1/fd/2
+
+* * * * * pwd > /proc/1/fd/1 2> /proc/1/fd/2
