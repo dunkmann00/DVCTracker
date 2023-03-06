@@ -2,7 +2,7 @@ FROM python:3.9-slim AS base
 
 RUN apt-get clean && apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    locales libpq-dev tmux cron
+    locales libpq-dev tmux
 
 # Set the locale
 RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
@@ -47,8 +47,6 @@ ENV GUNICORN_CMD_ARGS="--access-logfile -"
 COPY --from=build /usr/src/app/.venv /usr/src/app/.venv
 COPY --from=build /usr/src/app/overmind/overmind /usr/local/bin
 COPY ./ /usr/src/app
-
-RUN chmod +x scheduler.sh
 
 # CMD ["gunicorn", "dvctracker:app", "--log-file", "-"]
 CMD ["yacron", "-c", "schedule.yml"]
