@@ -50,4 +50,4 @@ COPY ./ /usr/src/app
 
 # CMD ["gunicorn", "dvctracker:app", "--log-file", "-"]
 # CMD ["yacron", "-c", "schedule.yml"]
-CMD ["overmind", "start", "-N"]
+CMD ["overmind", "start", "-x", "release", "-N"]
