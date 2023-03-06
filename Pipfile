@@ -8,7 +8,7 @@ verify_ssl = true
 [packages]
 Flask = "*"
 Flask-SQLAlchemy = "*"
-SQLAlchemy = {extras = ["postgresql"], version = "*"}
+SQLAlchemy = {extras = ["postgresql"], version = "<2.0"}
 requests = "*"
 lxml = "*"
 gunicorn = "*"
