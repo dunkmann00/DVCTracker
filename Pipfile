@@ -24,6 +24,7 @@ flask-talisman = "*"
 premailer = {editable = true, ref = "parsestyle-validate-option", git = "https://github.com/dunkmann00/premailer.git"}
 phonenumbers = "*"
 python-dateutil = "*"
+yacron = "*"
 
 [requires]
 python_version = "3.9"

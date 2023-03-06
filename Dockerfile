@@ -51,4 +51,4 @@ COPY ./ /usr/src/app
 RUN chmod +x scheduler.sh
 
 # CMD ["gunicorn", "dvctracker:app", "--log-file", "-"]
-CMD ["./scheduler.sh"]
+CMD ["yacron", "-c", "schedule.yml"]
