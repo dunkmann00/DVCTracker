@@ -48,5 +48,5 @@ COPY --from=build /usr/src/app/.venv /usr/src/app/.venv
 COPY --from=build /usr/src/app/overmind/overmind /usr/local/bin
 COPY ./ /usr/src/app
 
-# CMD ["gunicorn", "dvctracker:app", "--log-file", "-"]
-CMD ["yacron", "-c", "schedule.yml"]
+CMD ["gunicorn", "dvctracker:app", "--log-file", "-"]
+# CMD ["yacron", "-c", "schedule.yml"]
