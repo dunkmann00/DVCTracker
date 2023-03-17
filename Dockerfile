@@ -44,6 +44,11 @@ FROM base AS runtime
 ENV PATH="/usr/src/app/.venv/bin:$PATH"
 ENV GUNICORN_CMD_ARGS="--access-logfile -"
 
+# Create and switch to a new user
+RUN useradd capapp && \
+    chown -R capapp /usr/src/app/
+USER capapp
+
 COPY --from=build /usr/src/app/.venv /usr/src/app/.venv
 COPY --from=build /usr/src/app/overmind/overmind /usr/local/bin
 COPY ./ /usr/src/app
