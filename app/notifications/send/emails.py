@@ -1,7 +1,7 @@
 from flask import current_app
 from premailer import Premailer
 from .util import log_response, NotificationResponse
-from ...models import Email
+from ...models import Email, db
 import requests
 
 inliner = Premailer(
@@ -51,7 +51,7 @@ def send_update_email(email_message, user):
 
 @log_response("Mailgun", "Error Message Complete")
 def send_error_email(email_message, html_message=True):
-    email_addresses = [email.email_address for email in Email.query.filter_by(get_errors=True)]
+    email_addresses = db.session.scalars(db.select(Email.email_address).filter_by(get_errors=True)).all()
     if len(email_addresses) == 0:
         print(f"No email addresses requested error messages. Not sending error email.")
         return NotificationResponse.Success
@@ -59,7 +59,7 @@ def send_error_email(email_message, html_message=True):
 
 @log_response("Mailgun", "Error Report Complete")
 def send_error_report_email(email_message, html_message=True):
-    email_addresses = [email.email_address for email in Email.query.filter_by(get_errors=True)]
+    email_addresses = db.session.scalars(db.select(Email.email_address).filter_by(get_errors=True)).all()
     if len(email_addresses) == 0:
         print(f"No email addresses requested error messages. Not sending error report email.")
         return NotificationResponse.Success

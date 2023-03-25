@@ -46,8 +46,7 @@ def make_new_user(username, password):
 @cli.command(help="Reset all specials' error attributes to false & overall health to true.")
 @with_appcontext
 def reset_errors():
-    for special in StoredSpecial.query:
-        special.error = False
+    db.session.execute(db.update(StoredSpecial).values(error=False))
     Status.default.healthy = True
     db.session.commit()
 
@@ -84,7 +83,7 @@ def store_specials_data(name, extension):
 @click.option('-e', '--email-address', multiple=True)
 def send_test_email(username, email_address):
     if username:
-        user = User.query.filter_by(username=username).first()
+        user = db.session.scalar(db.select(User).filter_by(username=username).limit(1))
         if user is None:
             print(f"Could not find user '{username}'")
             return
@@ -94,7 +93,7 @@ def send_test_email(username, email_address):
             print("No email addresses provided.")
             return
         user = User(emails=emails)
-    specials = StoredSpecial.query.limit(3).all()
+    specials = db.session.scalars(db.select(StoredSpecial).limit(3)).all()
     up_special = specials[1]
     down_special = specials[2]
     up_special = test_old_values(up_special, True)
@@ -115,7 +114,7 @@ def send_test_email(username, email_address):
 @click.option('-m', '--message')
 def send_test_text_message(username, phone_number, message):
     if username:
-        user = User.query.filter_by(username=username).first()
+        user = db.session.scalar(db.select(User).filter_by(username=username).limit(1))
         if user is None:
             print(f"Could not find user '{username}'")
             return
@@ -134,7 +133,7 @@ def send_test_text_message(username, phone_number, message):
 @click.option('--message-id')
 def send_test_apn(username, push_token, message, message_id):
     if username:
-        user = User.query.filter_by(username=username).first()
+        user = db.session.scalar(db.select(User).filter_by(username=username).limit(1))
         if user is None:
             print(f"Could not find user '{username}'")
             return
@@ -182,7 +181,7 @@ def update_specials(local_specials, send_email, send_error_report):
             parser_healthy(parser_source)
 
             #Get the stored specials from the db
-            stored_specials = StoredSpecial.query.filter_by(source=parser_source).order_by(StoredSpecial.check_in, StoredSpecial.check_out).all()
+            stored_specials = db.session.scalars(db.select(StoredSpecial).filter_by(source=parser_source).order_by(StoredSpecial.check_in, StoredSpecial.check_out)).all()
 
             #Check for any changes to the specials
             updated_specials_tuple, removed_specials_list = check_for_changes(new_specials, stored_specials)
@@ -204,7 +203,7 @@ def update_specials(local_specials, send_email, send_error_report):
         #Record that we have just updated the specials.
         Status.default.update()
 
-        for user in User.query:
+        for user in db.session.scalars(db.select(User)):
             important_criteria = ImportantCriteria(user.important_criteria)
             #Send an email if we need to.... i.e. if there were any kind of updates
             send_new_specials = get_send_specials_list(new_specials_list, important_criteria)
@@ -333,7 +332,7 @@ def handle_errors(new_specials, stored_specials):
 
     if g.send_error_report:
         all_specials_errors = [new_specials_flat[stored_special.special_id] for stored_special in stored_specials if stored_special.error]
-        all_empty_parsers = ParserStatus.query.filter_by(healthy=False).all()
+        all_empty_parsers = db.session.scalars(db.select(ParserStatus).filter_by(healthy=False)).all()
         if len(all_specials_errors) > 0 or len(all_empty_parsers) > 0:
             error_msg = render_template('specials/error_template.html', specials=all_specials_errors,
                                         empty_parsers=all_empty_parsers,
@@ -360,7 +359,7 @@ def parser_healthy(parser_source):
     parser_status.healthy = True
 
 def get_parser_status(parser_source):
-    parser_status = ParserStatus.query.filter_by(parser_source=parser_source).first()
+    parser_status = db.session.scalar(db.select(ParserStatus).filter_by(parser_source=parser_source).limit(1))
     if parser_status is None:
         parser_status = ParserStatus(parser_source=parser_source,
                                      healthy=True)

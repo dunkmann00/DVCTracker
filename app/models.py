@@ -11,7 +11,7 @@ from .util import (
     first_index_or_none
 )
 from sqlalchemy import orm
-from sqlalchemy.ext.hybrid import hybrid_property, HYBRID_PROPERTY
+from sqlalchemy.ext.hybrid import hybrid_property, HybridExtensionType
 from .security import pwd_context
 from datetime import date
 import tomlkit
@@ -28,7 +28,7 @@ class StaticDataMixin():
             if cls_data:
                 # Clear the table so we can recreate all the rows
                 # If anything changed it will get captured when recreated
-                cls.query.delete()
+                db.session.execute(db.delete(cls))
 
                 items = [cls(**(default_data | item)) for item in cls_data]
                 db.session.add_all(items)
@@ -44,7 +44,7 @@ class ProxyConversionMixin():
             orm.configure_mappers()
             orm_attr = getattr(cls, proxy.attr)
         model = orm_attr.mapper.class_
-        entity = model.query.get(proxy.id)
+        entity = db.session.get(model, proxy.id)
         if entity is None:
             raise RuntimeError(
                 f"Proxy object '{proxy}' could not be successfully converted.\n"
@@ -55,7 +55,7 @@ class ProxyConversionMixin():
 class DefaultEntityMixin():
     class DefaultEntity():
         def __get__(self, instance, owner):
-            entity = owner.query.get(owner.default_id)
+            entity = db.session.get(owner, owner.default_id)
             if not entity:
                 entity = owner()
                 owner_pk = db.inspect(owner).primary_key[0]
@@ -236,7 +236,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
     @classmethod
     def get_hybrid_keys(cls):
         inspector = db.inspect(cls)
-        return (key for key, descriptor in inspector.all_orm_descriptors.items() if descriptor.extension_type == HYBRID_PROPERTY)
+        return (key for key, descriptor in inspector.all_orm_descriptors.items() if descriptor.extension_type == HybridExtensionType.HYBRID_PROPERTY)
 
     @classmethod
     def get_attribute_deps(cls, attribute):
@@ -286,9 +286,9 @@ class Resort(Characteristic):
     _static_data_name = "resorts"
     specials = db.relationship(
         "StoredSpecial",
-        backref=db.backref("resort", lazy="joined"),
+        backref=db.backref("resort", lazy="selectin"),
         foreign_keys="StoredSpecial.resort_id",
-        lazy="dynamic"
+        lazy="write_only"
     )
 
     @hybrid_property
@@ -320,9 +320,9 @@ class Room(Characteristic):
 
     specials = db.relationship(
         "StoredSpecial",
-        backref=db.backref("room", lazy="joined"),
+        backref=db.backref("room", lazy="selectin"),
         foreign_keys="StoredSpecial.room_id",
-        lazy="dynamic"
+        lazy="write_only"
     )
 
     @hybrid_property
@@ -351,9 +351,9 @@ class View(Characteristic):
     _static_data_name = "views"
     specials = db.relationship(
         "StoredSpecial",
-        backref=db.backref("view", lazy="joined"),
+        backref=db.backref("view", lazy="selectin"),
         foreign_keys="StoredSpecial.view_id",
-        lazy="dynamic"
+        lazy="write_only"
     )
 
     @hybrid_property
@@ -403,7 +403,7 @@ class ResortCategory(Category):
         "Resort",
         order_by="Resort.name",
         backref=db.backref("category", lazy="select"),
-        lazy="joined"
+        lazy="selectin"
     )
 
     __mapper_args__ = {
@@ -421,7 +421,7 @@ class RoomCategory(Category):
         "Room",
         order_by="Room.room_index",
         backref=db.backref("category", lazy="select"),
-        lazy="joined"
+        lazy="selectin"
     )
 
     @property
@@ -443,7 +443,7 @@ class ViewCategory(Category):
         "View",
         order_by="View.name",
         backref=db.backref("category", lazy="select"),
-        lazy="joined"
+        lazy="selectin"
     )
 
     __mapper_args__ = {
@@ -633,19 +633,19 @@ class User(db.Model):
         "Email",
         order_by="Email.contact_id",
         backref=db.backref("user", lazy="select"),
-        lazy="joined"
+        lazy="selectin"
     )
     phones = db.relationship(
         "Phone",
         order_by="Phone.contact_id",
         backref=db.backref("user", lazy="select"),
-        lazy="joined"
+        lazy="selectin"
     )
     apns = db.relationship(
         "APN",
         order_by="APN.contact_id",
         backref=db.backref("user", lazy="select"),
-        lazy="joined"
+        lazy="selectin"
     )
 
     @property

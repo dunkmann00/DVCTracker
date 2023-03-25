@@ -64,8 +64,8 @@ class InheritedModelLoader:
         return f"{key}s"
 
     def _load(self):
-        query = self.model.query.order_by(*self.order_by)
-        for key, group in groupby(query, key=lambda x : getattr(x, self.discriminator.name)):
+        all_results = db.session.scalars(db.select(self.model).order_by(*self.order_by))
+        for key, group in groupby(all_results, key=lambda x : getattr(x, self.discriminator.name)):
             results = list(group)
             setattr(self, self.convert_group_key(key), results)
 
@@ -96,7 +96,6 @@ def test_old_values(special, increase):
         test_special.points = special.points
 
     test_special.update_with_special(special)
-    db.session.expunge(test_special) # This prevents test_special from getting commited to the db
 
     return test_special
 
