@@ -47,10 +47,13 @@ def test_specials():
     up_special = test_old_values(up_special, True)
     down_special = test_old_values(down_special, False)
     group = [(specials[0], False), (up_special, False), (down_special, True)]
-    return render_template(
-        'specials/email_template.html',
-        specials_group=(('All', group),
-            ('Update', group),
-            ('Removed', group)),
-        env_label=current_app.config.get("ENV_LABEL")
-    )
+    with db.session.no_autoflush:
+        html = render_template(
+            'specials/email_template.html',
+            specials_group=(('All', group),
+                ('Update', group),
+                ('Removed', group)),
+            env_label=current_app.config.get("ENV_LABEL")
+        )
+    db.session.rollback()
+    return html
