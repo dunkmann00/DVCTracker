@@ -61,7 +61,8 @@ class ProxyConversionMixin():
             orm.configure_mappers()
             orm_attr = getattr(cls, proxy.attr)
         model = orm_attr.mapper.class_
-        entity = db.session.get(model, proxy.id)
+        with db.session.no_autoflush:
+            entity = db.session.get(model, proxy.id)
         if entity is None:
             raise RuntimeError(
                 f"Proxy object '{proxy}' could not be successfully converted.\n"
@@ -72,7 +73,8 @@ class ProxyConversionMixin():
 class DefaultEntityMixin():
     class DefaultEntity():
         def __get__(self, instance, owner):
-            entity = db.session.get(owner, owner.default_id)
+            with db.session.no_autoflush:
+                entity = db.session.get(owner, owner.default_id)
             if not entity:
                 entity = owner()
                 owner_pk = db.inspect(owner).primary_key[0]

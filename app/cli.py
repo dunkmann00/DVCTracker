@@ -99,14 +99,13 @@ def send_test_email(username, email_address):
     up_special = test_old_values(up_special, True)
     down_special = test_old_values(down_special, False)
     group = [(specials[0], False), (up_special, False), (down_special, True)]
-    with db.session.no_autoflush:
-        email = render_template(
-            'specials/email_template.html',
-            specials_group=(('All', group),
-                ('Update', group),
-                ('Removed', group)),
-            env_label=current_app.config.get("ENV_LABEL")
-        )
+    email = render_template(
+        'specials/email_template.html',
+        specials_group=(('All', group),
+            ('Update', group),
+            ('Removed', group)),
+        env_label=current_app.config.get("ENV_LABEL")
+    )
     notifications.send_update_email(email, user)
 
 @cli.command(help="Send a test text message to the provided user or phone numbers.")
