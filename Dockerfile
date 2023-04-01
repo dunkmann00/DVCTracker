@@ -1,6 +1,6 @@
 FROM python:3.9-slim AS base
 
-RUN apt-get clean && apt-get -y update && \
+RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     locales libpq-dev tmux
 
