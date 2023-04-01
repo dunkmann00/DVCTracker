@@ -26,8 +26,6 @@ def upgrade():
     sa.Column('type', characteristictypes, nullable=False),
     sa.PrimaryKeyConstraint('characteristic_id', name=op.f('pk_characteristics'))
     )
-    op.drop_constraint('parser_status_parser_source_key', 'parser_status', type_='unique')
-    op.create_unique_constraint(op.f('uq_parser_status_parser_source'), 'parser_status', ['parser_source'])
     op.add_column('stored_specials', sa.Column('resort_id', sa.String(), nullable=True))
     op.add_column('stored_specials', sa.Column('room_id', sa.String(), nullable=True))
     op.add_column('stored_specials', sa.Column('view_id', sa.String(), nullable=True))
@@ -51,8 +49,6 @@ def downgrade():
     op.drop_column('stored_specials', 'view_id')
     op.drop_column('stored_specials', 'room_id')
     op.drop_column('stored_specials', 'resort_id')
-    op.drop_constraint(op.f('uq_parser_status_parser_source'), 'parser_status', type_='unique')
-    op.create_unique_constraint('parser_status_parser_source_key', 'parser_status', ['parser_source'])
     op.drop_table('characteristics')
 
     characteristictypes.drop(op.get_bind())

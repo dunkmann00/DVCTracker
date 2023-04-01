@@ -24,33 +24,59 @@ class Config:
     APNS_AUTH_KEY = os.getenv('APNS_AUTH_KEY')
     APNS_TOPIC = os.getenv('APNS_TOPIC')
     SEND_EMAIL_ON_DEPLOY = os.getenv('SEND_EMAIL_ON_DEPLOY', 'False') == 'True'
-    SSL_REDIRECT = False
+    STRICT_SECURITY = False
     TZ = os.getenv('TZ', 'America/New_York')
     @staticmethod
     def init_app(app):
         pass
 
-class DevelopmentConfig(Config):
-    ENV_LABEL = "dev"
-    SQLALCHEMY_ECHO = os.getenv('SQLALCHEMY_ECHO', 'True') == 'True'
-
-class HerokuConfig(Config):
-    SSL_REDIRECT = True if os.getenv('DYNO') else False
-
+class ProxyConfig():
     @classmethod
     def init_app(cls, app):
-        Config.init_app(app)
+        super().init_app(app)
 
         from werkzeug.middleware.proxy_fix import ProxyFix
         app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_port=1)
 
-class HerokuStagingConfig(HerokuConfig):
+class StagingConfig():
     ENV_LABEL = "beta"
+
+class DevelopmentConfig(Config):
+    ENV_LABEL = "dev"
+    SQLALCHEMY_ECHO = os.getenv('SQLALCHEMY_ECHO', 'True') == 'True'
+
+class ProductionConfig(Config):
+    STRICT_SECURITY = True
+
+    @classmethod
+    def init_app(cls, app):
+        super().init_app(app)
+
+        # log to stderr
+        import logging
+        from logging import StreamHandler
+        file_handler = StreamHandler()
+        file_handler.setLevel(logging.INFO)
+        app.logger.addHandler(file_handler)
+
+class HerokuConfig(ProxyConfig, ProductionConfig):
+    STRICT_SECURITY = True if os.environ.get('DYNO') else False
+
+class HerokuStagingConfig(StagingConfig, HerokuConfig):
+    pass
+
+class CapRoverConfig(ProxyConfig, ProductionConfig):
+    pass
+
+class CapRoverStagingConfig(StagingConfig, CapRoverConfig):
+    pass
 
 config = {
     'development': DevelopmentConfig,
     'heroku': HerokuConfig,
-    'staging': HerokuStagingConfig,
+    'heroku_staging': HerokuStagingConfig,
+    'caprover': CapRoverConfig,
+    'caprover_staging': CapRoverStagingConfig,
     'default': DevelopmentConfig
 
 }

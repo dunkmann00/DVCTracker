@@ -14,7 +14,9 @@ convention = {   #https://docs.sqlalchemy.org/en/latest/core/constraints.html#co
 }
 
 metadata = MetaData(naming_convention=convention)
-db = SQLAlchemy(metadata=metadata, engine_options={"json_serializer": json.dumps})
+db = SQLAlchemy(metadata=metadata, engine_options={
+    "json_serializer": json.dumps
+})
 
 def create_app(config_name):
     app = Flask(__name__)
@@ -26,7 +28,7 @@ def create_app(config_name):
 
     db.init_app(app)
 
-    if app.config['SSL_REDIRECT']:
+    if app.config['STRICT_SECURITY']:
         from flask_talisman import Talisman
         static = f"{app.config['PREFERRED_URL_SCHEME']}://{app.config['STATIC_SERVER_NAME']}"
         csp = {

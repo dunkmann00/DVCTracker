@@ -1,0 +1,9 @@
+defaults:
+  captureStdout: true
+jobs:
+  - name: Update Specials
+    command: flask update-specials
+    schedule: "30 * * * *"
+  - name: Error Report
+    command: flask update-specials --error-report
+    schedule: "0 2 * * *"
