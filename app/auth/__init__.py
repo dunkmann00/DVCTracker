@@ -1,4 +1,4 @@
-from ..models import User
+from ..models import db, User
 from flask_httpauth import HTTPBasicAuth
 
 auth = HTTPBasicAuth()
@@ -7,5 +7,5 @@ auth = HTTPBasicAuth()
 def verify_password(username, password):
     if username == '' or password == '':
         return None
-    user = User.query.filter_by(username=username).first()
+    user = db.session.scalar(db.select(User).filter_by(username=username).limit(1))
     return user if user is not None and user.verify_password(password) else None

@@ -11,13 +11,16 @@ from .util import (
     first_index_or_none
 )
 from sqlalchemy import orm
-from sqlalchemy.ext.hybrid import hybrid_property, HYBRID_PROPERTY
+from sqlalchemy.ext.hybrid import hybrid_property, HybridExtensionType
 from .security import pwd_context
 from datetime import date
 import tomlkit
 
 @orm.declarative_mixin
 class StaticDataMixin():
+
+    static_index = db.Column(db.Integer)
+
     @classmethod
     def insert_data_from(cls, path):
         with open(path, mode="r", encoding="utf-8") as f:
@@ -26,15 +29,29 @@ class StaticDataMixin():
             default_data = data["defaults"].get(cls._static_data_name, {})
             cls_data = data.get(cls._static_data_name)
             if cls_data:
-                # Clear the table so we can recreate all the rows
-                # If anything changed it will get captured when recreated
-                cls.query.delete()
+                primary_key = getattr(cls, "_primary_key", None) or db.inspect(cls).primary_key[0].key
+                db_data = {getattr(row, primary_key):row for row in db.session.scalars(db.select(cls)).all()}
 
-                items = [cls(**(default_data | item)) for item in cls_data]
-                db.session.add_all(items)
+                for i, static_item in enumerate(cls_data):
+                    db_item = db_data.pop(static_item[primary_key], None)
+                    static_item["static_index"] = i
+                    if db_item:
+                        cls.update_db_item_with_static(db_item, static_item)
+                    else:
+                        db.session.add(cls(**(default_data | static_item)))
+
+                for old_item in db_data.values():
+                    db.session.delete(old_item)
+
                 db.session.commit()
             else:
                 print(f"No static data found for '{cls._static_data_name}'")
+
+    @staticmethod
+    def update_db_item_with_static(db_item, static_item):
+        for key, value in static_item.items():
+            if value != getattr(db_item, key):
+                setattr(db_item, key, value)
 
 class ProxyConversionMixin():
     @classmethod
@@ -44,7 +61,8 @@ class ProxyConversionMixin():
             orm.configure_mappers()
             orm_attr = getattr(cls, proxy.attr)
         model = orm_attr.mapper.class_
-        entity = model.query.get(proxy.id)
+        with db.session.no_autoflush:
+            entity = db.session.get(model, proxy.id)
         if entity is None:
             raise RuntimeError(
                 f"Proxy object '{proxy}' could not be successfully converted.\n"
@@ -55,7 +73,8 @@ class ProxyConversionMixin():
 class DefaultEntityMixin():
     class DefaultEntity():
         def __get__(self, instance, owner):
-            entity = owner.query.get(owner.default_id)
+            with db.session.no_autoflush:
+                entity = db.session.get(owner, owner.default_id)
             if not entity:
                 entity = owner()
                 owner_pk = db.inspect(owner).primary_key[0]
@@ -236,7 +255,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
     @classmethod
     def get_hybrid_keys(cls):
         inspector = db.inspect(cls)
-        return (key for key, descriptor in inspector.all_orm_descriptors.items() if descriptor.extension_type == HYBRID_PROPERTY)
+        return (key for key, descriptor in inspector.all_orm_descriptors.items() if descriptor.extension_type == HybridExtensionType.HYBRID_PROPERTY)
 
     @classmethod
     def get_attribute_deps(cls, attribute):
@@ -284,11 +303,13 @@ class Resort(Characteristic):
     The database model for resorts.
     """
     _static_data_name = "resorts"
+    _primary_key = "resort_id"
     specials = db.relationship(
         "StoredSpecial",
-        backref=db.backref("resort", lazy="joined"),
+        backref=db.backref("resort", lazy="selectin"),
         foreign_keys="StoredSpecial.resort_id",
-        lazy="dynamic"
+        lazy="write_only",
+        passive_deletes=True
     )
 
     @hybrid_property
@@ -309,20 +330,14 @@ class Room(Characteristic):
     The database model for Room types.
     """
     _static_data_name = "rooms"
-    _index_count = 0
-
-    def __init__(self, *args, **kwargs):
-        if "room_index" not in kwargs:
-            kwargs["room_index"] = self.next_index()
-        super().__init__(*args, **kwargs)
-
-    room_index = db.Column(db.Integer)
+    _primary_key = "room_id"
 
     specials = db.relationship(
         "StoredSpecial",
-        backref=db.backref("room", lazy="joined"),
+        backref=db.backref("room", lazy="selectin"),
         foreign_keys="StoredSpecial.room_id",
-        lazy="dynamic"
+        lazy="write_only",
+        passive_deletes=True
     )
 
     @hybrid_property
@@ -333,11 +348,13 @@ class Room(Characteristic):
     def room_id(self, value):
         self.characteristic_id = value
 
-    @classmethod
-    def next_index(cls):
-        index = cls._index_count
-        cls._index_count += 1
-        return index
+    @hybrid_property
+    def room_index(self):
+        return self.static_index
+
+    @room_index.setter
+    def room_index(self, value):
+        self.static_index = value
 
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.ROOM,
@@ -349,11 +366,13 @@ class View(Characteristic):
     The databse model for room views.
     """
     _static_data_name = "views"
+    _primary_key = "view_id"
     specials = db.relationship(
         "StoredSpecial",
-        backref=db.backref("view", lazy="joined"),
+        backref=db.backref("view", lazy="selectin"),
         foreign_keys="StoredSpecial.view_id",
-        lazy="dynamic"
+        lazy="write_only",
+        passive_deletes=True
     )
 
     @hybrid_property
@@ -403,7 +422,8 @@ class ResortCategory(Category):
         "Resort",
         order_by="Resort.name",
         backref=db.backref("category", lazy="select"),
-        lazy="joined"
+        lazy="selectin",
+        passive_deletes=True
     )
 
     __mapper_args__ = {
@@ -419,9 +439,10 @@ class RoomCategory(Category):
 
     rooms = db.relationship(
         "Room",
-        order_by="Room.room_index",
+        order_by="Room.static_index",
         backref=db.backref("category", lazy="select"),
-        lazy="joined"
+        lazy="selectin",
+        passive_deletes=True
     )
 
     @property
@@ -443,7 +464,8 @@ class ViewCategory(Category):
         "View",
         order_by="View.name",
         backref=db.backref("category", lazy="select"),
-        lazy="joined"
+        lazy="selectin",
+        passive_deletes=True
     )
 
     __mapper_args__ = {
@@ -633,19 +655,19 @@ class User(db.Model):
         "Email",
         order_by="Email.contact_id",
         backref=db.backref("user", lazy="select"),
-        lazy="joined"
+        lazy="selectin"
     )
     phones = db.relationship(
         "Phone",
         order_by="Phone.contact_id",
         backref=db.backref("user", lazy="select"),
-        lazy="joined"
+        lazy="selectin"
     )
     apns = db.relationship(
         "APN",
         order_by="APN.contact_id",
         backref=db.backref("user", lazy="select"),
-        lazy="joined"
+        lazy="selectin"
     )
 
     @property

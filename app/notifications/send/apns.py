@@ -1,6 +1,6 @@
 from flask import current_app
 from .util import log_response, NotificationResponse
-from ...models import APN
+from ...models import APN, db
 from apns2.client import APNsClient, Notification
 from apns2.payload import Payload
 from apns2.credentials import TokenCredentials
@@ -61,7 +61,7 @@ def send_update_push_notification(user, message=None, message_id=None):
 
 @log_response('APNS', 'Error Push Notification Sent')
 def send_error_push_notification(message_id=None):
-    push_tokens = [apn.push_token for apn in APN.query.filter_by(get_errors=True)]
+    push_tokens = db.session.scalars(db.select(APN.push_token).filter_by(get_errors=True)).all()
     if len(push_tokens) == 0:
         print(f"No push tokens requested error messages. Not sending error push notification.")
         return NotificationResponse.Success

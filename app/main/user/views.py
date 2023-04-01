@@ -30,7 +30,7 @@ def update_apn():
     push_token_str = push_token_request.get('token', None)
     get_errors = push_token_request.get('getErrors', False)
     if push_token_str is not None:
-        push_token = APN.query.filter_by(push_token=push_token_str).first()
+        push_token = db.session.scalar(db.select(APN).filter_by(push_token=push_token_str).limit(1))
         if push_token is None:
             push_token = APN(user=user)
         if push_token.user != user: # If a user signs out and into another account

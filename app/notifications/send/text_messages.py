@@ -1,6 +1,6 @@
 from flask import current_app
 from .util import log_response, NotificationResponse
-from ...models import Phone
+from ...models import Phone, db
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
@@ -44,7 +44,7 @@ def send_update_text_message(user, message=None):
 
 @log_response("Twilio", "Error Text Sent")
 def send_error_text_messsage():
-    phone_numbers = [phone.phone_number for phone in Phone.query.filter_by(get_errors=True)]
+    phone_numbers = db.session.scalars(db.select(Phone.phone_number).filter_by(get_errors=True)).all()
     if len(phone_numbers) == 0:
         print(f"No phone numbers requested error messages. Not sending error text message.")
         return NotificationResponse.Success
