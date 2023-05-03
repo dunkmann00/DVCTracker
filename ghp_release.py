@@ -2,10 +2,10 @@ from pathlib import Path
 import click, shutil, subprocess, time
 
 GHP_RESOURCES = [
-    ".github/workflows/pages_release.yml",
     "app/static",
     "README.md"
 ]
+GHP_WORKFLOW_PATH = ".github/workflows/pages_release.yml"
 
 DVCTRACKER_GITHUB_URL = "https://github.com/dunkmann00/DVCTracker.git"
 
@@ -64,6 +64,8 @@ def clean_dir(source_dir, clean_git=False):
 def copy_resources(ghp_source_path):
     clean_dir(ghp_source_path)
     print(f"Copying resources into '{ghp_source_path}'...", end="")
+    (ghp_source_path / GHP_WORKFLOW_PATH).parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(GHP_WORKFLOW_PATH, ghp_source_path / GHP_WORKFLOW_PATH)
     for resource in GHP_RESOURCES:
         path = Path(resource)
         if path.is_file():
