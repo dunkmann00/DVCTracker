@@ -1,0 +1,31 @@
+name: Build and Deploy Github Pages
+
+on:
+  # Runs on pushes targeting the gh-pages-static branch
+  push:
+    branches: [gh-pages-static]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  # Build & Deploy Job
+  gh_pages:
+    name: Build & Deploy Github Pages
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build & Deploy
+        uses: dunkmann00/jekyll-v4-gh-pages@v1
