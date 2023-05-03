@@ -2,7 +2,7 @@ from flask import Flask, redirect, url_for, json
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import MetaData
 from config import config
-from .customjsonencoder import CustomJSONEncoder
+from .customjsonprovider import CustomJSONProvider
 
 # This is for alembic
 convention = {   #https://docs.sqlalchemy.org/en/latest/core/constraints.html#configuring-constraint-naming-conventions
@@ -22,7 +22,7 @@ def create_app(config_name):
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
-    app.json_encoder = CustomJSONEncoder
+    app.json = CustomJSONProvider(app)
     app.jinja_options['trim_blocks'] = True
     app.jinja_options['lstrip_blocks'] = True
 
