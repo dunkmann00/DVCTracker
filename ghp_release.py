@@ -2,6 +2,7 @@ from pathlib import Path
 import click, shutil, subprocess, time
 
 GHP_RESOURCES = [
+    ".github/workflows/pages_release.yml",
     "app/static",
     "README.md"
 ]
