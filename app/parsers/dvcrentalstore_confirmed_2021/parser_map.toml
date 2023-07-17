@@ -18,6 +18,7 @@ ssr   = "resort_ssr"
 vero  = "resort_vbr"
 gcal  = "resort_vgc"
 vgf   = "resort_vgf"
+vdh   = "resort_vdh"
 
 # For rooms I can't use the 'room_type_key' because it is unreliable. There were
 # a bunch of errors where it is used multiple times in the wrong place with
@@ -30,6 +31,8 @@ key = "room_type"
 "Studio w/ Walk-In-Shower" = "room_studiowis"
 "Resort Studio" = "room_resort"
 "Tower Studio" = "room_tower"
+"Duo Studio" = "room_duo"
+"Deluxe Studio" = "room_studio"
 "Studio - Wheelchair Accessible" = "room_studio"
 "1 Bedroom" = "room_one"
 "1 Bedroom - Wheelchair Accessible" = "room_one"
