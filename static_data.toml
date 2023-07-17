@@ -80,6 +80,11 @@ resort_id = "resort_vgf"
 name = "The Villas at the Grand Floridian Resort"
 category_id = "category_resort_wdw"
 
+[[resorts]]
+resort_id = "resort_vdh"
+name = "The Villas at Disneyland Hotel"
+category_id = "category_resort_other"
+
 # Rooms
 
 [[rooms]]
@@ -100,6 +105,11 @@ category_id = "category_room_studio"
 [[rooms]]
 room_id = "room_tower"
 name = "Tower Studio"
+category_id = "category_room_studio"
+
+[[rooms]]
+room_id = "room_duo"
+name = "Duo Studio"
 category_id = "category_room_studio"
 
 [[rooms]]
