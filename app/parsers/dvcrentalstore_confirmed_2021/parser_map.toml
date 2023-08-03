@@ -69,6 +69,7 @@ sav  = "view_savanna"
 std  = "view_standard"
 tp   = "view_themepark"
 val  = "view_value"
+gar  = "view_garden"
 
 "Garden/Pool" = "view_garden"
 "Poolside Gardens" = "view_poolside"
