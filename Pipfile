@@ -13,7 +13,6 @@ requests = "*"
 lxml = "*"
 gunicorn = "*"
 tomlkit = "*"
-beautifulsoup4 = "*"
 flask-migrate = "*"
 twilio = "*"
 apns2 = {editable = true, ref = "b64_token_auth_key", git = "https://github.com/dunkmann00/PyAPNs2.git"}
