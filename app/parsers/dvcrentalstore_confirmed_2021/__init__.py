@@ -1,7 +1,6 @@
 from flask import json, current_app
 from functools import cached_property
 from datetime import datetime
-from bs4 import BeautifulSoup
 from ..base_parser import BaseParser, special_error
 from ...util import SpecialTypes, ProxyAttribute
 from ...errors import SpecialError
@@ -27,13 +26,25 @@ class DVCRentalStoreConfirmed2021(BaseParser):
         return data
 
     def get_specials_list(self, specials_content):
-        dvc_soup = BeautifulSoup(specials_content, 'lxml')
-        all_reservations_line = dvc_soup.find(id='dvcrs-reservations-reactjs-js-before')
-        reservations_tuple = all_reservations_line.string.partition("=")
-        specials = []
-        if reservations_tuple[2] != '':
-            reservations_str = reservations_tuple[2].strip().strip(';')
-            specials = json.loads(reservations_str)
+        script_identifier = "<script type=\"text/javascript\" id=\"dvcrs-reservations-reactjs-js-before\">"
+        reservations_line_identifier = "var all_reservations = "
+
+        reservations_script_idx = specials_content.find(script_identifier)
+        if reservations_script_idx == -1:
+            raise RuntimeError("Could not find reservation script tag in html.")
+
+        reservations_line_start_idx = specials_content.find(reservations_line_identifier, reservations_script_idx)
+        if reservations_line_start_idx == -1:
+            raise RuntimeError("Could not find reservation line start index in html.")
+
+        reservations_line_end_idx = specials_content.find(";\n", reservations_line_start_idx)
+        if reservations_line_end_idx == -1:
+            raise RuntimeError("Could not find reservation line end index in html.")
+
+        reservations_str = specials_content[reservations_line_start_idx + len(reservations_line_identifier):reservations_line_end_idx]
+
+        specials = json.loads(reservations_str)
+
         return specials
 
     def process_element(self, special_dict):

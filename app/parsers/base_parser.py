@@ -64,7 +64,7 @@ class BaseParser(object):
                 retries+=1
             else:
                 break
-        return dvc_page.content
+        return dvc_page.text
 
     def get_local_specials_page(self,filename):
         """

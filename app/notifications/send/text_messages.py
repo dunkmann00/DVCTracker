@@ -7,7 +7,7 @@ from twilio.base.exceptions import TwilioRestException
 def send_text_message(message, phone_numbers):
     if current_app.config['TWILIO_SID'] is None:
         print('No Twilio SID, not sending txt.')
-        return
+        return NotificationResponse(success=True)
 
     msg_env = current_app.config.get("ENV_LABEL")
     msg_env = f"({msg_env}) " if msg_env else ""

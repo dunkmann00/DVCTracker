@@ -14,7 +14,7 @@ inliner = Premailer(
 def send_email(subject, email_message, email_addresses, html_message=True):
     if current_app.config['MAILGUN_API_KEY'] is None:
         print('No MAILGUN API Key, not sending email.')
-        return
+        return NotificationResponse(success=True)
     msg_type = "html" if html_message else "text"
 
     if html_message:
