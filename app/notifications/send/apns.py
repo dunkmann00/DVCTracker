@@ -19,7 +19,7 @@ def create_notification(push_token, message, custom=None):
 def send_notifications(notifications):
     if current_app.config['APNS_KEY_ID'] is None:
         print("No APNS_KEY_ID, not sending push notification.")
-        return
+        return NotificationResponse(success=True)
 
     topic = current_app.config['APNS_TOPIC']
     token_credentials = TokenCredentials(
