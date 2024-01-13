@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f8de2e2904652b88e65a95d1d0f939d9cc4610b1187e39d5af4efe723fb43913"
+            "sha256": "4b915a0e99d5cf64ff4e08dc9137d7ea69aee36581b8b02590a90d71f08f7601"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -984,8 +984,7 @@
             "version": "==8.13.27"
         },
         "premailer": {
-            "editable": true,
-            "git": "https://github.com/dunkmann00/premailer.git",
+            "git": "git+https://github.com/dunkmann00/premailer.git",
             "ref": "08ea63266ed9342e0f3acf381bfe731b96dbe035"
         },
         "psycopg2": {

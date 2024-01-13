@@ -46,7 +46,7 @@ multidict==6.0.4; python_version >= '3.7'
 packaging==23.2; python_version >= '3.7'
 passlib[argon2]==1.7.4
 phonenumbers==8.13.27
--e git+https://github.com/dunkmann00/premailer.git@08ea63266ed9342e0f3acf381bfe731b96dbe035#egg=premailer
+premailer@ git+https://github.com/dunkmann00/premailer.git@08ea63266ed9342e0f3acf381bfe731b96dbe035
 psycopg2==2.9.9
 pycparser==2.21
 pyjwt==2.8.0; python_version >= '3.7'
