@@ -15,7 +15,6 @@ gunicorn = "*"
 tomlkit = "*"
 flask-migrate = "*"
 twilio = "*"
-apns2 = {editable = true, ref = "b64_token_auth_key", git = "https://github.com/dunkmann00/PyAPNs2.git"}
 passlib = {extras = ["bcrypt"], version = "*"}
 flask-httpauth = "*"
 flask-wtf = {extras = ["email"], version = "*"}
@@ -24,6 +23,7 @@ premailer = {editable = true, ref = "parsestyle-validate-option", git = "https:/
 phonenumbers = "*"
 python-dateutil = "*"
 yacron = "*"
+apns2 = {ref = "httpx", git = "git+https://github.com/dunkmann00/PyAPNs2.git"}
 
 [requires]
 python_version = "3.11"
