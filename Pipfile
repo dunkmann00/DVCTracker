@@ -15,7 +15,6 @@ gunicorn = "*"
 tomlkit = "*"
 flask-migrate = "*"
 twilio = "*"
-passlib = {extras = ["bcrypt"], version = "*"}
 flask-httpauth = "*"
 flask-wtf = {extras = ["email"], version = "*"}
 flask-talisman = "*"
@@ -24,6 +23,7 @@ phonenumbers = "*"
 python-dateutil = "*"
 yacron = "*"
 apns2 = {ref = "httpx", git = "git+https://github.com/dunkmann00/PyAPNs2.git"}
+passlib = {extras = ["argon2"], version = "*"}
 
 [requires]
 python_version = "3.11"
