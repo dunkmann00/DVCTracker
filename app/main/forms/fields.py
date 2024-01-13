@@ -42,7 +42,7 @@ class MultiCheckboxField(wtforms.SelectMultipleField):
         return super().iter_choices()
 
     def _make_option(self, choice, index, opts):
-        value, label, checked = choice
+        value, label, checked, render_kw = choice
         opt = self._Option(label=label, id="%s-%d" % (self.id, index), **opts)
         opt.process(None, value)
         opt.checked = checked
