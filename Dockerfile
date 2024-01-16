@@ -1,4 +1,4 @@
-FROM python:3.9-slim AS base
+FROM python:3.11-slim AS base
 
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -33,7 +33,7 @@ RUN VERSION="v2.4.0" && \
 # Install pipenv
 RUN python -m venv .pipenv-venv
 ENV PATH="/usr/src/app/.pipenv-venv/bin:$PATH"
-RUN pip install --disable-pip-version-check pipenv==2023.2.18
+RUN pip install --disable-pip-version-check pipenv==2023.11.15
 
 # Install projects python dependencies
 COPY ./Pipfile ./Pipfile.lock /usr/src/app/

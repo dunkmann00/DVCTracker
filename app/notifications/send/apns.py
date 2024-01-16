@@ -35,8 +35,8 @@ def send_notifications(notifications):
         use_alternative_port=False
     )
     results = client.send_notification_batch(notifications, topic)
-    errors = [f"Token: {token} did not send.\nError: {errors[token]}" for token in results
-                if results[token] != 'Success']
+    errors = [f"Token: {token.token} did not send.\nError: {token.error}" for token in results
+                if not token.success]
 
     response = NotificationResponse()
     response.success = len(errors) == 0

@@ -1,5 +1,5 @@
 from flask import Blueprint, has_request_context, current_app, request
-from werkzeug.urls import url_quote
+from urllib.parse import quote as url_quote
 from datetime import datetime
 from dateutil import tz
 from .specials import specials as specials_blueprint
