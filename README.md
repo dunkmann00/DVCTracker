@@ -92,7 +92,7 @@ may continue to do so.
 | ------------ | ------- |
 | Email        | [Mailgun](https://www.mailgun.com/) |
 | Text Message | [Twilio](https://www.twilio.com/messaging/sms)  |
-| APNs         | Handled ourselves with [PyAPNs2](https://github.com/Pr0Ger/PyAPNs2) |
+| APNs         | Handled ourselves with [PyAPNs2](https://github.com/dunkmann00/PyAPNs2) fork |
 
 Currently, there is only one service per feature. If more services are added it
 may make sense to provide different options for a particular feature. So for
