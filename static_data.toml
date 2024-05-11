@@ -36,6 +36,11 @@ name = "Boulder Ridge Villas"
 category_id = "category_resort_wdw"
 
 [[resorts]]
+resort_id = "resort_cfw"
+name = "The Cabins at Fort Wilderness Resort"
+category_id = "category_resort_wdw"
+
+[[resorts]]
 resort_id = "resort_ccv"
 name = "Copper Creek Villas"
 category_id = "category_resort_wdw"
@@ -125,6 +130,12 @@ category_id = "category_room_studio"
 [[rooms]]
 room_id = "room_one"
 name = "1-Bedroom Villa"
+category_id = "category_room_one"
+
+[[rooms]]
+room_id = "room_cabin1"
+name = "1-Bedroom Cabin"
+category_id = "category_room_one"
 
 [[rooms]]
 room_id = "room_two"
@@ -244,6 +255,10 @@ name = "Other Club Resort Locations"
 [[room_categories]]
 category_id = "category_room_studio"
 name = "Deluxe Studio"
+
+[[room_categories]]
+category_id = "category_room_one"
+name = "1-Bedroom"
 
 [[room_categories]]
 category_id = "category_room_two"
