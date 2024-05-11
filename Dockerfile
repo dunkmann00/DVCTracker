@@ -23,7 +23,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 
 # Install overmind
 RUN mkdir -p /usr/src/app/overmind
-RUN VERSION="v2.4.0" && \
+RUN VERSION="v2.5.1" && \
     curl -Lso overmind/overmind.gz https://github.com/DarthSim/overmind/releases/download/$VERSION/overmind-$VERSION-linux-amd64.gz && \
     curl -Lso overmind/overmind.gz.sha256sum https://github.com/DarthSim/overmind/releases/download/$VERSION/overmind-$VERSION-linux-amd64.gz.sha256sum && \
     sha256sum overmind/overmind.gz | awk '{printf "%s",$1}' | cmp - overmind/overmind.gz.sha256sum && \
@@ -54,4 +54,4 @@ COPY --from=build /usr/src/app/.venv /usr/src/app/.venv
 COPY --from=build /usr/src/app/overmind/overmind /usr/local/bin
 COPY ./ /usr/src/app
 
-CMD ["overmind", "start", "-N"]
+CMD ["overmind", "start", "-N", "-r", "all"]
