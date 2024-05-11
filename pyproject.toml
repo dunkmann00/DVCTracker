@@ -1,10 +1,9 @@
 [tool.poetry]
 name = "dvctracker"
-version = "0.1.0"
 description = "Track DVC Specials and get notified of changes as they happen."
 authors = ["George Waters <gwatersdev@gmail.com>"]
 license = "MIT"
-readme = "README.md"
+package-mode = false
 
 [tool.poetry.dependencies]
 python = "^3.12"
