@@ -1,4 +1,4 @@
-FROM python:3.11-slim AS base
+FROM python:3.12-slim AS base
 
 RUN apt-get -y update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -23,21 +23,22 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
 
 # Install overmind
 RUN mkdir -p /usr/src/app/overmind
-RUN VERSION="v2.4.0" && \
+RUN VERSION="v2.5.1" && \
     curl -Lso overmind/overmind.gz https://github.com/DarthSim/overmind/releases/download/$VERSION/overmind-$VERSION-linux-amd64.gz && \
     curl -Lso overmind/overmind.gz.sha256sum https://github.com/DarthSim/overmind/releases/download/$VERSION/overmind-$VERSION-linux-amd64.gz.sha256sum && \
     sha256sum overmind/overmind.gz | awk '{printf "%s",$1}' | cmp - overmind/overmind.gz.sha256sum && \
     gunzip -k overmind/overmind.gz && \
     chmod +x overmind/overmind
 
-# Install pipenv
-RUN python -m venv .pipenv-venv
-ENV PATH="/usr/src/app/.pipenv-venv/bin:$PATH"
-RUN pip install --disable-pip-version-check pipenv==2023.11.15
+# Install poetry
+RUN python -m venv .poetry-venv
+ENV PATH="/usr/src/app/.poetry-venv/bin:$PATH"
+RUN pip install --disable-pip-version-check poetry==1.8.2
 
 # Install projects python dependencies
-COPY ./Pipfile ./Pipfile.lock /usr/src/app/
-RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
+COPY ./pyproject.toml ./poetry.lock /usr/src/app/
+RUN poetry check --lock && \
+    POETRY_VIRTUALENVS_IN_PROJECT=1 poetry -n install
 
 FROM base AS runtime
 
@@ -53,4 +54,4 @@ COPY --from=build /usr/src/app/.venv /usr/src/app/.venv
 COPY --from=build /usr/src/app/overmind/overmind /usr/local/bin
 COPY ./ /usr/src/app
 
-CMD ["overmind", "start", "-N"]
+CMD ["overmind", "start", "-N", "-r", "all"]
