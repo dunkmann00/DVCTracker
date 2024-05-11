@@ -30,14 +30,15 @@ RUN VERSION="v2.4.0" && \
     gunzip -k overmind/overmind.gz && \
     chmod +x overmind/overmind
 
-# Install pipenv
-RUN python -m venv .pipenv-venv
-ENV PATH="/usr/src/app/.pipenv-venv/bin:$PATH"
-RUN pip install --disable-pip-version-check pipenv==2023.11.15
+# Install poetry
+RUN python -m venv .poetry-venv
+ENV PATH="/usr/src/app/.poetry-venv/bin:$PATH"
+RUN pip install --disable-pip-version-check poetry==1.8.2
 
 # Install projects python dependencies
-COPY ./Pipfile ./Pipfile.lock /usr/src/app/
-RUN PIPENV_VENV_IN_PROJECT=1 pipenv install --deploy
+COPY ./pyproject.toml ./poetry.lock /usr/src/app/
+RUN poetry check --lock && \
+    POETRY_VIRTUALENVS_IN_PROJECT=1 poetry -n install
 
 FROM base AS runtime
 
