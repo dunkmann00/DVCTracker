@@ -532,7 +532,7 @@ class Contact(db.Model):
     def on_set_contact(target, value, oldvalue, initiator):
         target.ping()
 
-db.event.listen(Contact.contact, 'set', Contact.on_set_contact)
+db.event.listen(Contact.contact, 'set', Contact.on_set_contact, propagate=True)
 
 class Email(Contact):
     """
