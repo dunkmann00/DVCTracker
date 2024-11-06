@@ -118,6 +118,11 @@ name = "Duo Studio"
 category_id = "category_room_studio"
 
 [[rooms]]
+room_id = "room_tower_deluxe"
+name = "Tower Deluxe Studio"
+category_id = "category_room_studio"
+
+[[rooms]]
 room_id = "room_inn"
 name = "Deluxe Inn Room"
 category_id = "category_room_studio"
