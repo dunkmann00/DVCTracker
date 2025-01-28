@@ -12,7 +12,7 @@ from .util import (
 )
 from sqlalchemy import orm
 from sqlalchemy.ext.hybrid import hybrid_property, HybridExtensionType
-from .security import pwd_context
+from .security import generate_password_hash, check_and_update_password_hash
 from datetime import date
 import tomlkit
 
@@ -676,11 +676,10 @@ class User(db.Model):
 
     @password.setter
     def password(self, password):
-        self.password_hash = pwd_context.hash(password)
+        self.password_hash = generate_password_hash(password)
 
     def verify_password(self, password):
-        valid, new_hash = pwd_context.verify_and_update(password,
-                                                        self.password_hash)
+        valid, new_hash = check_and_update_password_hash(self.password_hash, password)
         if valid and new_hash is not None:
             self.password_hash = new_hash
             db.session.commit()
