@@ -46,8 +46,7 @@ def create_app(config_name):
     def index():
         return redirect(url_for('main.specials.current_specials'))
 
-    from .cli import cli
-    for command in cli.commands.values():
-        app.cli.add_command(command)
+    from .cli import cli_bp
+    app.register_blueprint(cli_bp, cli_group=None)
 
     return app

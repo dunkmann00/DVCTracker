@@ -1,31 +1,33 @@
-[tool.poetry]
+[project]
 name = "dvctracker"
+version = "0.1.0"
 description = "Track DVC Specials and get notified of changes as they happen."
-authors = ["George Waters <gwatersdev@gmail.com>"]
-license = "MIT"
+authors = [
+    {name = "George Waters", email = "gwatersdev@gmail.com"},
+]
+license = {text = "MIT"}
 package-mode = false
-
-[tool.poetry.dependencies]
-python = "^3.12"
-flask = "^3.0.3"
-flask-sqlalchemy = "^3.1.1"
-sqlalchemy = {extras = ["postgresql"], version = "^2.0.30"}
-requests = "^2.31.0"
-lxml = "^5.2.1"
-gunicorn = "^23.0.0"
-tomlkit = "^0.13.2"
-flask-migrate = "^4.0.7"
-twilio = "^9.0.5"
-flask-httpauth = "^4.8.0"
-flask-wtf = {extras = ["email"], version = "^1.2.1"}
-flask-talisman = "^1.1.0"
-phonenumbers = "^8.13.36"
-python-dateutil = "^2.9.0.post0"
-yacron = "^0.19.0"
-passlib = {extras = ["argon2"], version = "^1.7.4"}
-apns2 = {git = "https://github.com/dunkmann00/PyAPNs2.git", rev = "httpx"}
-premailer = {git = "https://github.com/dunkmann00/premailer.git", rev = "parsestyle-validate-option"}
-
+requires-python = "<4.0,>=3.12"
+dependencies = [
+    "flask<4.0.0,>=3.0.3",
+    "flask-sqlalchemy<4.0.0,>=3.1.1",
+    "sqlalchemy[postgresql]<3.0.0,>=2.0.30",
+    "requests<3.0.0,>=2.31.0",
+    "lxml<6.0.0,>=5.2.1",
+    "gunicorn<24.0.0,>=23.0.0",
+    "tomlkit<1.0.0,>=0.13.2",
+    "flask-migrate<5.0.0,>=4.0.7",
+    "twilio<10.0.0,>=9.0.5",
+    "flask-httpauth<5.0.0,>=4.8.0",
+    "flask-wtf[email]<2.0.0,>=1.2.1",
+    "flask-talisman<2.0.0,>=1.1.0",
+    "phonenumbers<9.0.0,>=8.13.36",
+    "python-dateutil<3.0.0.0,>=2.9.0.post0",
+    "yacron<1.0.0,>=0.19.0",
+    "apns2 @ git+https://github.com/dunkmann00/PyAPNs2.git@httpx",
+    "premailer @ git+https://github.com/dunkmann00/premailer.git@parsestyle-validate-option",
+    "pynacl (>=1.5.0,<2.0.0)",
+]
 
 [build-system]
 requires = ["poetry-core"]
