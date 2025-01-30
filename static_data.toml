@@ -119,7 +119,12 @@ category_id = "category_room_studio"
 
 [[rooms]]
 room_id = "room_tower_deluxe"
-name = "Tower Deluxe Studio"
+name = "Tower - Deluxe Studio"
+category_id = "category_room_studio"
+
+[[rooms]]
+room_id = "room_tower_duo"
+name = "Tower - Duo Studio"
 category_id = "category_room_studio"
 
 [[rooms]]
@@ -135,6 +140,11 @@ category_id = "category_room_studio"
 [[rooms]]
 room_id = "room_one"
 name = "1-Bedroom Villa"
+category_id = "category_room_one"
+
+[[rooms]]
+room_id = "room_tower_one"
+name = "Tower - 1 Bedroom Villa"
 category_id = "category_room_one"
 
 [[rooms]]
@@ -155,6 +165,21 @@ category_id = "category_room_two"
 [[rooms]]
 room_id = "room_2lowis"
 name = "2-Bedroom Lock-Off Villa with Walk-In Shower"
+category_id = "category_room_two"
+
+[[rooms]]
+room_id = "room_tower_two"
+name = "Tower - 2 Bedroom Villa"
+category_id = "category_room_two"
+
+[[rooms]]
+room_id = "room_tower_2lo"
+name = "Tower - 2 Bedroom Lock-Off Villa"
+category_id = "category_room_two"
+
+[[rooms]]
+room_id = "room_tower_pent"
+name = "Tower - 2 Bedroom Penthouse Villa"
 category_id = "category_room_two"
 
 [[rooms]]
@@ -244,6 +269,10 @@ name = "Theme Park View"
 [[views]]
 view_id = "view_value"
 name = "Value Accommodation"
+
+[[views]]
+view_id = "view_premium"
+name = "Premium View"
 
 # Categories - Resorts
 
