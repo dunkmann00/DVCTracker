@@ -33,7 +33,7 @@ RUN VERSION="v2.5.1" && \
 # Install poetry
 RUN python -m venv .poetry-venv
 ENV PATH="/usr/src/app/.poetry-venv/bin:$PATH"
-RUN pip install --disable-pip-version-check poetry==1.8.2
+RUN pip install --disable-pip-version-check poetry==2.0.1
 
 # Install projects python dependencies
 COPY ./pyproject.toml ./poetry.lock /usr/src/app/
