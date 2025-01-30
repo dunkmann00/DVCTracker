@@ -1,4 +1,4 @@
-from flask import current_app, g, render_template, json
+from flask import Blueprint, current_app, g, render_template, json
 from flask.cli import with_appcontext
 from datetime import date
 from . import db
@@ -11,11 +11,9 @@ from base64 import b64encode
 import click, os, traceback
 import sqlalchemy.exc
 
-@click.group()
-def cli():
-    pass
+cli_bp = Blueprint('cli', __name__)
 
-@cli.command(help="Encode the AuthKey p8 file into base64 for storing as an environment variable.")
+@cli_bp.cli.command(help="Encode the AuthKey p8 file into base64 for storing as an environment variable.")
 @click.argument('auth_key_path')
 def encode_auth_key(auth_key_path):
     with open(auth_key_path, 'rb') as f:
@@ -23,7 +21,7 @@ def encode_auth_key(auth_key_path):
     print("Base64 Encoded AuthKey:")
     print(auth_key_base64)
 
-@cli.command(help="Create a new User with the provided Username")
+@cli_bp.cli.command(help="Create a new User with the provided Username")
 @click.option('-u', '--username', prompt=True)
 @click.option(
     '-p', '--password',
@@ -43,14 +41,14 @@ def make_new_user(username, password):
     else:
         print("New user created successfully!")
 
-@cli.command(help="Reset all specials' error attributes to false & overall health to true.")
+@cli_bp.cli.command(help="Reset all specials' error attributes to false & overall health to true.")
 @with_appcontext
 def reset_errors():
     db.session.execute(db.update(StoredSpecial).values(error=False))
     Status.default.healthy = True
     db.session.commit()
 
-@cli.command(help="Store contents of website data from parser NAME to use with local_specials.")
+@cli_bp.cli.command(help="Store contents of website data from parser NAME to use with local_specials.")
 @click.argument('name')
 @click.option('-e', '--extension', default='html', help=("The extension you would like to use for "
                                                          "the file that will be created. The "
@@ -78,7 +76,7 @@ def store_specials_data(name, extension):
             return
     print(f"No parser with the name '{name}' was found.")
 
-@cli.command(help="Send a test email with a few specials and old values to the provided user or email addresses.")
+@cli_bp.cli.command(help="Send a test email with a few specials and old values to the provided user or email addresses.")
 @click.option('-u', '--username')
 @click.option('-e', '--email-address', multiple=True)
 def send_test_email(username, email_address):
@@ -108,7 +106,7 @@ def send_test_email(username, email_address):
     )
     notifications.send_update_email(email, user)
 
-@cli.command(help="Send a test text message to the provided user or phone numbers.")
+@cli_bp.cli.command(help="Send a test text message to the provided user or phone numbers.")
 @click.option('-u', '--username')
 @click.option('-p', '--phone-number', multiple=True)
 @click.option('-m', '--message')
@@ -126,7 +124,7 @@ def send_test_text_message(username, phone_number, message):
         user = User(phones=phones)
     notifications.send_update_text_message(user, message)
 
-@cli.command(help="Send a test apn (push notification) to the provided user or push token.")
+@cli_bp.cli.command(help="Send a test apn (push notification) to the provided user or push token.")
 @click.option('-u', '--username')
 @click.option('-t', '--push-token', multiple=True)
 @click.option('-m', '--message')
@@ -145,7 +143,7 @@ def send_test_apn(username, push_token, message, message_id):
         user = User(apns=apns)
     notifications.send_update_push_notification(user, message, message_id)
 
-@cli.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
+@cli_bp.cli.command(name="update-specials", help='Update all DVC specials & send messages when changes are found.')
 @click.option('--local', 'local_specials', multiple=True, type=click.Path(exists=True, dir_okay=False, resolve_path=True),
                          envvar="LOCAL_SPECIALS",
                          help=('Load specials from the given files. The files must be named the name of '
