@@ -1,5 +1,7 @@
-from flask.json.provider import DefaultJSONProvider
 from datetime import date
+
+from flask.json.provider import DefaultJSONProvider
+
 
 class CustomJSONProvider(DefaultJSONProvider):
     @staticmethod

@@ -1,10 +1,11 @@
+import shutil
+import subprocess
+import time
 from pathlib import Path
-import click, shutil, subprocess, time
 
-GHP_RESOURCES = [
-    "app/static",
-    "README.md"
-]
+import click
+
+GHP_RESOURCES = ["app/static", "README.md"]
 GHP_WORKFLOW_PATH = ".github/workflows/pages_release.yml"
 
 DVCTRACKER_GITHUB_URL = "https://github.com/dunkmann00/DVCTracker.git"
@@ -13,7 +14,8 @@ GHP_SOURCE_DIR = "gh_pages_source"
 GHP_STATIC_BRANCH = "gh-pages-static"
 GHP_STATIC_REMOTE = "github-static"
 
-class Git():
+
+class Git:
     def __init__(self, dir=""):
         dir_path = dir if isinstance(dir, Path) else Path(dir)
         dir_path = dir_path.resolve()
@@ -35,7 +37,9 @@ class Git():
         return name.replace("_", "-")
 
     def __getattr__(self, name):
-        return lambda *args, **kwargs: self.run(self.fix_git_name(name), *args, **kwargs)
+        return lambda *args, **kwargs: self.run(
+            self.fix_git_name(name), *args, **kwargs
+        )
 
     def squash_all(self, message, **kwargs):
         # https://stackoverflow.com/a/23486788
@@ -43,14 +47,22 @@ class Git():
         tree_kwargs = kwargs.copy()
         tree_kwargs["text"] = True
         tree_kwargs["stdout"] = subprocess.PIPE
-        sha = self.commit_tree("HEAD^{tree}", "-m", message, **tree_kwargs).stdout
-        sha = sha.strip() # It puts a newline on the end....wish I realized that sooner -_-
+        sha = self.commit_tree(
+            "HEAD^{tree}", "-m", message, **tree_kwargs
+        ).stdout
+        sha = (
+            sha.strip()
+        )  # It puts a newline on the end....wish I realized that sooner -_-
         if not sha:
             raise RuntimeError("Unable to squash, no sha hash returned.")
         return self.reset(sha, **kwargs)
 
+
 def clean_dir(source_dir, clean_git=False):
-    print(f"Cleaning '{source_dir}'{' and removing git directory' if clean_git else ''}...", end="")
+    print(
+        f"Cleaning '{source_dir}'{' and removing git directory' if clean_git else ''}...",
+        end="",
+    )
     for child in source_dir.iterdir():
         if not clean_git and child.name == ".git":
             continue
@@ -61,49 +73,76 @@ def clean_dir(source_dir, clean_git=False):
             shutil.rmtree(child)
     print("done.")
 
+
 def copy_resources(ghp_source_path):
     clean_dir(ghp_source_path)
     print(f"Copying resources into '{ghp_source_path}'...", end="")
-    (ghp_source_path / GHP_WORKFLOW_PATH).parent.mkdir(parents=True, exist_ok=True)
+    (ghp_source_path / GHP_WORKFLOW_PATH).parent.mkdir(
+        parents=True, exist_ok=True
+    )
     shutil.copy2(GHP_WORKFLOW_PATH, ghp_source_path / GHP_WORKFLOW_PATH)
     for resource in GHP_RESOURCES:
         path = Path(resource)
         if path.is_file():
             shutil.copy2(path, ghp_source_path)
         else:
-            shutil.copytree(path, ghp_source_path / path.name, ignore=shutil.ignore_patterns(".*"), dirs_exist_ok=True)
+            shutil.copytree(
+                path,
+                ghp_source_path / path.name,
+                ignore=shutil.ignore_patterns(".*"),
+                dirs_exist_ok=True,
+            )
     print("done.")
+
 
 def clone_from_github(git, ghp_source_path):
     print("Cloning DVCTracker from Github...")
     ghp_source_path.mkdir(parents=True, exist_ok=True)
     clean_dir(ghp_source_path, clean_git=True)
-    git.clone("--branch", GHP_STATIC_BRANCH, "--single-branch", "--origin", GHP_STATIC_REMOTE, DVCTRACKER_GITHUB_URL, ".")
+    git.clone(
+        "--branch",
+        GHP_STATIC_BRANCH,
+        "--single-branch",
+        "--origin",
+        GHP_STATIC_REMOTE,
+        DVCTRACKER_GITHUB_URL,
+        ".",
+    )
+
 
 def checkout_static(git):
-    if git.branch("--list", GHP_STATIC_BRANCH, text=True, stdout=subprocess.PIPE).stdout:
+    if git.branch(
+        "--list", GHP_STATIC_BRANCH, text=True, stdout=subprocess.PIPE
+    ).stdout:
         print(f"Checking out '{GHP_STATIC_BRANCH}' branch...")
         git.checkout(GHP_STATIC_BRANCH)
     else:
         print(f"Creating and checking out '{GHP_STATIC_BRANCH}' branch...")
         git.checkout("-b", GHP_STATIC_BRANCH)
 
+
 def commit_and_push(git):
     print("Committing and pushing static assets to Github...")
     message = "DVCTracker Github Pages static assets"
     git.add("--all")
-    result = git.diff_index("--quiet", "--cached", "HEAD", errors_ok=True) # First check if there is anything needing to be commited
+    result = git.diff_index(
+        "--quiet", "--cached", "HEAD", errors_ok=True
+    )  # First check if there is anything needing to be commited
     if result.returncode:
-        git.commit("--message", message) # Another option, instead of using 'diff-index', would be to use '--allow-empty'
+        git.commit(
+            "--message", message
+        )  # Another option, instead of using 'diff-index', would be to use '--allow-empty'
     git.squash_all(message)
     git.push(GHP_STATIC_REMOTE, GHP_STATIC_BRANCH, "--force")
 
-@click.command(help=(
-    "Copy static folder and other files necessary for Github Pages "
-    f"to the '{GHP_SOURCE_DIR}' directory. Then trigger a commit and "
-    "push. The upstream will build the jekyll site, making it "
-    "accessible through Github Pages. NOTE: This is currently meant "
-    "to be run locally."
+
+@click.command(
+    help=(
+        "Copy static folder and other files necessary for Github Pages "
+        f"to the '{GHP_SOURCE_DIR}' directory. Then trigger a commit and "
+        "push. The upstream will build the jekyll site, making it "
+        "accessible through Github Pages. NOTE: This is currently meant "
+        "to be run locally."
     )
 )
 def main():
@@ -116,6 +155,7 @@ def main():
     checkout_static(git)
     copy_resources(ghp_source_path)
     commit_and_push(git)
+
 
 if __name__ == "__main__":
     main()

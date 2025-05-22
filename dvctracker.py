@@ -1,18 +1,33 @@
-from flask_migrate import Migrate, upgrade
-from app import create_app, db
-from app.models import (StoredSpecial, Status, Email, Phone,
-                        Characteristic, CharacteristicModelLoader,
-                        Resort, Room, View, Category, CategoryModelLoader,
-                        ResortCategory, RoomCategory, ViewCategory, User)
-from app.parsers import DVCRentalPointParser, ParsedSpecial
-from app.util import SpecialTypes, ContactTypes, ProxyAttribute
-from app.cli import update_specials
-from app.criteria import ImportantCriteria
 import os
 
+from flask_migrate import Migrate, upgrade
 
-app = create_app(os.getenv('FLASK_CONFIG', 'default'))
+from app import create_app, db
+from app.cli import update_specials
+from app.criteria import ImportantCriteria
+from app.models import (
+    Category,
+    CategoryModelLoader,
+    Characteristic,
+    CharacteristicModelLoader,
+    Email,
+    Phone,
+    Resort,
+    ResortCategory,
+    Room,
+    RoomCategory,
+    Status,
+    StoredSpecial,
+    User,
+    View,
+    ViewCategory,
+)
+from app.parsers import DVCRentalPointParser, ParsedSpecial
+from app.util import ContactTypes, ProxyAttribute, SpecialTypes
+
+app = create_app(os.getenv("FLASK_CONFIG", "default"))
 migrate = Migrate(app, db, compare_type=True)
+
 
 @app.shell_context_processor
 def make_shell_context():
@@ -38,18 +53,18 @@ def make_shell_context():
         ContactTypes=ContactTypes,
         ProxyAttribute=ProxyAttribute,
         DVCRentalPointParser=DVCRentalPointParser,
-        ImportantCriteria=ImportantCriteria
+        ImportantCriteria=ImportantCriteria,
     )
 
 
 @app.cli.command()
 def deploy():
     """Run deployment tasks."""
-    #migrate database to latest revision
-    print('Upgrading db schema if any changes made...')
+    # migrate database to latest revision
+    print("Upgrading db schema if any changes made...")
     upgrade()
 
-    print('Loading static data into db...')
+    print("Loading static data into db...")
     ResortCategory.insert_data_from(app.config["STATIC_DATA_PATH"])
     RoomCategory.insert_data_from(app.config["STATIC_DATA_PATH"])
     ViewCategory.insert_data_from(app.config["STATIC_DATA_PATH"])
@@ -57,7 +72,7 @@ def deploy():
     Room.insert_data_from(app.config["STATIC_DATA_PATH"])
     View.insert_data_from(app.config["STATIC_DATA_PATH"])
 
-    #run an update to the specials, if the db changed we may now track more
-    #data and need to update to get it
-    print('Upgrading stored specials with live data...')
+    # run an update to the specials, if the db changed we may now track more
+    # data and need to update to get it
+    print("Upgrading stored specials with live data...")
     update_specials((), app.config["SEND_EMAIL_ON_DEPLOY"], False)
