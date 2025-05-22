@@ -1,5 +1,6 @@
-from wtforms.validators import StopValidation, ValidationError
 import phonenumbers
+from wtforms.validators import StopValidation, ValidationError
+
 
 class RequiredWhen:
     # a validator which makes a field required when
@@ -40,6 +41,7 @@ class RequiredWhen:
                 field.errors[:] = []
                 raise StopValidation()
 
+
 class RequiredIf(RequiredWhen):
     # a validator which makes a field required if
     # another field is set and has a truthy value
@@ -51,8 +53,11 @@ class RequiredIf(RequiredWhen):
     def check_func(self, field, form):
         other_field = form._fields.get(self.other_field_name)
         if other_field is None:
-            raise Exception('no field named "%s" in form' % self.other_field_name)
+            raise Exception(
+                'no field named "%s" in form' % self.other_field_name
+            )
         return bool(other_field.data)
+
 
 class Tel:
     """
@@ -89,7 +94,9 @@ class Tel:
         excludeRegions=[],
     ):
         if phonenumbers is None:  # pragma: no cover
-            raise Exception("Install 'phonenumbers' for telephone number validation support.")
+            raise Exception(
+                "Install 'phonenumbers' for telephone number validation support."
+            )
         self.region = region
         self.message = message
         self.granular_message = granular_message
@@ -106,14 +113,25 @@ class Tel:
                 is_valid = phonenumbers.is_valid_number(phone_number)
 
             if is_valid:
-                if self.onlyRegions and phonenumbers.region_code_for_number(phone_number) not in self.onlyRegions:
+                if (
+                    self.onlyRegions
+                    and phonenumbers.region_code_for_number(phone_number)
+                    not in self.onlyRegions
+                ):
                     is_valid = False
-                elif self.excludeRegions and phonenumbers.region_code_for_number(phone_number) in self.excludeRegions:
+                elif (
+                    self.excludeRegions
+                    and phonenumbers.region_code_for_number(phone_number)
+                    in self.excludeRegions
+                ):
                     is_valid = False
 
             if not is_valid:
                 raise ValueError("Invalid phone number.")
-        except (phonenumbers.phonenumberutil.NumberParseException, ValueError) as e:
+        except (
+            phonenumbers.phonenumberutil.NumberParseException,
+            ValueError,
+        ) as e:
             message = self.message
             if message is None:
                 if self.granular_message:

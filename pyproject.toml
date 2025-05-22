@@ -2,10 +2,8 @@
 name = "dvctracker"
 version = "0.1.0"
 description = "Track DVC Specials and get notified of changes as they happen."
-authors = [
-    {name = "George Waters", email = "gwatersdev@gmail.com"},
-]
-license = {text = "MIT"}
+authors = [{ name = "George Waters", email = "gwatersdev@gmail.com" }]
+license = { text = "MIT" }
 requires-python = "<4.0,>=3.12"
 dependencies = [
     "flask[dotenv] (>=3.1.0,<4.0.0)",
@@ -30,6 +28,12 @@ dependencies = [
 
 [tool.poetry]
 package-mode = false
+
+[tool.ruff]
+line-length = 80
+
+[tool.ruff.lint]
+select = ["I", "FIX", "ANN", "ASYNC"]
 
 [build-system]
 requires = ["poetry-core"]

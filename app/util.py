@@ -1,19 +1,22 @@
-from . import db
 from collections import namedtuple
+from datetime import timedelta
 from enum import Enum
 from itertools import groupby
-from datetime import timedelta
 
-ProxyAttribute = namedtuple('ProxyAttribute', ['id', 'attr'])
+from . import db
+
+ProxyAttribute = namedtuple("ProxyAttribute", ["id", "attr"])
+
 
 class SpecialTypes(Enum):
     """
     Specifies the two kinds of Specials: discounted points & preconfirms.
     """
-    DISC_POINTS = "disc_points"
-    PRECONFIRM  = "preconfirm"
 
-    def __html__(self): # For Jinja2/MarkupSafe
+    DISC_POINTS = "disc_points"
+    PRECONFIRM = "preconfirm"
+
+    def __html__(self):  # For Jinja2/MarkupSafe
         return self.value
 
 
@@ -21,19 +24,22 @@ class CharacteristicTypes(Enum):
     """
     Specifies the different kinds of Characteristic types
     """
-    BASE   = "base"
+
+    BASE = "base"
     RESORT = "resort"
-    ROOM   = "room"
-    VIEW   = "view"
+    ROOM = "room"
+    VIEW = "view"
+
 
 class ContactTypes(Enum):
     """
     Specifies the different kinds of Contact types.
     """
-    BASE  = "base"
+
+    BASE = "base"
     EMAIL = "email"
     PHONE = "phone"
-    APN   = "apn"
+    APN = "apn"
 
 
 class InheritedModelLoader:
@@ -64,14 +70,21 @@ class InheritedModelLoader:
         return f"{key}s"
 
     def _load(self):
-        all_results = db.session.scalars(db.select(self.model).order_by(*self.order_by))
-        for key, group in groupby(all_results, key=lambda x : getattr(x, self.discriminator.name)):
+        all_results = db.session.scalars(
+            db.select(self.model).order_by(*self.order_by)
+        )
+        for key, group in groupby(
+            all_results, key=lambda x: getattr(x, self.discriminator.name)
+        ):
             results = list(group)
             setattr(self, self.convert_group_key(key), results)
 
+
 def test_old_values(special, increase):
-    Special = type(special) # This avoids having to import StoredSpecial, which causes a CircularImport Error
-                            # Since this is just for testing I don't think this is a big deal
+    # This avoids having to import StoredSpecial, which causes a CircularImport Error
+    # Since this is just for testing I don't think this is a big deal
+    Special = type(special)
+
     resort_proxy = ProxyAttribute("resort_ccv", "resort")
     room_proxy = ProxyAttribute("room_two", "room")
     view_proxy = ProxyAttribute("view_standard", "view")
@@ -79,7 +92,7 @@ def test_old_values(special, increase):
     test_special = Special(
         resort=Special.convert_proxy(resort_proxy),
         room=Special.convert_proxy(room_proxy),
-        view=Special.convert_proxy(view_proxy)
+        view=Special.convert_proxy(view_proxy),
     )
 
     if special.check_in:
@@ -99,5 +112,8 @@ def test_old_values(special, increase):
 
     return test_special
 
+
 def first_index_or_none(iterable, predicate):
-    return next((index for index, item in enumerate(iterable) if predicate(item)), None)
+    return next(
+        (index for index, item in enumerate(iterable) if predicate(item)), None
+    )

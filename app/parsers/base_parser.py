@@ -1,10 +1,23 @@
-from ..errors import SpecialError
+import hashlib
+import random
+import time
 from functools import wraps
-import requests, time, random, hashlib
+
+import requests
+
+from ..errors import SpecialError
 
 
 class BaseParser(object):
-    def __init__(self, source, source_name, site_url, data_url=None, headers=None, params=None):
+    def __init__(
+        self,
+        source,
+        source_name,
+        site_url,
+        data_url=None,
+        headers=None,
+        params=None,
+    ):
         self.source = source
         self.source_name = source_name
         self.site_url = site_url
@@ -18,7 +31,9 @@ class BaseParser(object):
         Creates a ParsedSpecial object with the source and url attributes set
         to the values of the parser.
         """
-        return ParsedSpecial(source=self.source, source_name=self.source_name, url=self.site_url)
+        return ParsedSpecial(
+            source=self.source, source_name=self.source_name, url=self.site_url
+        )
 
     def get_all_specials(self, local_specials=None):
         """
@@ -53,26 +68,28 @@ class BaseParser(object):
         https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
         """
         retries = 0
-        print(f'Retrieving Specials from {self.source}')
-        while(retries < 5):
+        print(f"Retrieving Specials from {self.source}")
+        while retries < 5:
             if retries > 0:
                 time.sleep(random.uniform(0, 2**retries))
                 print(f"Attempting Retry on Specials Request: {retries}")
             url = self.data_url if self.data_url is not None else self.site_url
-            dvc_page = requests.get(url, headers=self.headers, params=self.params)
+            dvc_page = requests.get(
+                url, headers=self.headers, params=self.params
+            )
             if dvc_page.status_code in (500, 502, 503, 504):
-                retries+=1
+                retries += 1
             else:
                 break
         return dvc_page.text
 
-    def get_local_specials_page(self,filename):
+    def get_local_specials_page(self, filename):
         """
         This retrieves the content from a file that is located on the filesystem.
         The data is returned as bytes.
         """
         print(f"Retrieving specials locally from file '{filename}'")
-        with open(filename, 'rb') as f:
+        with open(filename, "rb") as f:
             return f.read()
 
     def pop_current_error(self):
@@ -87,7 +104,10 @@ class BaseParser(object):
         return current_error
 
     def process_specials_content(self, specials_content):
-        raise NotImplementedError('Subclasses must override process_specials_content()!')
+        raise NotImplementedError(
+            "Subclasses must override process_specials_content()!"
+        )
+
 
 class ParsedSpecial(object):
     """
@@ -103,25 +123,28 @@ class ParsedSpecial(object):
                       email. This is also used to determine the value of the
                       'error' attribute.
     """
+
     def __init__(self, **kwargs):
-        self.reservation_id = kwargs.pop('reservation_id', None)
-        self.source = kwargs.pop('source', None)
-        self.source_name = kwargs.pop('source_name', None)
-        self.url = kwargs.pop('url', None)
-        self.type = kwargs.pop('type', None)
-        self.points = kwargs.pop('points', None)
-        self.price = kwargs.pop('price', None)
-        self.check_in = kwargs.pop('check_in', None)
-        self.check_out = kwargs.pop('check_out', None)
-        self.resort = kwargs.pop('resort', None)
-        self.room = kwargs.pop('room', None)
-        self.view = kwargs.pop('view', None)
-        self.raw_string = kwargs.pop('raw_string', None)
+        self.reservation_id = kwargs.pop("reservation_id", None)
+        self.source = kwargs.pop("source", None)
+        self.source_name = kwargs.pop("source_name", None)
+        self.url = kwargs.pop("url", None)
+        self.type = kwargs.pop("type", None)
+        self.points = kwargs.pop("points", None)
+        self.price = kwargs.pop("price", None)
+        self.check_in = kwargs.pop("check_in", None)
+        self.check_out = kwargs.pop("check_out", None)
+        self.resort = kwargs.pop("resort", None)
+        self.room = kwargs.pop("room", None)
+        self.view = kwargs.pop("view", None)
+        self.raw_string = kwargs.pop("raw_string", None)
         self.errors = []
         self._special_id = None
 
         if len(kwargs) > 0:
-            raise TypeError(f"__init__() got an unexpected keyword argument '{kwargs.popitem()[0]}'")
+            raise TypeError(
+                f"__init__() got an unexpected keyword argument '{kwargs.popitem()[0]}'"
+            )
 
     @property
     def special_id(self):
@@ -139,22 +162,23 @@ class ParsedSpecial(object):
     def error(self):
         return len(self.errors) > 0
 
-
     def __repr__(self):
-        return f'<Parsed Special: {self.special_id}>'
+        return f"<Parsed Special: {self.special_id}>"
 
 
 def special_error(f):
-    '''
+    """
     Decorator used when calling a BaseParser subclass method that tries to parse an
     attribute from raw text. Either returns the result successfully or None if there
     was an error. The error is caught and a resulting SpecialError object is stored
     as the current_error of the parser object
-    '''
+    """
+
     @wraps(f)
     def decorated_function(parser, *args, **kwargs):
         try:
             return f(parser, *args, **kwargs)
         except SpecialError as e:
             parser.current_error = e
+
     return decorated_function

@@ -1,24 +1,25 @@
-from werkzeug.utils import cached_property
+from datetime import date, datetime
+
+import tomlkit
+from sqlalchemy import orm
+from sqlalchemy.ext.hybrid import HybridExtensionType, hybrid_property
 from werkzeug.datastructures import MultiDict
-from datetime import datetime
+from werkzeug.utils import cached_property
+
 from . import db
+from .security import check_and_update_password_hash, generate_password_hash
 from .util import (
-    SpecialTypes,
     CharacteristicTypes,
     ContactTypes,
-    ProxyAttribute,
     InheritedModelLoader,
-    first_index_or_none
+    ProxyAttribute,
+    SpecialTypes,
+    first_index_or_none,
 )
-from sqlalchemy import orm
-from sqlalchemy.ext.hybrid import hybrid_property, HybridExtensionType
-from .security import generate_password_hash, check_and_update_password_hash
-from datetime import date
-import tomlkit
+
 
 @orm.declarative_mixin
-class StaticDataMixin():
-
+class StaticDataMixin:
     static_index = db.Column(db.Integer)
 
     @classmethod
@@ -29,8 +30,14 @@ class StaticDataMixin():
             default_data = data["defaults"].get(cls._static_data_name, {})
             cls_data = data.get(cls._static_data_name)
             if cls_data:
-                primary_key = getattr(cls, "_primary_key", None) or db.inspect(cls).primary_key[0].key
-                db_data = {getattr(row, primary_key):row for row in db.session.scalars(db.select(cls)).all()}
+                primary_key = (
+                    getattr(cls, "_primary_key", None)
+                    or db.inspect(cls).primary_key[0].key
+                )
+                db_data = {
+                    getattr(row, primary_key): row
+                    for row in db.session.scalars(db.select(cls)).all()
+                }
 
                 for i, static_item in enumerate(cls_data):
                     db_item = db_data.pop(static_item[primary_key], None)
@@ -53,11 +60,14 @@ class StaticDataMixin():
             if value != getattr(db_item, key):
                 setattr(db_item, key, value)
 
-class ProxyConversionMixin():
+
+class ProxyConversionMixin:
     @classmethod
     def convert_proxy(cls, proxy):
         orm_attr = getattr(cls, proxy.attr, None)
-        if orm_attr is None: # This can happen if no queries have been performed yet
+        if (
+            orm_attr is None
+        ):  # This can happen if no queries have been performed yet
             orm.configure_mappers()
             orm_attr = getattr(cls, proxy.attr)
         model = orm_attr.mapper.class_
@@ -70,8 +80,9 @@ class ProxyConversionMixin():
             )
         return entity
 
-class DefaultEntityMixin():
-    class DefaultEntity():
+
+class DefaultEntityMixin:
+    class DefaultEntity:
         def __get__(self, instance, owner):
             with db.session.no_autoflush:
                 entity = db.session.get(owner, owner.default_id)
@@ -85,6 +96,7 @@ class DefaultEntityMixin():
     default_id = 0
     default = DefaultEntity()
 
+
 class StoredSpecial(ProxyConversionMixin, db.Model):
     """
     The database model for Specials. This object is very similar to the
@@ -92,7 +104,8 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
     html. This object represents the specials as they are stored in the
     database.
     """
-    __tablename__ = 'stored_specials'
+
+    __tablename__ = "stored_specials"
 
     def __init__(self, *args, **kwargs):
         self.new_error = False
@@ -108,9 +121,18 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
     price = db.Column(db.Integer)
     check_in = db.Column(db.Date)
     check_out = db.Column(db.Date)
-    resort_id = db.Column(db.String, db.ForeignKey("characteristics.characteristic_id", ondelete="SET NULL"))
-    room_id = db.Column(db.String, db.ForeignKey("characteristics.characteristic_id", ondelete="SET NULL"))
-    view_id = db.Column(db.String, db.ForeignKey("characteristics.characteristic_id", ondelete="SET NULL"))
+    resort_id = db.Column(
+        db.String,
+        db.ForeignKey("characteristics.characteristic_id", ondelete="SET NULL"),
+    )
+    room_id = db.Column(
+        db.String,
+        db.ForeignKey("characteristics.characteristic_id", ondelete="SET NULL"),
+    )
+    view_id = db.Column(
+        db.String,
+        db.ForeignKey("characteristics.characteristic_id", ondelete="SET NULL"),
+    )
     error = db.Column(db.Boolean, default=False)
 
     attribute_deps = MultiDict()
@@ -135,29 +157,41 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
     def price_per_night(self):
         if self.price is None or self.duration is None or self.duration == 0:
             return None
-        return self.price/self.duration
+        return self.price / self.duration
 
     @hybrid_property
     def price_per_point(self):
         if self.price is None or self.points is None or self.points == 0:
             return None
-        return self.price/self.points
+        return self.price / self.points
 
     @property
     def price_increased(self):
-        if not hasattr(self, "old_price") or self.old_price is None or self.price is None:
+        if (
+            not hasattr(self, "old_price")
+            or self.old_price is None
+            or self.price is None
+        ):
             return None
         return self.price > self.old_price
 
     @property
     def price_per_night_increased(self):
-        if not hasattr(self, "old_price_per_night") or self.old_price_per_night is None or self.price_per_night is None:
+        if (
+            not hasattr(self, "old_price_per_night")
+            or self.old_price_per_night is None
+            or self.price_per_night is None
+        ):
             return None
         return self.price_per_night > self.old_price_per_night
 
     @property
     def price_per_point_increased(self):
-        if not hasattr(self, "old_price_per_point") or self.old_price_per_point is None or self.price_per_point is None:
+        if (
+            not hasattr(self, "old_price_per_point")
+            or self.old_price_per_point is None
+            or self.price_per_point is None
+        ):
             return None
         return self.price_per_point > self.old_price_per_point
 
@@ -170,7 +204,6 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
                 value = cls.convert_proxy(value)
             setattr(new_special, key, value)
         return new_special
-
 
     def update_with_special(self, other):
         """
@@ -191,7 +224,9 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
         # store an old key unnecessarily.
         for key in self.get_hybrid_keys():
             old_key = f"old_{key}"
-            if hasattr(self, old_key) and getattr(self, old_key) == getattr(self, key):
+            if hasattr(self, old_key) and getattr(self, old_key) == getattr(
+                self, key
+            ):
                 delattr(self, old_key)
 
     def set_old_key(self, key):
@@ -199,13 +234,14 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
         if dependents:
             for dependent_key in dependents:
                 old_dep_key = f"old_{dependent_key}"
-                if not hasattr(self, old_dep_key): # Only update it the first time, before anything else has changed
+                if not hasattr(
+                    self, old_dep_key
+                ):  # Only update it the first time, before anything else has changed
                     setattr(self, old_dep_key, getattr(self, dependent_key))
         old_key = f"old_{key}"
         setattr(self, old_key, getattr(self, key))
 
-
-    @orm.validates('error')
+    @orm.validates("error")
     def error_change(self, key, error):
         """
         Sets 'new_error' to True when the 'error' value is set to True after
@@ -234,7 +270,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
         return True
 
     def __repr__(self):
-        return f'<Stored Special: {self.special_id}>'
+        return f"<Stored Special: {self.special_id}>"
 
     @classmethod
     def get_core_keys(cls):
@@ -255,7 +291,11 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
     @classmethod
     def get_hybrid_keys(cls):
         inspector = db.inspect(cls)
-        return (key for key, descriptor in inspector.all_orm_descriptors.items() if descriptor.extension_type == HybridExtensionType.HYBRID_PROPERTY)
+        return (
+            key
+            for key, descriptor in inspector.all_orm_descriptors.items()
+            if descriptor.extension_type == HybridExtensionType.HYBRID_PROPERTY
+        )
 
     @classmethod
     def get_attribute_deps(cls, attribute):
@@ -271,25 +311,34 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
     def check_attribute_deps(cls):
         for key in cls.get_hybrid_keys():
             attribute = getattr(cls, key)
-            cls.attribute_deps.update(dict.fromkeys(cls.get_attribute_deps(attribute), key))
+            cls.attribute_deps.update(
+                dict.fromkeys(cls.get_attribute_deps(attribute), key)
+            )
+
 
 StoredSpecial.check_attribute_deps()
+
 
 class Characteristic(StaticDataMixin, db.Model):
     """
     The database base model for all characteristics (Resorts, Rooms, Views)
     """
+
     __tablename__ = "characteristics"
     characteristic_id = db.Column(db.String(100), primary_key=True)
     name = db.Column(db.String, nullable=False)
-    category_id = db.Column(db.String(100), db.ForeignKey("categories.category_id", ondelete="SET NULL"))
+    category_id = db.Column(
+        db.String(100),
+        db.ForeignKey("categories.category_id", ondelete="SET NULL"),
+    )
     type = db.Column(db.Enum(CharacteristicTypes), nullable=False)
 
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.BASE,
         "polymorphic_on": type,
-        "with_polymorphic": "*"
+        "with_polymorphic": "*",
     }
+
 
 class CharacteristicModelLoader(InheritedModelLoader):
     model = Characteristic
@@ -298,10 +347,12 @@ class CharacteristicModelLoader(InheritedModelLoader):
     def convert_group_key(self, key):
         return f"{key.value}s"
 
+
 class Resort(Characteristic):
     """
     The database model for resorts.
     """
+
     _static_data_name = "resorts"
     _primary_key = "resort_id"
     specials = db.relationship(
@@ -309,7 +360,7 @@ class Resort(Characteristic):
         backref=db.backref("resort", lazy="selectin"),
         foreign_keys="StoredSpecial.resort_id",
         lazy="write_only",
-        passive_deletes=True
+        passive_deletes=True,
     )
 
     @hybrid_property
@@ -322,13 +373,15 @@ class Resort(Characteristic):
 
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.RESORT,
-        "polymorphic_load": "inline"
+        "polymorphic_load": "inline",
     }
+
 
 class Room(Characteristic):
     """
     The database model for Room types.
     """
+
     _static_data_name = "rooms"
     _primary_key = "room_id"
 
@@ -337,7 +390,7 @@ class Room(Characteristic):
         backref=db.backref("room", lazy="selectin"),
         foreign_keys="StoredSpecial.room_id",
         lazy="write_only",
-        passive_deletes=True
+        passive_deletes=True,
     )
 
     @hybrid_property
@@ -358,13 +411,15 @@ class Room(Characteristic):
 
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.ROOM,
-        "polymorphic_load": "inline"
+        "polymorphic_load": "inline",
     }
+
 
 class View(Characteristic):
     """
     The databse model for room views.
     """
+
     _static_data_name = "views"
     _primary_key = "view_id"
     specials = db.relationship(
@@ -372,7 +427,7 @@ class View(Characteristic):
         backref=db.backref("view", lazy="selectin"),
         foreign_keys="StoredSpecial.view_id",
         lazy="write_only",
-        passive_deletes=True
+        passive_deletes=True,
     )
 
     @hybrid_property
@@ -385,7 +440,7 @@ class View(Characteristic):
 
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.VIEW,
-        "polymorphic_load": "inline"
+        "polymorphic_load": "inline",
     }
 
 
@@ -393,6 +448,7 @@ class Category(StaticDataMixin, db.Model):
     """
     The database base model for all categories.
     """
+
     __tablename__ = "categories"
     category_id = db.Column(db.String(100), primary_key=True)
     name = db.Column(db.String)
@@ -401,7 +457,7 @@ class Category(StaticDataMixin, db.Model):
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.BASE,
         "polymorphic_on": type,
-        "with_polymorphic": "*"
+        "with_polymorphic": "*",
     }
 
 
@@ -412,10 +468,12 @@ class CategoryModelLoader(InheritedModelLoader):
     def convert_group_key(self, key):
         return f"{key.value}s"
 
+
 class ResortCategory(Category):
     """
     The database model for resort categories.
     """
+
     _static_data_name = "resort_categories"
 
     resorts = db.relationship(
@@ -423,18 +481,20 @@ class ResortCategory(Category):
         order_by="Resort.name",
         backref=db.backref("category", lazy="select"),
         lazy="selectin",
-        passive_deletes=True
+        passive_deletes=True,
     )
 
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.RESORT,
-        "polymorphic_load": "inline"
+        "polymorphic_load": "inline",
     }
+
 
 class RoomCategory(Category):
     """
     The database model for Room categories.
     """
+
     _static_data_name = "room_categories"
 
     rooms = db.relationship(
@@ -442,22 +502,28 @@ class RoomCategory(Category):
         order_by="Room.static_index",
         backref=db.backref("category", lazy="select"),
         lazy="selectin",
-        passive_deletes=True
+        passive_deletes=True,
     )
 
     @property
     def room_index(self):
-        return self.rooms[0].room_index if self.rooms is not None and len(self.rooms) > 0 else -1
+        return (
+            self.rooms[0].room_index
+            if self.rooms is not None and len(self.rooms) > 0
+            else -1
+        )
 
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.ROOM,
-        "polymorphic_load": "inline"
+        "polymorphic_load": "inline",
     }
+
 
 class ViewCategory(Category):
     """
     The databse model for room view categories.
     """
+
     _static_data_name = "view_categories"
 
     views = db.relationship(
@@ -465,13 +531,14 @@ class ViewCategory(Category):
         order_by="View.name",
         backref=db.backref("category", lazy="select"),
         lazy="selectin",
-        passive_deletes=True
+        passive_deletes=True,
     )
 
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.VIEW,
-        "polymorphic_load": "inline"
+        "polymorphic_load": "inline",
     }
+
 
 class Status(DefaultEntityMixin, db.Model):
     """
@@ -480,6 +547,7 @@ class Status(DefaultEntityMixin, db.Model):
     specific special, healthy will get set to False. Status also keeps track of
     the last time that the specials were updated.
     """
+
     status_id = db.Column(db.Integer, primary_key=True)
     healthy = db.Column(db.Boolean, default=True)
     last_updated = db.Column(db.DateTime(), default=datetime.utcnow)
@@ -489,6 +557,7 @@ class Status(DefaultEntityMixin, db.Model):
 
     def __repr__(self):
         return f"<Status - Healthy: {'Yes' if self.healthy else 'No'}>"
+
 
 class ParserStatus(db.Model):
     """
@@ -501,28 +570,33 @@ class ParserStatus(db.Model):
     all disappear and reappear it results in unnecessary notifications being
     sent.
     """
+
     parser_status_id = db.Column(db.Integer, primary_key=True)
     parser_source = db.Column(db.String(32), unique=True)
     healthy = db.Column(db.Boolean)
     empty_okay = db.Column(db.Boolean, default=False)
+
 
 class Contact(db.Model):
     """
     The database base model for all contacts. If get_errors is set to True, the
     contact will also receive error messages.
     """
+
     __tablename__ = "contacts"
     contact_id = db.Column(db.Integer, primary_key=True)
     contact = db.Column(db.String())
     get_errors = db.Column(db.Boolean, default=False)
-    user_id = db.Column(db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE"))
+    user_id = db.Column(
+        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE")
+    )
     last_updated = db.Column(db.DateTime(), default=datetime.utcnow)
     contact_type = db.Column(db.Enum(ContactTypes), nullable=False)
 
     __mapper_args__ = {
         "polymorphic_identity": ContactTypes.BASE,
         "polymorphic_on": contact_type,
-        "with_polymorphic": "*"
+        "with_polymorphic": "*",
     }
 
     def ping(self):
@@ -532,7 +606,9 @@ class Contact(db.Model):
     def on_set_contact(target, value, oldvalue, initiator):
         target.ping()
 
-db.event.listen(Contact.contact, 'set', Contact.on_set_contact, propagate=True)
+
+db.event.listen(Contact.contact, "set", Contact.on_set_contact, propagate=True)
+
 
 class Email(Contact):
     """
@@ -551,11 +627,12 @@ class Email(Contact):
 
     __mapper_args__ = {
         "polymorphic_identity": ContactTypes.EMAIL,
-        "polymorphic_load": "inline"
+        "polymorphic_load": "inline",
     }
 
     def __repr__(self):
-        return f'<Email: {self.email_address}>'
+        return f"<Email: {self.email_address}>"
+
 
 class Phone(Contact):
     """
@@ -574,11 +651,12 @@ class Phone(Contact):
 
     __mapper_args__ = {
         "polymorphic_identity": ContactTypes.PHONE,
-        "polymorphic_load": "inline"
+        "polymorphic_load": "inline",
     }
 
     def __repr__(self):
-        return f'<Phone Number: {self.phone_number}>'
+        return f"<Phone Number: {self.phone_number}>"
+
 
 class APN(Contact):
     """
@@ -595,8 +673,9 @@ class APN(Contact):
 
     __mapper_args__ = {
         "polymorphic_identity": ContactTypes.APN,
-        "polymorphic_load": "inline"
+        "polymorphic_load": "inline",
     }
+
 
 class User(db.Model):
     """
@@ -608,6 +687,7 @@ class User(db.Model):
         When we pull the JSON from the db, change the date strings into python
         date objects and the type string keys into SpecialTypes objects.
         """
+
         impl = db.JSON
 
         cache_ok = True
@@ -636,15 +716,19 @@ class User(db.Model):
             for type in SpecialTypes:
                 self.replace_key(value, type.value, type)
                 for criteria in value.get(type, []):
-                    check_in_date = criteria.get('date', {}).get('start')
-                    check_out_date = criteria.get('date', {}).get('end')
+                    check_in_date = criteria.get("date", {}).get("start")
+                    check_out_date = criteria.get("date", {}).get("end")
                     if check_in_date:
-                        criteria['date']['start'] = date.fromisoformat(check_in_date)
+                        criteria["date"]["start"] = date.fromisoformat(
+                            check_in_date
+                        )
                     if check_out_date:
-                        criteria['date']['end'] = date.fromisoformat(check_out_date)
+                        criteria["date"]["end"] = date.fromisoformat(
+                            check_out_date
+                        )
             return value
 
-    __tablename__ = 'users'
+    __tablename__ = "users"
     user_id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(), unique=True)
     password_hash = db.Column(db.String())
@@ -655,31 +739,33 @@ class User(db.Model):
         "Email",
         order_by="Email.contact_id",
         backref=db.backref("user", lazy="select"),
-        lazy="selectin"
+        lazy="selectin",
     )
     phones = db.relationship(
         "Phone",
         order_by="Phone.contact_id",
         backref=db.backref("user", lazy="select"),
-        lazy="selectin"
+        lazy="selectin",
     )
     apns = db.relationship(
         "APN",
         order_by="APN.contact_id",
         backref=db.backref("user", lazy="select"),
-        lazy="selectin"
+        lazy="selectin",
     )
 
     @property
     def password(self):
-        raise AttributeError('password is not a readable attribute')
+        raise AttributeError("password is not a readable attribute")
 
     @password.setter
     def password(self, password):
         self.password_hash = generate_password_hash(password)
 
     def verify_password(self, password):
-        valid, new_hash = check_and_update_password_hash(self.password_hash, password)
+        valid, new_hash = check_and_update_password_hash(
+            self.password_hash, password
+        )
         if valid and new_hash is not None:
             self.password_hash = new_hash
             db.session.commit()
@@ -711,7 +797,11 @@ class User(db.Model):
         # Shouldn't need the 'contact.user == self' check, because only the
         # user's contacts should be loaded into the identity map, but putting it
         # here anyway as an extra precaution
-        if contact and contact.user == self and contact.contact_type == contact_type:
+        if (
+            contact
+            and contact.user == self
+            and contact.contact_type == contact_type
+        ):
             return contact
         return None
 
@@ -721,10 +811,16 @@ class User(db.Model):
     def is_new_contact(self, contact_value, contact_type):
         # For now this will work in such a way where a contact can be reused
         # across different accounts
-        return first_index_or_none(self.get_contacts_for(contact_type), lambda x: x.contact == contact_value) is None
+        return (
+            first_index_or_none(
+                self.get_contacts_for(contact_type),
+                lambda x: x.contact == contact_value,
+            )
+            is None
+        )
 
     def ping(self):
         self.last_accessed = datetime.utcnow()
 
     def __repr__(self):
-        return f'<User: {self.username}>'
+        return f"<User: {self.username}>"

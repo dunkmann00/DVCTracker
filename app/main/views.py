@@ -1,11 +1,14 @@
-from flask import render_template, current_app, flash
-from . import main
-from .util import ResortChoices, RoomChoices, ViewChoices
-from .forms import ImportantCriteriaListForm
-from .. import db
-from ..models import CategoryModelLoader
-from ..auth import auth
 from itertools import chain
+
+from flask import current_app, flash, render_template
+
+from .. import db
+from ..auth import auth
+from ..models import CategoryModelLoader
+from . import main
+from .forms import ImportantCriteriaListForm
+from .util import ResortChoices, RoomChoices, ViewChoices
+
 
 @main.after_app_request
 def after_request(response):
@@ -16,7 +19,7 @@ def after_request(response):
     return response
 
 
-@main.route('/criteria', methods=['GET', 'POST'])
+@main.route("/criteria", methods=["GET", "POST"])
 @auth.login_required
 def current_important_criteria():
     user = auth.current_user()
@@ -26,7 +29,9 @@ def current_important_criteria():
     resort_choices = ResortChoices(categories.resorts)
     room_choices = RoomChoices(categories.rooms)
     view_choices = ViewChoices(categories.views)
-    for criteria in chain(form.important_criteria, template_form.important_criteria):
+    for criteria in chain(
+        form.important_criteria, template_form.important_criteria
+    ):
         criteria.resorts.choices = resort_choices.choices
         criteria.rooms.choices = room_choices.choices
         criteria.views.choices = view_choices.choices
@@ -34,10 +39,10 @@ def current_important_criteria():
         criteria = form.to_json()
         if criteria:
             user.important_criteria = criteria
-        flash('Successfully Updated Important Criteria!', 'success')
+        flash("Successfully Updated Important Criteria!", "success")
     return render_template(
-        'criteria/criteria_template.html',
+        "criteria/criteria_template.html",
         env_label=current_app.config.get("ENV_LABEL"),
         form=form,
-        template_form=template_form
+        template_form=template_form,
     )
