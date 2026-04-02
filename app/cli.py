@@ -10,6 +10,7 @@ from flask.cli import with_appcontext
 
 from . import db, notifications
 from .criteria import ImportantCriteria
+from .errors import SpecialError
 from .models import APN, Email, ParserStatus, Phone, Status, StoredSpecial, User
 from .parsers import PARSERS
 from .util import test_old_values
@@ -190,6 +191,34 @@ def send_test_apn(username, push_token, message, message_id):
             return
         user = User(apns=apns)
     notifications.send_update_push_notification(user, message, message_id)
+
+
+@cli_bp.cli.command(
+    help="Run the error handling with specials modified to show an error."
+)
+@click.option(
+    "--error-report",
+    "send_error_report",
+    is_flag=True,
+    help="Test the sending of an error report.",
+)
+def test_error(send_error_report):
+    g.send_error_report = send_error_report
+
+    specials: list[StoredSpecial] = db.session.scalars(  # pyright: ignore[reportAssignmentType]
+        db.select(StoredSpecial).limit(3)
+    ).all()
+    for special in specials:
+        special.errors = [SpecialError("Test", "This is a test error.")]
+        special.raw_string = "This is a test error."
+        special.new_error = True
+        special.error = True
+
+    new_specials: dict[str, dict[str, StoredSpecial]] = {
+        "test": {special.special_id: special for special in specials}
+    }  # pyright: ignore[reportAssignmentType]
+
+    handle_errors(new_specials, specials)
 
 
 @cli_bp.cli.command(
@@ -440,6 +469,16 @@ def handle_errors(new_specials, stored_specials):
         for stored_special in stored_specials
         if stored_special.new_error
     ]
+
+    email_addresses: list[Email] = db.session.scalars(  # pyright: ignore[reportAssignmentType]
+        db.select(Email).filter_by(get_errors=True)
+    ).all()
+    email_addresses_grouped: dict[int, list[Email]] = {}
+    for email in email_addresses:
+        user: list[Email] = email_addresses_grouped.get(email.user_id, [])
+        user.append(email.email_address)
+        email_addresses_grouped[email.user_id] = user
+
     if len(new_specials_errors) > 0:
         error_msg = render_template(
             "specials/error_template.html",
@@ -449,7 +488,13 @@ def handle_errors(new_specials, stored_specials):
         print(
             "Uhh-ohh, Houston, we have a problem. There appears to be an error."
         )
-        notification_response = notifications.send_error_email(error_msg)
+
+        notification_response = None
+        for emails_addresses in email_addresses_grouped.values():
+            # TODO: Don't only use the last response
+            notification_response = notifications.send_error_email(
+                error_msg, emails_addresses
+            )
         notifications.send_error_text_messsage()
         notifications.send_error_push_notification(
             message_id=notification_response.data
@@ -475,7 +520,10 @@ def handle_errors(new_specials, stored_specials):
             print(
                 "So, about that bug...when are you going to catch it? Producing Error Report."
             )
-            notifications.send_error_report_email(error_msg)
+            for emails_addresses in email_addresses_grouped.values():
+                notifications.send_error_report_email(
+                    error_msg, emails_addresses
+                )
 
 
 def empty_parser_error(parser_source):

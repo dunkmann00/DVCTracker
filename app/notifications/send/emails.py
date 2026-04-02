@@ -58,10 +58,7 @@ def send_update_email(email_message, user):
 
 
 @log_response("Mailgun", "Error Message Complete")
-def send_error_email(email_message, html_message=True):
-    email_addresses = db.session.scalars(
-        db.select(Email.email_address).filter_by(get_errors=True)
-    ).all()
+def send_error_email(email_message, email_addresses, html_message=True):
     if len(email_addresses) == 0:
         print(
             f"No email addresses requested error messages. Not sending error email."
@@ -73,10 +70,7 @@ def send_error_email(email_message, html_message=True):
 
 
 @log_response("Mailgun", "Error Report Complete")
-def send_error_report_email(email_message, html_message=True):
-    email_addresses = db.session.scalars(
-        db.select(Email.email_address).filter_by(get_errors=True)
-    ).all()
+def send_error_report_email(email_message, email_addresses, html_message=True):
     if len(email_addresses) == 0:
         print(
             f"No email addresses requested error messages. Not sending error report email."
