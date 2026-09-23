@@ -498,6 +498,8 @@ def handle_errors(new_specials, stored_specials):
         notifications.send_error_text_messsage()
         notifications.send_error_push_notification(
             message_id=notification_response.data
+            if notification_response is not None
+            else None
         )
 
     if g.send_error_report:
@@ -571,11 +573,29 @@ def unhandled_error(error):
             if g.send_error_report
             else notifications.send_error_email
         )
-        notification_response = send_error_func(error_msg, html_message=False)
+
+        email_addresses: list[Email] = db.session.scalars(  # pyright: ignore[reportAssignmentType]
+            db.select(Email).filter_by(get_errors=True)
+        ).all()
+        email_addresses_grouped: dict[int, list[Email]] = {}
+        for email in email_addresses:
+            user: list[Email] = email_addresses_grouped.get(email.user_id, [])
+            user.append(email.email_address)
+            email_addresses_grouped[email.user_id] = user
+
+        notification_response = None
+        for emails_addresses in email_addresses_grouped.values():
+            # TODO: Don't only use the last response
+            notification_response = send_error_func(
+                error_msg, emails_addresses, html_message=False
+            )
+
         if Status.default.healthy:
             notifications.send_error_text_messsage()
             notifications.send_error_push_notification(
                 message_id=notification_response.data
+                if notification_response is not None
+                else None
             )
         Status.default.healthy = False
 
