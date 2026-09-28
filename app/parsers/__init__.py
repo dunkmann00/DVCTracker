@@ -1,6 +1,7 @@
 from .base_parser import ParsedSpecial
 from .dvcrentalstore_confirmed_2021 import DVCRentalStoreConfirmed2021
+from .dvcrentalstore_confirmed_2026 import DVCRentalStoreConfirmed2026
 from .dvcrentalstore_points import DVCRentalPointParser
 from .dvcrentalstore_preconfirms import DVCRentalPreconfirmParser
 
-PARSERS = [DVCRentalStoreConfirmed2021]
+PARSERS = [DVCRentalStoreConfirmed2026]
