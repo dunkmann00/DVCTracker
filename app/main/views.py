@@ -1,6 +1,6 @@
 from itertools import chain
 
-from flask import current_app, flash, render_template
+from flask import Response, current_app, flash, render_template
 
 from .. import db
 from ..auth import auth
@@ -11,7 +11,7 @@ from .util import ResortChoices, RoomChoices, ViewChoices
 
 
 @main.after_app_request
-def after_request(response):
+def after_request(response: Response) -> Response:
     user = auth.current_user()
     if user is not None:
         user.ping()
@@ -21,7 +21,7 @@ def after_request(response):
 
 @main.route("/criteria", methods=["GET", "POST"])
 @auth.login_required
-def current_important_criteria():
+def current_important_criteria() -> str:
     user = auth.current_user()
     form = ImportantCriteriaListForm.from_json(user.important_criteria)
     template_form = ImportantCriteriaListForm(formdata=None)

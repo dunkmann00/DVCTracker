@@ -1,4 +1,6 @@
+from collections.abc import Generator
 from itertools import chain
+from typing import Any
 
 import email_validator
 import phonenumbers
@@ -28,17 +30,20 @@ class MultiCheckboxField(wtforms.SelectMultipleField):
         else:
             yield from self._make_options(self.iter_choices())
 
-    def has_groups(self):
+    def has_groups(self) -> bool:
         return (
             self.choices is not None
             and len(self.choices) > 0
             and isinstance(self.choices[0], dict)
         )
 
-    def iter_groups(self):
+    def iter_groups(self) -> Generator[tuple[str, tuple[str, str]], None, None]:
+        if self.choices is None:
+            return
+
         for choices_dict in self.choices:
-            group = choices_dict.get("group")
-            choices = choices_dict.get("options")
+            group: str = choices_dict.get("group")
+            choices: tuple[str, str] = choices_dict.get("options")
             yield (group, self._choices_generator(choices))
 
     def iter_choices(self):
@@ -51,8 +56,8 @@ class MultiCheckboxField(wtforms.SelectMultipleField):
             return self._choices_generator(choices)
         return super().iter_choices()
 
-    def _make_option(self, choice, index, opts):
-        value, label, checked, render_kw = choice
+    def _make_option(self, choice, index: int, opts: dict[str, Any]):
+        value, label, checked, _ = choice
         opt = self._Option(label=label, id="%s-%d" % (self.id, index), **opts)
         opt.process(None, value)
         opt.checked = checked
@@ -74,7 +79,7 @@ class MultiCheckboxField(wtforms.SelectMultipleField):
             yield self._make_option(choice, i, opts)
 
     @staticmethod
-    def _make_counter():
+    def _make_counter() -> Generator[int, None, None]:
         i = 0
         while True:
             yield i
@@ -93,7 +98,7 @@ class HiddenIntegerField(wtforms.IntegerField):
 
 class EmailField(wtforms.EmailField):
     @property
-    def normalized_data(self):
+    def normalized_data(self) -> str | None:
         try:
             if self.data is None:
                 raise email_validator.EmailNotValidError()
@@ -107,7 +112,7 @@ class EmailField(wtforms.EmailField):
 class TelField(wtforms.TelField):
     raw_phone_data = None
 
-    def process_formdata(self, valuelist):
+    def process_formdata(self, valuelist: list[Any]) -> None:
         if valuelist:
             self.raw_phone_data = valuelist[0]
             self.data = (
@@ -115,9 +120,9 @@ class TelField(wtforms.TelField):
             )
 
     @property
-    def normalized_data(self):
+    def normalized_data(self) -> str | None:
         try:
-            phone_number = phonenumbers.parse(self.data, "US")
+            phone_number = phonenumbers.parse(self.data, "US")  # pyright: ignore[reportArgumentType]
             if not phonenumbers.is_valid_number(phone_number):
                 raise ValueError()
             return phonenumbers.format_number(

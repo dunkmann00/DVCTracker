@@ -11,7 +11,7 @@ from . import user
 
 @user.route("")
 @auth.login_required
-def current_user():
+def current_user() -> str:
     user = auth.current_user()
     contact_list = ContactListForm(
         email_forms=user.emails, phone_forms=user.phones
@@ -28,7 +28,7 @@ def current_user():
 
 @user.route("/contact/apn", methods=["POST"])
 @auth.login_required
-def update_apn():
+def update_apn() -> str:
     user = auth.current_user()
     push_token_request = request.get_json()
     push_token_str = push_token_request.get("token", None)
@@ -53,7 +53,7 @@ def update_apn():
 
 @user.route("/contact/<type>", methods=["POST", "DELETE"])
 @auth.login_required
-def update_contact(type):
+def update_contact(type: str) -> str:
     # Check for valid ContactTypes
     if type not in [ContactTypes.EMAIL.value, ContactTypes.PHONE.value]:
         abort(404)

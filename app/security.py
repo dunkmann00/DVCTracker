@@ -5,11 +5,13 @@ _hasher = pwhash.argon2id
 UTF_8 = "utf-8"
 
 
-def generate_password_hash(password):
+def generate_password_hash(password: str) -> str:
     return _hasher.str(password.encode(UTF_8)).decode(UTF_8)
 
 
-def check_and_update_password_hash(password_hash, password):
+def check_and_update_password_hash(
+    password_hash: str, password: str
+) -> tuple[bool, str | None]:
     try:
         res = _hasher.verify(
             password_hash.encode(UTF_8), password.encode(UTF_8)

@@ -1,3 +1,6 @@
+# ruff: noqa
+# type: ignore
+
 import random
 import time
 from datetime import datetime

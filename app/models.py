@@ -1,4 +1,5 @@
 from datetime import date, datetime
+from typing import Any
 
 import tomlkit
 from sqlalchemy import orm
@@ -23,7 +24,7 @@ class StaticDataMixin:
     static_index = db.Column(db.Integer)
 
     @classmethod
-    def insert_data_from(cls, path):
+    def insert_data_from(cls, path: str) -> None:
         with open(path, mode="r", encoding="utf-8") as f:
             content = f.read()
             data = tomlkit.loads(content)
@@ -63,7 +64,7 @@ class StaticDataMixin:
 
 class ProxyConversionMixin:
     @classmethod
-    def convert_proxy(cls, proxy):
+    def convert_proxy(cls, proxy: ProxyAttribute):
         orm_attr = getattr(cls, proxy.attr, None)
         if (
             orm_attr is None
@@ -344,7 +345,7 @@ class CharacteristicModelLoader(InheritedModelLoader):
     model = Characteristic
     order_by = [Characteristic.type, Characteristic.name]
 
-    def convert_group_key(self, key):
+    def convert_group_key(self, key: CharacteristicTypes) -> str:
         return f"{key.value}s"
 
 
@@ -465,7 +466,7 @@ class CategoryModelLoader(InheritedModelLoader):
     model = Category
     order_by = [Category.type, Category.name]
 
-    def convert_group_key(self, key):
+    def convert_group_key(self, key: CharacteristicTypes) -> str:
         return f"{key.value}s"
 
 
@@ -771,7 +772,9 @@ class User(db.Model):
             db.session.commit()
         return valid
 
-    def get_contacts_for(self, contact_type):
+    def get_contacts_for(
+        self, contact_type: ContactTypes
+    ) -> orm.RelationshipProperty[Any] | None:
         if contact_type is ContactTypes.EMAIL:
             return self.emails
         elif contact_type is ContactTypes.PHONE:

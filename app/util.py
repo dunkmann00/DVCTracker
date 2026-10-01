@@ -2,10 +2,14 @@ from collections import namedtuple
 from datetime import timedelta
 from enum import Enum
 from itertools import groupby
+from typing import Any, Callable, Iterable, NamedTuple
 
 from . import db
 
-ProxyAttribute = namedtuple("ProxyAttribute", ["id", "attr"])
+
+class ProxyAttribute(NamedTuple):
+    id: str
+    attr: str
 
 
 class SpecialTypes(Enum):
@@ -16,7 +20,7 @@ class SpecialTypes(Enum):
     DISC_POINTS = "disc_points"
     PRECONFIRM = "preconfirm"
 
-    def __html__(self):  # For Jinja2/MarkupSafe
+    def __html__(self) -> str:  # For Jinja2/MarkupSafe
         return self.value
 
 
@@ -46,7 +50,7 @@ class InheritedModelLoader:
     model = None
     order_by = None
 
-    def __init__(self, model=None, order_by=None):
+    def __init__(self, model=None, order_by=None) -> None:
         if model is not None:
             self.model = model
 
@@ -66,10 +70,10 @@ class InheritedModelLoader:
                 msgs.append("Must provide a value for 'order_by'.")
             raise RuntimeError(" ".join(msgs))
 
-    def convert_group_key(self, key):
+    def convert_group_key(self, key: CharacteristicTypes) -> str:
         return f"{key}s"
 
-    def _load(self):
+    def _load(self) -> None:
         all_results = db.session.scalars(
             db.select(self.model).order_by(*self.order_by)
         )
@@ -113,7 +117,9 @@ def test_old_values(special, increase):
     return test_special
 
 
-def first_index_or_none(iterable, predicate):
+def first_index_or_none(
+    iterable: Iterable, predicate: Callable[[Any], int]
+) -> int | None:
     return next(
         (index for index, item in enumerate(iterable) if predicate(item)), None
     )

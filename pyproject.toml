@@ -35,6 +35,9 @@ line-length = 80
 [tool.ruff.lint]
 select = ["I", "FIX", "ANN", "ASYNC"]
 
+[tool.basedpyright]
+typeCheckingMode = "standard"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

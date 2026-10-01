@@ -2,11 +2,14 @@ import os
 import traceback
 from base64 import b64encode
 from datetime import date
+from pathlib import Path
 
 import click
 import sqlalchemy.exc
 from flask import Blueprint, current_app, g, json, render_template
 from flask.cli import with_appcontext
+
+from app.parsers.base_parser import BaseParser, ParsedSpecial
 
 from . import db, notifications
 from .criteria import ImportantCriteria
@@ -22,7 +25,7 @@ cli_bp = Blueprint("cli", __name__)
     help="Encode the AuthKey p8 file into base64 for storing as an environment variable."
 )
 @click.argument("auth_key_path")
-def encode_auth_key(auth_key_path):
+def encode_auth_key(auth_key_path: str) -> None:
     with open(auth_key_path, "rb") as f:
         auth_key_base64 = b64encode(f.read()).decode()
     print("Base64 Encoded AuthKey:")
@@ -39,7 +42,7 @@ def encode_auth_key(auth_key_path):
     confirmation_prompt=True,
 )
 @with_appcontext
-def make_new_user(username, password):
+def make_new_user(username: str, password: str) -> None:
     print(f"Making new user with username: {username}")
     user = User(username=username, password=password)
     db.session.add(user)
@@ -55,7 +58,7 @@ def make_new_user(username, password):
     help="Reset all specials' error attributes to false & overall health to true."
 )
 @with_appcontext
-def reset_errors():
+def reset_errors() -> None:
     db.session.execute(db.update(StoredSpecial).values(error=False))
     Status.default.healthy = True
     db.session.commit()
@@ -76,7 +79,7 @@ def reset_errors():
     ),
 )
 @with_appcontext
-def store_specials_data(name, extension):
+def store_specials_data(name: str, extension: str) -> None:
     for Parser in PARSERS:
         dvc_parser = Parser()
         if dvc_parser.source == name:
@@ -110,7 +113,7 @@ def store_specials_data(name, extension):
 )
 @click.option("-u", "--username")
 @click.option("-e", "--email-address", multiple=True)
-def send_test_email(username, email_address):
+def send_test_email(username: str, email_address: str) -> None:
     if username:
         user = db.session.scalar(
             db.select(User).filter_by(username=username).limit(1)
@@ -147,7 +150,9 @@ def send_test_email(username, email_address):
 @click.option("-u", "--username")
 @click.option("-p", "--phone-number", multiple=True)
 @click.option("-m", "--message")
-def send_test_text_message(username, phone_number, message):
+def send_test_text_message(
+    username: str, phone_number: str, message: str
+) -> None:
     if username:
         user = db.session.scalar(
             db.select(User).filter_by(username=username).limit(1)
@@ -174,7 +179,9 @@ def send_test_text_message(username, phone_number, message):
 @click.option("-t", "--push-token", multiple=True)
 @click.option("-m", "--message")
 @click.option("--message-id")
-def send_test_apn(username, push_token, message, message_id):
+def send_test_apn(
+    username: str, push_token: str, message: str, message_id: str
+) -> None:
     if username:
         user = db.session.scalar(
             db.select(User).filter_by(username=username).limit(1)
@@ -202,7 +209,7 @@ def send_test_apn(username, push_token, message, message_id):
     is_flag=True,
     help="Test the sending of an error report.",
 )
-def test_error(send_error_report):
+def test_error(send_error_report: bool) -> None:
     g.send_error_report = send_error_report
 
     specials: list[StoredSpecial] = db.session.scalars(  # pyright: ignore[reportAssignmentType]
@@ -214,7 +221,7 @@ def test_error(send_error_report):
         special.new_error = True
         special.error = True
 
-    new_specials: dict[str, dict[str, StoredSpecial]] = {
+    new_specials: dict[str, dict[str, ParsedSpecial]] = {
         "test": {special.special_id: special for special in specials}
     }  # pyright: ignore[reportAssignmentType]
 
@@ -249,11 +256,15 @@ def test_error(send_error_report):
     help="Produce an error report via email of all of the current errors.",
 )
 @with_appcontext
-def update_specials_cli(local_specials, send_email, send_error_report):
+def update_specials_cli(
+    local_specials: list[Path], send_email: bool, send_error_report: bool
+) -> None:
     update_specials(local_specials, send_email, send_error_report)
 
 
-def update_specials(local_specials, send_email, send_error_report):
+def update_specials(
+    local_specials: list[Path], send_email: bool, send_error_report: bool
+) -> None:
     g.send_error_report = send_error_report
     try:
         # Get the current specials from either the Internet or a local file
@@ -276,7 +287,7 @@ def update_specials(local_specials, send_email, send_error_report):
             parser_healthy(parser_source)
 
             # Get the stored specials from the db
-            stored_specials = db.session.scalars(
+            stored_specials: list[StoredSpecial] = db.session.scalars(  # pyright: ignore[reportAssignmentType]
                 db.select(StoredSpecial)
                 .filter_by(source=parser_source)
                 .order_by(StoredSpecial.check_in, StoredSpecial.check_out)
@@ -366,7 +377,9 @@ def update_specials(local_specials, send_email, send_error_report):
     db.session.commit()
 
 
-def get_current_specials(local_specials):
+def get_current_specials(
+    local_specials: list[Path],
+) -> dict[str, dict[str, ParsedSpecial]]:
     all_new_specials = {}
     for Parser in PARSERS:
         dvc_parser = Parser()
@@ -376,7 +389,10 @@ def get_current_specials(local_specials):
     return all_new_specials
 
 
-def get_send_specials_list(specials, important_criteria):
+def get_send_specials_list(
+    specials: list[StoredSpecial],
+    important_criteria: ImportantCriteria,
+) -> list[tuple[StoredSpecial, bool]]:
     is_important_special = important_criteria  # Doing this just so the name makes more sense given that it is called
     if important_criteria.important_only:
         return [
@@ -390,14 +406,16 @@ def get_send_specials_list(specials, important_criteria):
         ]
 
 
-def contains_important(send_tuple):
+def contains_important(send_tuple: list[tuple[StoredSpecial, bool]]) -> bool:
     importants = [
         element[1] for element in send_tuple
     ]  # Tested this a few different ways and for small lists this is fastest (and simplest)
     return True in importants
 
 
-def store_new_specials(new_specials, stored_specials):
+def store_new_specials(
+    new_specials: dict[str, ParsedSpecial], stored_specials: list[StoredSpecial]
+) -> list[StoredSpecial]:
     new_specials_list = []
     for new_special_key in new_specials:
         special_entry = add_special(new_specials[new_special_key])
@@ -416,7 +434,9 @@ def store_new_specials(new_specials, stored_specials):
     return new_specials_list
 
 
-def update_old_specials(updated_specials_tuple):
+def update_old_specials(
+    updated_specials_tuple: list[tuple[ParsedSpecial, StoredSpecial]],
+) -> list[StoredSpecial]:
     updated_specials_list = []
     for special_tuple in updated_specials_tuple:
         parsed_special, stored_special = special_tuple
@@ -426,7 +446,9 @@ def update_old_specials(updated_specials_tuple):
     return updated_specials_list
 
 
-def remove_old_specials(removed_specials):
+def remove_old_specials(
+    removed_specials: list[StoredSpecial],
+) -> list[StoredSpecial]:
     removed_specials_list = []
     for stored_special in removed_specials:
         remove_special(stored_special)
@@ -435,7 +457,9 @@ def remove_old_specials(removed_specials):
     return removed_specials_list
 
 
-def check_for_changes(new_specials, stored_specials):
+def check_for_changes(
+    new_specials: dict[str, ParsedSpecial], stored_specials: list[StoredSpecial]
+) -> tuple[list[tuple[ParsedSpecial, StoredSpecial]], list[StoredSpecial]]:
     updated_specials_tuple = []
     removed_specials_list = []
     for stored_special in stored_specials:
@@ -450,17 +474,20 @@ def check_for_changes(new_specials, stored_specials):
     return updated_specials_tuple, removed_specials_list
 
 
-def add_special(parsed_special):
+def add_special(parsed_special: ParsedSpecial) -> StoredSpecial:
     special_entry = StoredSpecial.from_parsed_special(parsed_special)
     db.session.add(special_entry)
     return special_entry
 
 
-def remove_special(stored_special):
+def remove_special(stored_special: StoredSpecial) -> None:
     db.session.delete(stored_special)
 
 
-def handle_errors(new_specials, stored_specials):
+def handle_errors(
+    new_specials: dict[str, dict[str, ParsedSpecial]],
+    stored_specials: list[StoredSpecial],
+) -> None:
     new_specials_flat = {}
     for key in new_specials:
         new_specials_flat.update(new_specials[key])
@@ -528,7 +555,7 @@ def handle_errors(new_specials, stored_specials):
                 )
 
 
-def empty_parser_error(parser_source):
+def empty_parser_error(parser_source: str) -> bool:
     parser_status = get_parser_status(parser_source)
     if parser_status.healthy and not parser_status.empty_okay:
         parser_status.healthy = False
@@ -548,12 +575,12 @@ def empty_parser_error(parser_source):
     return parser_status.empty_okay
 
 
-def parser_healthy(parser_source):
+def parser_healthy(parser_source: str) -> None:
     parser_status = get_parser_status(parser_source)
     parser_status.healthy = True
 
 
-def get_parser_status(parser_source):
+def get_parser_status(parser_source: str) -> ParserStatus:
     parser_status = db.session.scalar(
         db.select(ParserStatus).filter_by(parser_source=parser_source).limit(1)
     )
@@ -563,7 +590,7 @@ def get_parser_status(parser_source):
     return parser_status
 
 
-def unhandled_error(error):
+def unhandled_error(error: Exception) -> None:
     traceback.print_exc()
     db.session.rollback()
     if Status.default.healthy or g.send_error_report:
@@ -601,7 +628,7 @@ def unhandled_error(error):
 
 
 # From traceback.py in CPython Line #563
-def error_type(error):
+def error_type(error: Exception) -> str:
     err_type = type(error).__qualname__
     err_mod = type(error).__module__
     if err_mod not in ("__main__", "builtins"):
@@ -609,7 +636,10 @@ def error_type(error):
     return err_type
 
 
-def local_special_for_parser(parser, local_specials):
+def local_special_for_parser(
+    parser: BaseParser,
+    local_specials: list[Path],
+) -> Path | None:
     for local_special in local_specials:
         if (
             parser.source

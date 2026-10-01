@@ -1,9 +1,14 @@
 import hashlib
 import random
 import time
+from datetime import date
 from functools import wraps
+from pathlib import Path
+from typing import Any, Callable
 
 import requests
+
+from app.util import ProxyAttribute, SpecialTypes
 
 from ..errors import SpecialError
 
@@ -11,22 +16,22 @@ from ..errors import SpecialError
 class BaseParser(object):
     def __init__(
         self,
-        source,
-        source_name,
-        site_url,
-        data_url=None,
-        headers=None,
-        params=None,
-    ):
+        source: str,
+        source_name: str,
+        site_url: str,
+        data_url: str | None = None,
+        headers: dict[str, str] | None = None,
+        params: dict[str, str] | None = None,
+    ) -> None:
         self.source = source
         self.source_name = source_name
         self.site_url = site_url
         self.data_url = data_url
         self.headers = headers
         self.params = params
-        self.current_error = None
+        self.current_error: SpecialError | None = None
 
-    def new_parsed_special(self):
+    def new_parsed_special(self) -> "ParsedSpecial":
         """
         Creates a ParsedSpecial object with the source and url attributes set
         to the values of the parser.
@@ -35,7 +40,9 @@ class BaseParser(object):
             source=self.source, source_name=self.source_name, url=self.site_url
         )
 
-    def get_all_specials(self, local_specials=None):
+    def get_all_specials(
+        self, local_specials: Path | None = None
+    ) -> dict[str, "ParsedSpecial"]:
         """
         Gets all current specials from either the 'self.url' or the file that
         is passed into 'local_specials'. Using a html file with specials can be
@@ -57,7 +64,7 @@ class BaseParser(object):
 
         return specials_dict
 
-    def get_specials_page(self):
+    def get_specials_page(self) -> str | None:
         """
         This retrieves the content from the webpage located at 'self.url'. A
         User-Agent is set because some sites might not respond to 'requests'.
@@ -68,6 +75,7 @@ class BaseParser(object):
         https://aws.amazon.com/blogs/architecture/exponential-backoff-and-jitter/
         """
         retries = 0
+        dvc_page = None
         print(f"Retrieving Specials from {self.source}")
         while retries < 5:
             if retries > 0:
@@ -81,18 +89,18 @@ class BaseParser(object):
                 retries += 1
             else:
                 break
-        return dvc_page.text
+        return dvc_page.text if dvc_page is not None else None
 
-    def get_local_specials_page(self, filename):
+    def get_local_specials_page(self, filename: Path) -> str:
         """
         This retrieves the content from a file that is located on the filesystem.
-        The data is returned as bytes.
+        The data is returned as a str.
         """
         print(f"Retrieving specials locally from file '{filename}'")
-        with open(filename, "rb") as f:
+        with open(filename, "r") as f:
             return f.read()
 
-    def pop_current_error(self):
+    def pop_current_error(self) -> SpecialError | None:
         """
         Returns 'self.current_error' and sets it to None. This is useful so the
         error can be attached to the ParsedSpecial object that it occured on,
@@ -103,7 +111,9 @@ class BaseParser(object):
         self.current_error = None
         return current_error
 
-    def process_specials_content(self, specials_content):
+    def process_specials_content(
+        self, specials_content: str
+    ) -> dict[str, "ParsedSpecial"]:
         raise NotImplementedError(
             "Subclasses must override process_specials_content()!"
         )
@@ -124,22 +134,22 @@ class ParsedSpecial(object):
                       'error' attribute.
     """
 
-    def __init__(self, **kwargs):
-        self.reservation_id = kwargs.pop("reservation_id", None)
-        self.source = kwargs.pop("source", None)
-        self.source_name = kwargs.pop("source_name", None)
-        self.url = kwargs.pop("url", None)
-        self.type = kwargs.pop("type", None)
-        self.points = kwargs.pop("points", None)
-        self.price = kwargs.pop("price", None)
-        self.check_in = kwargs.pop("check_in", None)
-        self.check_out = kwargs.pop("check_out", None)
-        self.resort = kwargs.pop("resort", None)
-        self.room = kwargs.pop("room", None)
-        self.view = kwargs.pop("view", None)
-        self.raw_string = kwargs.pop("raw_string", None)
-        self.errors = []
-        self._special_id = None
+    def __init__(self, **kwargs: Any) -> None:  # noqa: ANN401
+        self.reservation_id: str | None = kwargs.pop("reservation_id", None)
+        self.source: str | None = kwargs.pop("source", None)
+        self.source_name: str | None = kwargs.pop("source_name", None)
+        self.url: str | None = kwargs.pop("url", None)
+        self.type: SpecialTypes | None = kwargs.pop("type", None)
+        self.points: int | None = kwargs.pop("points", None)
+        self.price: int | None = kwargs.pop("price", None)
+        self.check_in: date | None = kwargs.pop("check_in", None)
+        self.check_out: date | None = kwargs.pop("check_out", None)
+        self.resort: ProxyAttribute | None = kwargs.pop("resort", None)
+        self.room: ProxyAttribute | None = kwargs.pop("room", None)
+        self.view: ProxyAttribute | None = kwargs.pop("view", None)
+        self.raw_string: str | None = kwargs.pop("raw_string", None)
+        self.errors: list[SpecialError] = []
+        self._special_id: str | None = None
 
         if len(kwargs) > 0:
             raise TypeError(
@@ -147,26 +157,31 @@ class ParsedSpecial(object):
             )
 
     @property
-    def special_id(self):
+    def special_id(self) -> str:
         if self._special_id is not None:
             return self._special_id
+        if self.raw_string is None:
+            raise RuntimeError(
+                "Could not get 'special_id'. The special must have a value in "
+                "'raw_string' to compute special_id."
+            )
         m = hashlib.sha256()
         m.update(self.raw_string.encode())
         return m.hexdigest()
 
     @special_id.setter
-    def special_id(self, value):
+    def special_id(self, value: str) -> None:
         self._special_id = value
 
     @property
-    def error(self):
+    def error(self) -> bool:
         return len(self.errors) > 0
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Parsed Special: {self.special_id}>"
 
 
-def special_error(f):
+def special_error(f: Callable[..., Any]) -> Callable[..., Any]:
     """
     Decorator used when calling a BaseParser subclass method that tries to parse an
     attribute from raw text. Either returns the result successfully or None if there
@@ -175,7 +190,11 @@ def special_error(f):
     """
 
     @wraps(f)
-    def decorated_function(parser, *args, **kwargs):
+    def decorated_function(
+        parser: BaseParser,
+        *args: Any,  # noqa: ANN401
+        **kwargs: Any,  # noqa: ANN401
+    ) -> Any:  # noqa: ANN401
         try:
             return f(parser, *args, **kwargs)
         except SpecialError as e:
