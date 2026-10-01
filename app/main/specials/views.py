@@ -10,7 +10,7 @@ from . import specials
 
 @specials.route("")
 @auth.login_required
-def current_specials():
+def current_specials() -> str:
     specials = db.session.scalars(
         db.select(Special).order_by(Special.check_in, Special.check_out)
     )
@@ -26,7 +26,7 @@ def current_specials():
 
 @specials.route("/important")
 @auth.login_required
-def current_important_specials():
+def current_important_specials() -> str:
     specials = db.session.scalars(
         db.select(Special).order_by(Special.check_in, Special.check_out)
     )
@@ -42,7 +42,7 @@ def current_important_specials():
 
 @specials.route("/errors")
 @auth.login_required
-def current_error_specials():
+def current_error_specials() -> str:
     specials = db.session.scalars(
         db.select(Special)
         .filter_by(error=True)
@@ -60,7 +60,7 @@ def current_error_specials():
 
 @specials.route("/test")
 @auth.login_required
-def test_specials():
+def test_specials() -> str:
     specials = db.session.scalars(db.select(Special).limit(3)).all()
     up_special = specials[1]
     down_special = specials[2]

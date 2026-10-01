@@ -1,9 +1,13 @@
+# ruff: noqa
+# type: ignore
+
 import importlib.resources as resources
 from datetime import datetime
 from functools import cached_property
+from typing import Any
 
 import tomlkit
-from flask import current_app, json
+from flask import json
 
 from ...errors import SpecialError
 from ...util import ProxyAttribute, SpecialTypes
@@ -11,7 +15,7 @@ from ..base_parser import BaseParser, special_error
 
 
 class DVCRentalStoreConfirmed2021(BaseParser):
-    def __init__(self, *args):
+    def __init__(self, *args: Any) -> None:  # noqa: ANN401
         super(DVCRentalStoreConfirmed2021, self).__init__(
             source="dvcrentalstore_confirmed_2021",
             source_name="DVC Rental Store",

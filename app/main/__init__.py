@@ -1,6 +1,8 @@
 import locale
 import sys
 from datetime import datetime
+from decimal import Decimal
+from typing import Any
 from urllib.parse import quote as url_quote
 
 from dateutil import tz
@@ -22,7 +24,9 @@ locale.setlocale(locale.LC_ALL, "")
 
 
 @main.app_template_filter()
-def datetimeformat(value, format="%-m/%-d/%Y"):
+def datetimeformat(
+    value: datetime | None, format: str = "%-m/%-d/%Y"
+) -> str | None:
     if not value:  # using 'not' rather than 'is None' so that when a Jinja2
         return value  # Undefined value is passed in we will also exit
     if sys.platform == "win32":
@@ -31,22 +35,22 @@ def datetimeformat(value, format="%-m/%-d/%Y"):
 
 
 @main.app_template_filter()
-def convert_from_utc(value, tzinfo=None):
+def convert_from_utc(value: datetime, tzinfo: str | None = None) -> datetime:
     utc_value = value.replace(tzinfo=tz.tzutc())
     return utc_value.astimezone(tz.gettz(tzinfo or current_app.config["TZ"]))
 
 
 @main.app_template_filter()
-def currencyformat(value):
-    return locale.currency(value, grouping=True) if value else value
+def currencyformat(value: float | Decimal) -> str | None:
+    return locale.currency(value, grouping=True) if value is not None else value
 
 
 @main.app_template_filter()
-def nullable(value):
+def nullable(value: Any | None) -> Any:  # noqa: ANN401
     return value if value is not None and not is_undefined(value) else "??"
 
 
-def static_url(filename, _anchor=None, **kwargs):
+def static_url(filename: str, _anchor: str | None = None, **kwargs: Any) -> str:  # noqa: ANN401
     use_static_server = (
         current_app.config["ALWAYS_STATIC_SERVER"] or not has_request_context()
     )
@@ -78,7 +82,7 @@ def static_url(filename, _anchor=None, **kwargs):
 
 
 @main.app_context_processor
-def my_utility_processor():
+def my_utility_processor() -> dict[str, Any]:
     return dict(
         status=Status.default, SpecialTypes=SpecialTypes, static_url=static_url
     )

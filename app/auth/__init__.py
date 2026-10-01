@@ -6,7 +6,7 @@ auth = HTTPBasicAuth()
 
 
 @auth.verify_password
-def verify_password(username, password):
+def verify_password(username: str, password: str) -> User | None:
     if username == "" or password == "":
         return None
     user = db.session.scalar(

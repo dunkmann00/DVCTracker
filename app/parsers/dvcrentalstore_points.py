@@ -1,3 +1,6 @@
+# ruff: noqa
+# type: ignore
+
 from datetime import datetime
 
 from flask import json

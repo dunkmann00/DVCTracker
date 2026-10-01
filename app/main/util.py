@@ -7,7 +7,7 @@ from ..models import Category
 from ..util import ContactTypes
 
 
-def get_important_special():
+def get_important_special() -> ImportantCriteria:
     if "is_important_special" not in g:
         user = auth.current_user()
         important_criteria = (
@@ -28,7 +28,7 @@ class CategoryChoices:
 
     def __init__(
         self, categories, none_id=None, sort_key=None, reverse_sort=None
-    ):
+    ) -> None:
         self.categories = categories
 
         if none_id is not None:
@@ -119,8 +119,13 @@ class ViewChoices(CategoryChoices):
         return category.views
 
 
-def get_template_for_type(contact_type):
+def get_template_for_type(contact_type: ContactTypes) -> str:
     if contact_type is ContactTypes.EMAIL:
         return "user/user_email_list.html"
     elif contact_type is ContactTypes.PHONE:
         return "user/user_phone_list.html"
+    else:
+        raise RuntimeError(
+            f"contact_type = {contact_type.name}\n"
+            "This should only be either 'EMAIL' or 'PHONE'"
+        )
