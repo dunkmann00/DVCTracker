@@ -1,4 +1,8 @@
+from typing import Any, Callable
+
 import phonenumbers
+from flask_wtf import Form
+from wtforms.fields import Field
 from wtforms.validators import StopValidation, ValidationError
 
 
@@ -6,7 +10,12 @@ class RequiredWhen:
     # a validator which makes a field required when
     # a supplied function returns True
 
-    def __init__(self, check_func, strip_whitespace=True, message=None):
+    def __init__(
+        self,
+        check_func: Callable[[Field, Form], bool],
+        strip_whitespace: bool = True,
+        message: str | None = None,
+    ) -> None:
         self.check_func = check_func
         self.message = message
         if strip_whitespace:
@@ -16,7 +25,7 @@ class RequiredWhen:
 
         self.field_flags = {"optional": True}
 
-    def __call__(self, form, field):
+    def __call__(self, form: Form, field: Field) -> None:
         if self.check_func(field, form):
             setattr(field.flags, "required", True)
 
@@ -29,7 +38,7 @@ class RequiredWhen:
             else:
                 message = self.message
 
-            field.errors[:] = []
+            field.errors[:] = []  # pyright: ignore[reportIndexIssue]
             raise StopValidation(message)
         else:
             # This is from Optional
@@ -38,7 +47,7 @@ class RequiredWhen:
                 or isinstance(field.raw_data[0], str)
                 and not self.string_check(field.raw_data[0])
             ):
-                field.errors[:] = []
+                field.errors[:] = []  # pyright: ignore[reportIndexIssue]
                 raise StopValidation()
 
 
@@ -46,11 +55,16 @@ class RequiredIf(RequiredWhen):
     # a validator which makes a field required if
     # another field is set and has a truthy value
 
-    def __init__(self, other_field_name, *args, **kwargs):
+    def __init__(
+        self,
+        other_field_name: str,
+        *args: Any,  # noqa: ANN401
+        **kwargs: Any,  # noqa: ANN401
+    ) -> None:
         self.other_field_name = other_field_name
         super(RequiredIf, self).__init__(self.check_func, *args, **kwargs)
 
-    def check_func(self, field, form):
+    def check_func(self, field: Field, form: Form) -> bool:
         other_field = form._fields.get(self.other_field_name)
         if other_field is None:
             raise Exception(
@@ -86,13 +100,13 @@ class Tel:
 
     def __init__(
         self,
-        region=None,
-        message=None,
-        granular_message=False,
-        allow_local=False,
-        onlyRegions=[],
-        excludeRegions=[],
-    ):
+        region: str | None = None,
+        message: str | None = None,
+        granular_message: bool = False,
+        allow_local: bool = False,
+        onlyRegions: list[str] = [],
+        excludeRegions: list[str] = [],
+    ) -> None:
         if phonenumbers is None:  # pragma: no cover
             raise Exception(
                 "Install 'phonenumbers' for telephone number validation support."
@@ -104,7 +118,7 @@ class Tel:
         self.onlyRegions = set(onlyRegions)
         self.excludeRegions = set(excludeRegions)
 
-    def __call__(self, form, field):
+    def __call__(self, form: Form, field: Field) -> None:
         try:
             phone_number = phonenumbers.parse(field.data, self.region)
             if self.allow_local:

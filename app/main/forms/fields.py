@@ -1,6 +1,6 @@
 from collections.abc import Generator
 from itertools import chain
-from typing import Any
+from typing import Any, Iterable
 
 import email_validator
 import phonenumbers
@@ -22,11 +22,16 @@ class MultiCheckboxField(wtforms.SelectMultipleField):
     widget = wtforms.widgets.ListWidget(prefix_label=False)
     option_widget = wtforms.widgets.CheckboxInput()
 
-    def __iter__(self):
+    def __iter__(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self,
+    ) -> (
+        Generator[tuple[str, wtforms.SelectFieldBase._Option], None, None]
+        | Generator[wtforms.SelectFieldBase._Option, None, None]
+    ):
         if self.has_groups():
             counter = self._make_counter()
             for group, choices in self.iter_groups():
-                yield group, self._make_options(choices, counter)
+                yield group, self._make_options(choices, counter)  # pyright: ignore[reportReturnType]
         else:
             yield from self._make_options(self.iter_choices())
 
@@ -34,36 +39,51 @@ class MultiCheckboxField(wtforms.SelectMultipleField):
         return (
             self.choices is not None
             and len(self.choices) > 0
-            and isinstance(self.choices[0], dict)
+            and isinstance(self.choices[0], dict)  # pyright: ignore[reportArgumentType]
         )
 
-    def iter_groups(self) -> Generator[tuple[str, tuple[str, str]], None, None]:
+    def iter_groups(  # pyright: ignore[reportIncompatibleMethodOverride]
+        self,
+    ) -> Generator[
+        tuple[str, list[tuple[str, str, bool, dict[str, Any]]]], None, None
+    ]:
         if self.choices is None:
             return
 
         for choices_dict in self.choices:
-            group: str = choices_dict.get("group")
-            choices: tuple[str, str] = choices_dict.get("options")
-            yield (group, self._choices_generator(choices))
+            group: str = choices_dict.get("group")  # pyright: ignore[reportAttributeAccessIssue]
+            choices: list[tuple[str, str]] = choices_dict.get("options")  # pyright: ignore[reportAttributeAccessIssue]
+            yield (group, self._choices_generator(choices))  # pyright: ignore[reportAttributeAccessIssue]
 
-    def iter_choices(self):
+    def iter_choices(
+        self,
+    ) -> Generator[tuple[str, str, bool, dict[str, Any]], None, None]:
         if self.has_groups():
-            choices = list(
+            choices: list[tuple[str, str]] = list(
                 chain.from_iterable(
-                    map(lambda x: x.get("options"), self.choices)
+                    map(lambda x: x.get("options"), self.choices)  # pyright: ignore[reportArgumentType, reportAttributeAccessIssue]
                 )
             )
-            return self._choices_generator(choices)
-        return super().iter_choices()
+            return self._choices_generator(choices)  # pyright: ignore[reportAttributeAccessIssue]
+        return super().iter_choices()  # pyright: ignore[reportReturnType]
 
-    def _make_option(self, choice, index: int, opts: dict[str, Any]):
+    def _make_option(
+        self,
+        choice: tuple[str, str, bool, dict[str, Any]],
+        index: int,
+        opts: dict[str, Any],
+    ) -> wtforms.SelectFieldBase._Option:
         value, label, checked, _ = choice
         opt = self._Option(label=label, id="%s-%d" % (self.id, index), **opts)
         opt.process(None, value)
         opt.checked = checked
         return opt
 
-    def _make_options(self, choices, counter=None):
+    def _make_options(
+        self,
+        choices: Iterable[tuple[str, str, bool, dict[str, Any]]],
+        counter: Generator[int, None, None] | None = None,
+    ) -> Generator[wtforms.SelectFieldBase._Option, None, None]:
         if counter is None:
             counter = self._make_counter()
         opts = dict(

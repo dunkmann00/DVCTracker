@@ -1,9 +1,11 @@
 from collections import namedtuple
+from typing import Any, Self, Sequence
 
 from flask_wtf import FlaskForm, Form
 from wtforms import (
     BooleanField,
     DateField,
+    Field,
     FieldList,
     FormField,
     IntegerField,
@@ -42,9 +44,10 @@ class ImportantCriteriaForm(Form):
         "Check In",
         [
             RequiredWhen(
-                lambda field, form: form.special_type.data
-                == SpecialTypes.PRECONFIRM
-                and bool(form.check_out_date.data),
+                lambda field, form: (
+                    form.special_type.data == SpecialTypes.PRECONFIRM  # pyright: ignore[reportAttributeAccessIssue]
+                    and bool(form.check_out_date.data)  # pyright: ignore[reportAttributeAccessIssue]
+                ),
                 message="This field is required when setting a Check Out date for a Preconfirmed Reservation.",
             )
         ],
@@ -86,7 +89,7 @@ class ImportantCriteriaForm(Form):
     views = MultiCheckboxField("Views", [Optional()])
 
     @property
-    def date(self):
+    def date(self) -> FieldTuple:
         date = {}
         if self.check_out_date.data:
             date["end"] = self.check_out_date.data
@@ -95,7 +98,9 @@ class ImportantCriteriaForm(Form):
         return FieldTuple(data=date)
 
     @staticmethod
-    def fix_for_init_data(json, type):
+    def fix_for_init_data(
+        json: dict[str, Any], type: str | SpecialTypes
+    ) -> dict[str, Any]:
         json_obj = json.copy()
         json_obj["special_type"] = type
         check_in_date = json_obj.get("date", {}).get("start")
@@ -106,7 +111,7 @@ class ImportantCriteriaForm(Form):
             json_obj["check_out_date"] = check_out_date
         return json_obj
 
-    def to_json(self):
+    def to_json(self) -> dict[str, Any]:
         criteria = {}
 
         for key in ImportantCriteria.valid_criteria_for_type(
@@ -118,7 +123,7 @@ class ImportantCriteriaForm(Form):
         return criteria
 
 
-def coerce_bool(value):
+def coerce_bool(value: str | bool) -> bool:
     return value in ["True", "true", True]
 
 
@@ -134,14 +139,15 @@ class ImportantCriteriaListForm(FlaskForm):
     )
 
     @classmethod
-    def from_json(cls, json):
+    def from_json(cls, json: dict[str | SpecialTypes, Any]) -> Self:
         criteria_list = []
         important_only = False
         if json:
             json_obj = json.copy()
             important_only = json_obj.pop("important_only", False)
             for key, value in sorted(
-                json_obj.items(), key=lambda x: x[0].value
+                json_obj.items(),
+                key=lambda x: x[0].value,  # pyright: ignore[reportAttributeAccessIssue]
             ):
                 for criteria_json in value:
                     criteria_json_fix = ImportantCriteriaForm.fix_for_init_data(
@@ -156,7 +162,7 @@ class ImportantCriteriaListForm(FlaskForm):
         )
         return criteria_list_form
 
-    def to_json(self):
+    def to_json(self) -> dict[str, Any]:
         preconfirm = []
         disc_points = []
         for criteria in self.important_criteria:
@@ -180,7 +186,7 @@ class ContactForm(FlaskForm):
         "Contact ID",
         [
             RequiredWhen(
-                lambda _, form: not form.new_contact,
+                lambda _, form: not form.new_contact,  # pyright: ignore[reportAttributeAccessIssue]
                 message="Missing contact id.",
             )
         ],
@@ -190,13 +196,13 @@ class ContactForm(FlaskForm):
     contact_type = None
     new_contact = False
 
-    def to_json(self):
+    def to_json(self) -> dict[str, Any]:
         return {
             "contact_id": self.contact_id.data,
             "get_errors": self.get_errors.data,
         }
 
-    def validate_contact_id(self, field):
+    def validate_contact_id(self, field: HiddenIntegerField) -> None:
         if not self.new_contact:
             user = auth.current_user()
             if not user.is_valid_contact_id(field.data, self.contact_type):
@@ -205,7 +211,7 @@ class ContactForm(FlaskForm):
                 )
 
     @property
-    def flat_errors(self):
+    def flat_errors(self) -> list[str]:
         errors = [error for errors in self.errors.values() for error in errors]
         return errors
 
@@ -221,7 +227,7 @@ class EmailForm(ContactForm):
 
     contact_type = ContactTypes.EMAIL
 
-    def to_json(self):
+    def to_json(self) -> dict[str, Any]:
         json = super().to_json()
         json["email_address"] = (
             self.email_address.normalized_data
@@ -230,7 +236,7 @@ class EmailForm(ContactForm):
         )
         return json
 
-    def validate_email_address(self, field):
+    def validate_email_address(self, field: EmailField) -> None:
         if self.new_contact:
             user = auth.current_user()
             if not user.is_new_contact(
@@ -254,7 +260,7 @@ class PhoneForm(ContactForm):
 
     contact_type = ContactTypes.PHONE
 
-    def to_json(self):
+    def to_json(self) -> dict[str, Any]:
         json = super().to_json()
         json["phone_number"] = (
             self.phone_number.normalized_data
@@ -263,7 +269,7 @@ class PhoneForm(ContactForm):
         )
         return json
 
-    def validate_phone_number(self, field):
+    def validate_phone_number(self, field: TelField) -> None:
         if self.new_contact:
             user = auth.current_user()
             if not user.is_new_contact(
@@ -277,13 +283,17 @@ class ContactListForm(Form):
     phone_forms = FieldList(FormField(PhoneForm))
 
     @classmethod
-    def new_with_type(cls, contact_type, form_data):
+    def new_with_type(
+        cls, contact_type: ContactTypes, form_data: object
+    ) -> Self:
         if contact_type is ContactTypes.EMAIL:
             return cls(email_forms=form_data)
         elif contact_type is ContactTypes.PHONE:
             return cls(phone_forms=form_data)
+        else:
+            raise RuntimeError(f"Invalid contact_type: {contact_type.name}")
 
-    def get_first_form(self, contact_type):
+    def get_first_form(self, contact_type: ContactTypes) -> ContactForm:
         if contact_type is None:
             raise ValueError("'contact_type' must not be 'None'")
         contact_forms = (
