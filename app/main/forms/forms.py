@@ -205,7 +205,9 @@ class ContactForm(FlaskForm):
     def validate_contact_id(self, field: HiddenIntegerField) -> None:
         if not self.new_contact:
             user = auth.current_user()
-            if not user.is_valid_contact_id(field.data, self.contact_type):
+            if user is None or not user.is_valid_contact_id(
+                field.data, self.contact_type
+            ):
                 raise ValidationError(
                     "There was a problem removing this contact. Please try again later."
                 )
@@ -239,7 +241,7 @@ class EmailForm(ContactForm):
     def validate_email_address(self, field: EmailField) -> None:
         if self.new_contact:
             user = auth.current_user()
-            if not user.is_new_contact(
+            if user is None or not user.is_new_contact(
                 field.normalized_data, self.contact_type
             ):
                 raise ValidationError("Email address has already been added.")
@@ -272,7 +274,7 @@ class PhoneForm(ContactForm):
     def validate_phone_number(self, field: TelField) -> None:
         if self.new_contact:
             user = auth.current_user()
-            if not user.is_new_contact(
+            if user is None or not user.is_new_contact(
                 field.normalized_data, self.contact_type
             ):
                 raise ValidationError("Phone number has already been added.")

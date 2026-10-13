@@ -2,7 +2,7 @@ from collections import namedtuple
 from datetime import timedelta
 from enum import Enum
 from itertools import groupby
-from typing import Any, Callable, Iterable, NamedTuple
+from typing import Any, Callable, Iterable, NamedTuple, cast
 
 from . import db
 
@@ -50,7 +50,9 @@ class InheritedModelLoader:
     model = None
     order_by = None
 
-    def __init__(self, model=None, order_by=None) -> None:
+    def __init__(
+        self, model: object | None = None, order_by: list[Any] | None = None
+    ) -> None:
         if model is not None:
             self.model = model
 
@@ -74,6 +76,9 @@ class InheritedModelLoader:
         return f"{key}s"
 
     def _load(self) -> None:
+        if self.order_by is None:
+            return
+
         all_results = db.session.scalars(
             db.select(self.model).order_by(*self.order_by)
         )
@@ -84,41 +89,43 @@ class InheritedModelLoader:
             setattr(self, self.convert_group_key(key), results)
 
 
-def test_old_values(special, increase):
+def test_old_values(special: Any, increase: bool) -> Any:  # noqa: ANN401
     # This avoids having to import StoredSpecial, which causes a CircularImport Error
     # Since this is just for testing I don't think this is a big deal
-    Special = type(special)
+    from app.models import StoredSpecial
+
+    stored_special = cast(StoredSpecial, special)
 
     resort_proxy = ProxyAttribute("resort_ccv", "resort")
     room_proxy = ProxyAttribute("room_two", "room")
     view_proxy = ProxyAttribute("view_standard", "view")
 
-    test_special = Special(
-        resort=Special.convert_proxy(resort_proxy),
-        room=Special.convert_proxy(room_proxy),
-        view=Special.convert_proxy(view_proxy),
+    test_special = StoredSpecial(
+        resort=StoredSpecial.convert_proxy(resort_proxy),
+        room=StoredSpecial.convert_proxy(room_proxy),
+        view=StoredSpecial.convert_proxy(view_proxy),
     )
 
-    if special.check_in:
-        test_special.check_in = special.check_in - timedelta(1)
-    if special.check_out:
-        test_special.check_out = special.check_out + timedelta(1)
+    if stored_special.check_in:
+        test_special.check_in = stored_special.check_in - timedelta(1)
+    if stored_special.check_out:
+        test_special.check_out = stored_special.check_out + timedelta(1)
 
-    test_special.reservation_id = 98765
+    test_special.reservation_id = "98765"
 
-    if special.price:
+    if stored_special.price:
         price_change = -500 if increase else 500
-        test_special.price = special.price + price_change
-    if special.points:
-        test_special.points = special.points
+        test_special.price = stored_special.price + price_change
+    if stored_special.points:
+        test_special.points = stored_special.points
 
-    test_special.update_with_special(special)
+    test_special.update_with_special(stored_special)
 
     return test_special
 
 
 def first_index_or_none(
-    iterable: Iterable, predicate: Callable[[Any], int]
+    iterable: Iterable[Any], predicate: Callable[[Any], int]
 ) -> int | None:
     return next(
         (index for index, item in enumerate(iterable) if predicate(item)), None

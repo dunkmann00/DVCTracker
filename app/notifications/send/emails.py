@@ -1,8 +1,10 @@
+from typing import Iterable, Sequence
+
 import requests
 from flask import current_app
 from premailer import Premailer
 
-from ...models import Email, db
+from ...models import Email, User, db
 from .util import NotificationResponse, log_response
 
 inliner = Premailer(
@@ -13,7 +15,12 @@ inliner = Premailer(
 )
 
 
-def send_email(subject, email_message, email_addresses, html_message=True):
+def send_email(
+    subject: str,
+    email_message: str,
+    email_addresses: Iterable[str],
+    html_message: bool = True,
+) -> NotificationResponse:
     if current_app.config["MAILGUN_API_KEY"] is None:
         print("No MAILGUN API Key, not sending email.")
         return NotificationResponse(success=True)
@@ -47,7 +54,7 @@ def send_email(subject, email_message, email_addresses, html_message=True):
 
 
 @log_response("Mailgun", "Update Message Complete", True)
-def send_update_email(email_message, user):
+def send_update_email(email_message: str, user: User) -> NotificationResponse:
     email_addresses = [email.email_address for email in user.emails]
     if len(email_addresses) == 0:
         print(
@@ -58,7 +65,11 @@ def send_update_email(email_message, user):
 
 
 @log_response("Mailgun", "Error Message Complete")
-def send_error_email(email_message, email_addresses, html_message=True):
+def send_error_email(
+    email_message: str,
+    email_addresses: Sequence[str],
+    html_message: bool = True,
+) -> NotificationResponse:
     if len(email_addresses) == 0:
         print(
             f"No email addresses requested error messages. Not sending error email."
@@ -70,7 +81,11 @@ def send_error_email(email_message, email_addresses, html_message=True):
 
 
 @log_response("Mailgun", "Error Report Complete")
-def send_error_report_email(email_message, email_addresses, html_message=True):
+def send_error_report_email(
+    email_message: str,
+    email_addresses: Sequence[str],
+    html_message: bool = True,
+) -> NotificationResponse:
     if len(email_addresses) == 0:
         print(
             f"No email addresses requested error messages. Not sending error report email."

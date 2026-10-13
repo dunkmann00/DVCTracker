@@ -1,11 +1,16 @@
-from datetime import date, datetime
-from typing import Any
+from datetime import date, datetime, timedelta, timezone
+from typing import Any, ClassVar, Generator
 
 import tomlkit
-from sqlalchemy import orm
+from sqlalchemy import Column, Dialect, String, orm
 from sqlalchemy.ext.hybrid import HybridExtensionType, hybrid_property
+from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.sql import ColumnElement
+from sqlalchemy.sql.operators import OperatorType
 from werkzeug.datastructures import MultiDict
 from werkzeug.utils import cached_property
+
+from app.parsers.base_parser import ParsedSpecial
 
 from . import db
 from .security import check_and_update_password_hash, generate_password_hash
@@ -21,7 +26,8 @@ from .util import (
 
 @orm.declarative_mixin
 class StaticDataMixin:
-    static_index = db.Column(db.Integer)
+    static_index: Mapped[int] = mapped_column(nullable=True)
+    _static_data_name: str
 
     @classmethod
     def insert_data_from(cls, path: str) -> None:
@@ -56,7 +62,9 @@ class StaticDataMixin:
                 print(f"No static data found for '{cls._static_data_name}'")
 
     @staticmethod
-    def update_db_item_with_static(db_item, static_item):
+    def update_db_item_with_static(
+        db_item: object, static_item: dict[str, str]
+    ) -> None:
         for key, value in static_item.items():
             if value != getattr(db_item, key):
                 setattr(db_item, key, value)
@@ -64,7 +72,7 @@ class StaticDataMixin:
 
 class ProxyConversionMixin:
     @classmethod
-    def convert_proxy(cls, proxy: ProxyAttribute):
+    def convert_proxy(cls, proxy: ProxyAttribute) -> object:
         orm_attr = getattr(cls, proxy.attr, None)
         if (
             orm_attr is None
@@ -84,7 +92,7 @@ class ProxyConversionMixin:
 
 class DefaultEntityMixin:
     class DefaultEntity:
-        def __get__(self, instance, owner):
+        def __get__(self, instance, owner) -> object:  # noqa: ANN001
             with db.session.no_autoflush:
                 entity = db.session.get(owner, owner.default_id)
             if not entity:
@@ -108,96 +116,99 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
 
     __tablename__ = "stored_specials"
 
-    def __init__(self, *args, **kwargs):
-        self.new_error = False
+    def __init__(self, *args: Any, **kwargs: Any) -> None:  # noqa: ANN401
+        self.new_error: bool = False
         super().__init__(*args, **kwargs)
 
-    special_id = db.Column(db.String(), primary_key=True)
-    reservation_id = db.Column(db.String(64))
-    source = db.Column(db.String(32))
-    source_name = db.Column(db.String(32))
-    url = db.Column(db.String(150))
-    type = db.Column(db.Enum(SpecialTypes))
-    points = db.Column(db.Integer)
-    price = db.Column(db.Integer)
-    check_in = db.Column(db.Date)
-    check_out = db.Column(db.Date)
-    resort_id = db.Column(
-        db.String,
+    special_id: Mapped[str] = mapped_column(primary_key=True)
+    reservation_id: Mapped[str] = mapped_column(db.String(64), nullable=True)
+    source: Mapped[str] = mapped_column(db.String(32), nullable=True)
+    source_name: Mapped[str] = mapped_column(db.String(32), nullable=True)
+    url: Mapped[str] = mapped_column(db.String(150), nullable=True)
+    type: Mapped[SpecialTypes] = mapped_column(nullable=True)
+    points: Mapped[int] = mapped_column(nullable=True)
+    price: Mapped[int] = mapped_column(nullable=True)
+    check_in: Mapped[date] = mapped_column(nullable=True)
+    check_out: Mapped[date] = mapped_column(nullable=True)
+    resort_id: Mapped[str] = mapped_column(
         db.ForeignKey("characteristics.characteristic_id", ondelete="SET NULL"),
+        nullable=True,
     )
-    room_id = db.Column(
-        db.String,
+    room_id: Mapped[str] = mapped_column(
         db.ForeignKey("characteristics.characteristic_id", ondelete="SET NULL"),
+        nullable=True,
     )
-    view_id = db.Column(
-        db.String,
+    view_id: Mapped[str] = mapped_column(
         db.ForeignKey("characteristics.characteristic_id", ondelete="SET NULL"),
+        nullable=True,
     )
-    error = db.Column(db.Boolean, default=False)
+    error: Mapped[bool] = mapped_column(default=False, nullable=True)
 
     attribute_deps = MultiDict()
 
     @orm.reconstructor
-    def init_on_load(self):
+    def init_on_load(self) -> None:
         self.new_error = False
 
     @hybrid_property
-    def duration(self):
+    def duration(self) -> int | None:
         if self.check_out is None or self.check_in is None:
             return None
         delta = self.check_out - self.check_in
         days = delta.days
         return days
 
-    @duration.expression
-    def duration(cls):
+    @duration.inplace.expression  # pyright: ignore[reportArgumentType]
+    @classmethod
+    def _duration_expression(cls) -> ColumnElement[timedelta]:
         return cls.check_out - cls.check_in
 
     @hybrid_property
-    def price_per_night(self):
+    def price_per_night(self) -> float | None:
         if self.price is None or self.duration is None or self.duration == 0:
             return None
         return self.price / self.duration
 
     @hybrid_property
-    def price_per_point(self):
+    def price_per_point(self) -> float | None:
         if self.price is None or self.points is None or self.points == 0:
             return None
         return self.price / self.points
 
     @property
-    def price_increased(self):
+    def price_increased(self) -> bool | None:
         if (
             not hasattr(self, "old_price")
-            or self.old_price is None
+            or self.old_price is None  # pyright: ignore[reportAttributeAccessIssue]
             or self.price is None
         ):
             return None
-        return self.price > self.old_price
+        return self.price > self.old_price  # pyright: ignore[reportAttributeAccessIssue]
 
     @property
-    def price_per_night_increased(self):
+    def price_per_night_increased(self) -> bool | None:
         if (
             not hasattr(self, "old_price_per_night")
-            or self.old_price_per_night is None
+            or self.old_price_per_night is None  # pyright: ignore[reportAttributeAccessIssue]
             or self.price_per_night is None
         ):
             return None
-        return self.price_per_night > self.old_price_per_night
+        return self.price_per_night > self.old_price_per_night  # pyright: ignore[reportAttributeAccessIssue]
 
     @property
-    def price_per_point_increased(self):
+    def price_per_point_increased(self) -> bool | None:
         if (
             not hasattr(self, "old_price_per_point")
-            or self.old_price_per_point is None
+            or self.old_price_per_point is None  # pyright: ignore[reportAttributeAccessIssue]
             or self.price_per_point is None
         ):
             return None
-        return self.price_per_point > self.old_price_per_point
+        return self.price_per_point > self.old_price_per_point  # pyright: ignore[reportAttributeAccessIssue]
 
     @classmethod
-    def from_parsed_special(cls, parsed_special):
+    def from_parsed_special(
+        cls, parsed_special: ParsedSpecial
+    ) -> "StoredSpecial":
         new_special = StoredSpecial()
         for key in cls.get_core_keys():
             value = getattr(parsed_special, key, None)
@@ -206,7 +217,9 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
             setattr(new_special, key, value)
         return new_special
 
-    def update_with_special(self, other):
+    def update_with_special(
+        self, other: "StoredSpecial | ParsedSpecial"
+    ) -> None:
         """
         Updates any values that are not equal from other to self. Other can be
         either a StoredSpecial or a ParsedSpecial. The old value will be stored
@@ -230,7 +243,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
             ):
                 delattr(self, old_key)
 
-    def set_old_key(self, key):
+    def set_old_key(self, key: str) -> None:
         dependents = self.attribute_deps.getlist(key)
         if dependents:
             for dependent_key in dependents:
@@ -243,7 +256,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
         setattr(self, old_key, getattr(self, key))
 
     @orm.validates("error")
-    def error_change(self, key, error):
+    def error_change(self, key: str, error: bool) -> bool:
         """
         Sets 'new_error' to True when the 'error' value is set to True after
         the object is created. If the ORM sets 'error' to True when it loads
@@ -253,7 +266,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
             self.new_error = True
         return error
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         """
         Checks for equality by comparing all columns of the StoredSpecial to
         another object. While the type is not checked for equality the other
@@ -270,11 +283,11 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
                 return False
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Stored Special: {self.special_id}>"
 
     @classmethod
-    def get_core_keys(cls):
+    def get_core_keys(cls) -> Generator[str, None, None]:
         """
         Yields the keys for all the attributes of this Model needed to compare
         against another special.
@@ -290,7 +303,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
             yield relationship.key
 
     @classmethod
-    def get_hybrid_keys(cls):
+    def get_hybrid_keys(cls) -> Generator[str, None, None]:
         inspector = db.inspect(cls)
         return (
             key
@@ -299,7 +312,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
         )
 
     @classmethod
-    def get_attribute_deps(cls, attribute):
+    def get_attribute_deps(cls, attribute: Column) -> list[str]:
         dependors = attribute.get_children()
         if not dependors:
             return [attribute.key]
@@ -309,7 +322,7 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
         return attr_deps
 
     @classmethod
-    def check_attribute_deps(cls):
+    def check_attribute_deps(cls) -> None:
         for key in cls.get_hybrid_keys():
             attribute = getattr(cls, key)
             cls.attribute_deps.update(
@@ -326,13 +339,18 @@ class Characteristic(StaticDataMixin, db.Model):
     """
 
     __tablename__ = "characteristics"
-    characteristic_id = db.Column(db.String(100), primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    category_id = db.Column(
+    characteristic_id: Mapped[str] = mapped_column(
+        db.String(100), primary_key=True
+    )
+    name: Mapped[str] = mapped_column(nullable=False)
+    category_id: Mapped[str] = mapped_column(
         db.String(100),
         db.ForeignKey("categories.category_id", ondelete="SET NULL"),
+        nullable=True,
     )
-    type = db.Column(db.Enum(CharacteristicTypes), nullable=False)
+    type: Mapped[CharacteristicTypes] = mapped_column(
+        db.Enum(CharacteristicTypes), nullable=False
+    )
 
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.BASE,
@@ -356,7 +374,7 @@ class Resort(Characteristic):
 
     _static_data_name = "resorts"
     _primary_key = "resort_id"
-    specials = db.relationship(
+    specials: Mapped[list[StoredSpecial]] = relationship(
         "StoredSpecial",
         backref=db.backref("resort", lazy="selectin"),
         foreign_keys="StoredSpecial.resort_id",
@@ -365,11 +383,11 @@ class Resort(Characteristic):
     )
 
     @hybrid_property
-    def resort_id(self):
+    def resort_id(self) -> str:
         return self.characteristic_id
 
-    @resort_id.setter
-    def resort_id(self, value):
+    @resort_id.inplace.setter
+    def _resort_id_setter(self, value: str) -> None:
         self.characteristic_id = value
 
     __mapper_args__ = {
@@ -386,7 +404,7 @@ class Room(Characteristic):
     _static_data_name = "rooms"
     _primary_key = "room_id"
 
-    specials = db.relationship(
+    specials: Mapped[list[StoredSpecial]] = relationship(
         "StoredSpecial",
         backref=db.backref("room", lazy="selectin"),
         foreign_keys="StoredSpecial.room_id",
@@ -395,19 +413,19 @@ class Room(Characteristic):
     )
 
     @hybrid_property
-    def room_id(self):
+    def room_id(self) -> str:
         return self.characteristic_id
 
-    @room_id.setter
-    def room_id(self, value):
+    @room_id.inplace.setter
+    def _room_id_setter(self, value: str) -> None:
         self.characteristic_id = value
 
     @hybrid_property
-    def room_index(self):
+    def room_index(self) -> int:
         return self.static_index
 
-    @room_index.setter
-    def room_index(self, value):
+    @room_index.inplace.setter
+    def _room_index_setter(self, value: int) -> None:
         self.static_index = value
 
     __mapper_args__ = {
@@ -423,7 +441,7 @@ class View(Characteristic):
 
     _static_data_name = "views"
     _primary_key = "view_id"
-    specials = db.relationship(
+    specials: Mapped[list[StoredSpecial]] = relationship(
         "StoredSpecial",
         backref=db.backref("view", lazy="selectin"),
         foreign_keys="StoredSpecial.view_id",
@@ -432,11 +450,11 @@ class View(Characteristic):
     )
 
     @hybrid_property
-    def view_id(self):
+    def view_id(self) -> str:
         return self.characteristic_id
 
-    @view_id.setter
-    def view_id(self, value):
+    @view_id.inplace.setter
+    def _view_id_setter(self, value: str) -> None:
         self.characteristic_id = value
 
     __mapper_args__ = {
@@ -451,9 +469,9 @@ class Category(StaticDataMixin, db.Model):
     """
 
     __tablename__ = "categories"
-    category_id = db.Column(db.String(100), primary_key=True)
-    name = db.Column(db.String)
-    type = db.Column(db.Enum(CharacteristicTypes), nullable=False)
+    category_id: Mapped[str] = mapped_column(db.String(100), primary_key=True)
+    name: Mapped[str] = mapped_column(nullable=True)
+    type: Mapped[CharacteristicTypes] = mapped_column(nullable=False)
 
     __mapper_args__ = {
         "polymorphic_identity": CharacteristicTypes.BASE,
@@ -477,7 +495,7 @@ class ResortCategory(Category):
 
     _static_data_name = "resort_categories"
 
-    resorts = db.relationship(
+    resorts: Mapped[list[Resort]] = relationship(
         "Resort",
         order_by="Resort.name",
         backref=db.backref("category", lazy="select"),
@@ -498,7 +516,7 @@ class RoomCategory(Category):
 
     _static_data_name = "room_categories"
 
-    rooms = db.relationship(
+    rooms: Mapped[list[Room]] = relationship(
         "Room",
         order_by="Room.static_index",
         backref=db.backref("category", lazy="select"),
@@ -507,7 +525,7 @@ class RoomCategory(Category):
     )
 
     @property
-    def room_index(self):
+    def room_index(self) -> int:
         return (
             self.rooms[0].room_index
             if self.rooms is not None and len(self.rooms) > 0
@@ -549,14 +567,18 @@ class Status(DefaultEntityMixin, db.Model):
     the last time that the specials were updated.
     """
 
-    status_id = db.Column(db.Integer, primary_key=True)
-    healthy = db.Column(db.Boolean, default=True)
-    last_updated = db.Column(db.DateTime(), default=datetime.utcnow)
+    status_id: Mapped[int] = mapped_column(primary_key=True)
+    healthy: Mapped[bool] = mapped_column(default=True, nullable=True)
+    last_updated: Mapped[datetime] = mapped_column(
+        db.DateTime(timezone=True),
+        default=lambda x: datetime.now(timezone.utc),
+        nullable=True,
+    )
 
-    def update(self):
-        self.last_updated = datetime.utcnow()
+    def update(self) -> None:
+        self.last_updated = datetime.now(timezone.utc)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Status - Healthy: {'Yes' if self.healthy else 'No'}>"
 
 
@@ -572,10 +594,12 @@ class ParserStatus(db.Model):
     sent.
     """
 
-    parser_status_id = db.Column(db.Integer, primary_key=True)
-    parser_source = db.Column(db.String(32), unique=True)
-    healthy = db.Column(db.Boolean)
-    empty_okay = db.Column(db.Boolean, default=False)
+    parser_status_id: Mapped[int] = mapped_column(primary_key=True)
+    parser_source: Mapped[str] = mapped_column(
+        db.String(32), unique=True, nullable=True
+    )
+    healthy: Mapped[bool] = mapped_column(nullable=True)
+    empty_okay: Mapped[bool] = mapped_column(default=False, nullable=True)
 
 
 class Contact(db.Model):
@@ -585,14 +609,22 @@ class Contact(db.Model):
     """
 
     __tablename__ = "contacts"
-    contact_id = db.Column(db.Integer, primary_key=True)
-    contact = db.Column(db.String())
-    get_errors = db.Column(db.Boolean, default=False)
-    user_id = db.Column(
-        db.Integer, db.ForeignKey("users.user_id", ondelete="CASCADE")
+    contact_id: Mapped[int] = mapped_column(primary_key=True)
+    contact: Mapped[str] = mapped_column(nullable=True)
+    get_errors: Mapped[bool] = mapped_column(default=False, nullable=True)
+    user_id: Mapped[int] = mapped_column(
+        db.ForeignKey(
+            "users.user_id",
+            ondelete="CASCADE",
+        ),
+        nullable=True,
     )
-    last_updated = db.Column(db.DateTime(), default=datetime.utcnow)
-    contact_type = db.Column(db.Enum(ContactTypes), nullable=False)
+    last_updated: Mapped[datetime] = mapped_column(
+        db.DateTime(timezone=True),
+        default=lambda x: datetime.now(timezone.utc),
+        nullable=True,
+    )
+    contact_type: Mapped[ContactTypes] = mapped_column(nullable=False)
 
     __mapper_args__ = {
         "polymorphic_identity": ContactTypes.BASE,
@@ -600,11 +632,11 @@ class Contact(db.Model):
         "with_polymorphic": "*",
     }
 
-    def ping(self):
-        self.last_updated = datetime.utcnow()
+    def ping(self) -> None:
+        self.last_updated = datetime.now(timezone.utc)
 
     @staticmethod
-    def on_set_contact(target, value, oldvalue, initiator):
+    def on_set_contact(target: "Contact", value, oldvalue, initiator) -> None:  # noqa: ANN001
         target.ping()
 
 
@@ -619,11 +651,11 @@ class Email(Contact):
     """
 
     @hybrid_property
-    def email_address(self):
+    def email_address(self) -> str:
         return self.contact
 
-    @email_address.setter
-    def email_address(self, value):
+    @email_address.inplace.setter
+    def _email_address_setter(self, value: str) -> None:
         self.contact = value
 
     __mapper_args__ = {
@@ -631,7 +663,7 @@ class Email(Contact):
         "polymorphic_load": "inline",
     }
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Email: {self.email_address}>"
 
 
@@ -643,11 +675,11 @@ class Phone(Contact):
     """
 
     @hybrid_property
-    def phone_number(self):
+    def phone_number(self) -> str:
         return self.contact
 
-    @phone_number.setter
-    def phone_number(self, value):
+    @phone_number.inplace.setter
+    def _phone_number_setter(self, value: str) -> None:
         self.contact = value
 
     __mapper_args__ = {
@@ -655,7 +687,7 @@ class Phone(Contact):
         "polymorphic_load": "inline",
     }
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<Phone Number: {self.phone_number}>"
 
 
@@ -665,11 +697,11 @@ class APN(Contact):
     """
 
     @hybrid_property
-    def push_token(self):
+    def push_token(self) -> str:
         return self.contact
 
-    @push_token.setter
-    def push_token(self, value):
+    @push_token.inplace.setter
+    def _push_token_setter(self, value: str) -> None:
         self.contact = value
 
     __mapper_args__ = {
@@ -694,15 +726,19 @@ class User(db.Model):
         cache_ok = True
 
         @staticmethod
-        def replace_key(some_dict, key, new_key):
+        def replace_key(
+            some_dict: dict[str | SpecialTypes, Any],
+            key: str | SpecialTypes,
+            new_key: str | SpecialTypes,
+        ) -> None:
             value = some_dict.pop(key, None)
             if value is not None:
                 some_dict[new_key] = value
 
-        def coerce_compared_value(self, op, value):
+        def coerce_compared_value(self, op: OperatorType, value: Any) -> Any:  # noqa: ANN401
             return self.impl.coerce_compared_value(op, value)
 
-        def process_bind_param(self, value, dialect):
+        def process_bind_param(self, value: Any, dialect: Dialect) -> Any:  # noqa: ANN401
             if not isinstance(value, dict):
                 return value
 
@@ -710,7 +746,7 @@ class User(db.Model):
                 self.replace_key(value, type, type.value)
             return value
 
-        def process_result_value(self, value, dialect):
+        def process_result_value(self, value: Any, dialect: Dialect) -> Any:  # noqa: ANN401
             if not isinstance(value, dict):
                 return value
 
@@ -730,25 +766,31 @@ class User(db.Model):
             return value
 
     __tablename__ = "users"
-    user_id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(), unique=True)
-    password_hash = db.Column(db.String())
-    important_criteria = db.Column(ImportantCriteriaType)
-    last_accessed = db.Column(db.DateTime(), default=datetime.utcnow)
+    user_id: Mapped[int] = mapped_column(primary_key=True)
+    username: Mapped[str] = mapped_column(unique=True, nullable=True)
+    password_hash: Mapped[str] = mapped_column(nullable=True)
+    important_criteria: Mapped[dict[str, Any]] = mapped_column(
+        ImportantCriteriaType, nullable=True
+    )
+    last_accessed: Mapped[datetime] = mapped_column(
+        db.DateTime(timezone=True),
+        default=lambda x: datetime.now(timezone.utc),
+        nullable=True,
+    )
 
-    emails = db.relationship(
+    emails: Mapped[list[Email]] = relationship(
         "Email",
         order_by="Email.contact_id",
         backref=db.backref("user", lazy="select"),
         lazy="selectin",
     )
-    phones = db.relationship(
+    phones: Mapped[list[Phone]] = relationship(
         "Phone",
         order_by="Phone.contact_id",
         backref=db.backref("user", lazy="select"),
         lazy="selectin",
     )
-    apns = db.relationship(
+    apns: Mapped[list[APN]] = relationship(
         "APN",
         order_by="APN.contact_id",
         backref=db.backref("user", lazy="select"),
@@ -756,14 +798,14 @@ class User(db.Model):
     )
 
     @property
-    def password(self):
+    def password(self) -> str:
         raise AttributeError("password is not a readable attribute")
 
     @password.setter
-    def password(self, password):
+    def password(self, password: str) -> None:
         self.password_hash = generate_password_hash(password)
 
-    def verify_password(self, password):
+    def verify_password(self, password: str) -> bool:
         valid, new_hash = check_and_update_password_hash(
             self.password_hash, password
         )
@@ -774,7 +816,7 @@ class User(db.Model):
 
     def get_contacts_for(
         self, contact_type: ContactTypes
-    ) -> orm.RelationshipProperty[Any] | None:
+    ) -> list[Email] | list[Phone] | list[APN] | None:
         if contact_type is ContactTypes.EMAIL:
             return self.emails
         elif contact_type is ContactTypes.PHONE:
@@ -785,10 +827,14 @@ class User(db.Model):
             return None
 
     @classmethod
-    def contact_class_for(cls, contact_type):
-        return cls.get_contacts_for(cls, contact_type).property.mapper.class_
+    def contact_class_for(
+        cls, contact_type: ContactTypes
+    ) -> type[Email] | type[Phone] | type[APN] | None:
+        return cls.get_contacts_for(cls, contact_type).property.mapper.class_  # pyright: ignore[reportArgumentType, reportAttributeAccessIssue, reportOptionalMemberAccess]
 
-    def get_contact(self, contact_id, contact_type):
+    def get_contact(
+        self, contact_id: str, contact_type: ContactTypes
+    ) -> Contact | None:
         if contact_id is None:
             return None
         # Doing it this way avoids another potential db query. The key should
@@ -808,22 +854,26 @@ class User(db.Model):
             return contact
         return None
 
-    def is_valid_contact_id(self, contact_id, contact_type):
+    def is_valid_contact_id(
+        self, contact_id: str, contact_type: ContactTypes
+    ) -> bool:
         return self.get_contact(contact_id, contact_type) is not None
 
-    def is_new_contact(self, contact_value, contact_type):
+    def is_new_contact(
+        self, contact_value: Contact, contact_type: ContactTypes
+    ) -> int | None:
         # For now this will work in such a way where a contact can be reused
         # across different accounts
         return (
             first_index_or_none(
-                self.get_contacts_for(contact_type),
+                self.get_contacts_for(contact_type),  # pyright: ignore[reportArgumentType]
                 lambda x: x.contact == contact_value,
             )
             is None
         )
 
-    def ping(self):
-        self.last_accessed = datetime.utcnow()
+    def ping(self) -> None:
+        self.last_accessed = datetime.now(timezone.utc)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"<User: {self.username}>"
