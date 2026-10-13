@@ -170,7 +170,7 @@ class ParsedSpecial(object):
         return m.hexdigest()
 
     @special_id.setter
-    def special_id(self, value: str) -> None:
+    def special_id(self, value: str | None) -> None:
         self._special_id = value
 
     @property

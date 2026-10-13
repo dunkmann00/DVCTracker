@@ -2,6 +2,7 @@ import shutil
 import subprocess
 import time
 from pathlib import Path
+from typing import Any, Callable
 
 import click
 
@@ -16,16 +17,21 @@ GHP_STATIC_REMOTE = "github-static"
 
 
 class Git:
-    def __init__(self, dir=""):
+    def __init__(self, dir: Path | str = "") -> None:
         dir_path = dir if isinstance(dir, Path) else Path(dir)
         dir_path = dir_path.resolve()
         self._dir = dir_path
 
-    def is_present(self):
+    def is_present(self) -> bool:
         git_dir = self._dir / ".git"
         return git_dir.exists()
 
-    def run(self, *args, errors_ok=False, **kwargs):
+    def run(
+        self,
+        *args: str,
+        errors_ok: bool = False,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> subprocess.CompletedProcess:
         args = ("git", "-C", str(self._dir)) + args
         print(" ".join(args))
         completed_process = subprocess.run(args, **kwargs)
@@ -33,15 +39,21 @@ class Git:
             completed_process.check_returncode()
         return completed_process
 
-    def fix_git_name(self, name):
+    def fix_git_name(self, name: str) -> str:
         return name.replace("_", "-")
 
-    def __getattr__(self, name):
+    def __getattr__(
+        self, name: str
+    ) -> Callable[..., subprocess.CompletedProcess]:
         return lambda *args, **kwargs: self.run(
             self.fix_git_name(name), *args, **kwargs
         )
 
-    def squash_all(self, message, **kwargs):
+    def squash_all(
+        self,
+        message: str,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> subprocess.CompletedProcess:
         # https://stackoverflow.com/a/23486788
         # git reset $(git commit-tree HEAD^{tree} -m "A new start")
         tree_kwargs = kwargs.copy()
@@ -58,7 +70,7 @@ class Git:
         return self.reset(sha, **kwargs)
 
 
-def clean_dir(source_dir, clean_git=False):
+def clean_dir(source_dir: Path, clean_git: bool = False) -> None:
     print(
         f"Cleaning '{source_dir}'{' and removing git directory' if clean_git else ''}...",
         end="",
@@ -74,7 +86,7 @@ def clean_dir(source_dir, clean_git=False):
     print("done.")
 
 
-def copy_resources(ghp_source_path):
+def copy_resources(ghp_source_path: Path) -> None:
     clean_dir(ghp_source_path)
     print(f"Copying resources into '{ghp_source_path}'...", end="")
     (ghp_source_path / GHP_WORKFLOW_PATH).parent.mkdir(
@@ -95,7 +107,7 @@ def copy_resources(ghp_source_path):
     print("done.")
 
 
-def clone_from_github(git, ghp_source_path):
+def clone_from_github(git: Git, ghp_source_path: Path) -> None:
     print("Cloning DVCTracker from Github...")
     ghp_source_path.mkdir(parents=True, exist_ok=True)
     clean_dir(ghp_source_path, clean_git=True)
@@ -110,7 +122,7 @@ def clone_from_github(git, ghp_source_path):
     )
 
 
-def checkout_static(git):
+def checkout_static(git: Git) -> None:
     if git.branch(
         "--list", GHP_STATIC_BRANCH, text=True, stdout=subprocess.PIPE
     ).stdout:
@@ -121,7 +133,7 @@ def checkout_static(git):
         git.checkout("-b", GHP_STATIC_BRANCH)
 
 
-def commit_and_push(git):
+def commit_and_push(git: Git) -> None:
     print("Committing and pushing static assets to Github...")
     message = "DVCTracker Github Pages static assets"
     git.add("--all")
@@ -145,7 +157,7 @@ def commit_and_push(git):
         "to be run locally."
     )
 )
-def main():
+def main() -> None:
     ghp_source_path = Path(GHP_SOURCE_DIR)
     git = Git(ghp_source_path)
 

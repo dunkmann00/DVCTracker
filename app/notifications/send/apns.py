@@ -1,34 +1,44 @@
-from apns2.client import APNsClient, Notification
+from typing import Any, Generator, Iterable, Sequence
+
+from apns2.client import APNResponse, APNsClient, Notification
 from apns2.credentials import TokenCredentials
 from apns2.payload import Payload
 from flask import current_app
 
-from ...models import APN, db
+from ...models import APN, User, db
 from .util import NotificationResponse, log_response
 
 
-def create_notifications(push_tokens, message, custom=None):
+def create_notifications(
+    push_tokens: Sequence[str],
+    message: str,
+    custom: dict[str, Any] | None = None,
+) -> Generator[Notification, None, None]:
     return (
         create_notification(push_token, message, custom)
         for push_token in push_tokens
     )
 
 
-def create_notification(push_token, message, custom=None):
+def create_notification(
+    push_token: str, message: str, custom: dict[str, Any] | None = None
+) -> Notification:
     msg_env = current_app.config.get("ENV_LABEL")
     message = f"({msg_env}) {message}" if msg_env else message
     payload = Payload(alert=message, sound="default", custom=custom)
     return Notification(token=push_token, payload=payload)
 
 
-def send_notifications(notifications):
+def send_notifications(
+    notifications: Iterable[Notification],
+) -> NotificationResponse:
     if current_app.config["APNS_KEY_ID"] is None:
         print("No APNS_KEY_ID, not sending push notification.")
         return NotificationResponse(success=True)
 
     topic = current_app.config["APNS_TOPIC"]
     token_credentials = TokenCredentials(
-        auth_key_path=None,
+        auth_key_path="",
         auth_key_id=current_app.config["APNS_KEY_ID"],
         team_id=current_app.config["APNS_TEAM_ID"],
         auth_key_base64=current_app.config["APNS_AUTH_KEY"],
@@ -39,7 +49,9 @@ def send_notifications(notifications):
         use_sandbox=True,
         use_alternative_port=False,
     )
-    results = client.send_notification_batch(notifications, topic)
+    results: Iterable[APNResponse] = client.send_notification_batch(  # pyright: ignore[reportAssignmentType]
+        notifications, topic
+    )
     errors = [
         f"Token: {token.token} did not send.\nError: {token.error}"
         for token in results
@@ -54,13 +66,19 @@ def send_notifications(notifications):
     return response
 
 
-def send_push_notification(message, push_tokens, custom=None):
+def send_push_notification(
+    message: str,
+    push_tokens: Sequence[str],
+    custom: Any = None,  # noqa: ANN401
+) -> NotificationResponse:
     notifications = create_notifications(push_tokens, message, custom)
     return send_notifications(notifications)
 
 
 @log_response("APNS", "Update Push Notification Sent")
-def send_update_push_notification(user, message=None, message_id=None):
+def send_update_push_notification(
+    user: User, message: str | None = None, message_id: str | None = None
+) -> NotificationResponse:
     push_tokens = [apn.push_token for apn in user.apns]
     if len(push_tokens) == 0:
         print(
@@ -76,7 +94,9 @@ def send_update_push_notification(user, message=None, message_id=None):
 
 
 @log_response("APNS", "Error Push Notification Sent")
-def send_error_push_notification(message_id=None):
+def send_error_push_notification(
+    message_id: str | None = None,
+) -> NotificationResponse:
     push_tokens = db.session.scalars(
         db.select(APN.push_token).filter_by(get_errors=True)
     ).all()

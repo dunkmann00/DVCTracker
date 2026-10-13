@@ -1,9 +1,11 @@
+from typing import Any, Callable, Generator
+
 from flask import g
 from werkzeug.local import LocalProxy
 
 from ..auth import auth
 from ..criteria import ImportantCriteria
-from ..models import Category
+from ..models import Category, Characteristic, Resort, Room, View
 from ..util import ContactTypes
 
 
@@ -27,7 +29,11 @@ class CategoryChoices:
     reverse_sort = False
 
     def __init__(
-        self, categories, none_id=None, sort_key=None, reverse_sort=None
+        self,
+        categories: list[Category],
+        none_id: str | None = None,
+        sort_key: Callable[[Any], bool] | None = None,
+        reverse_sort: bool | None = None,
     ) -> None:
         self.categories = categories
 
@@ -38,11 +44,11 @@ class CategoryChoices:
             self.sort_key = sort_key
 
         if reverse_sort is not None:
-            self.reverse_sort = reverse_sort
+            self.reverse_sort: bool = reverse_sort
 
         self.choices = self._get_choices(self.categories)
 
-    def _get_characteristics(self, category):
+    def _get_characteristics(self, category: Category) -> list[Characteristic]:
         raise NotImplementedError
 
     # """
@@ -65,14 +71,18 @@ class CategoryChoices:
     #     category_list = sorted(category_list, key=self.sort_key, reverse=self.reverse_sort)
     #     return category_list
 
-    def _get_list_items(self, category):
+    def _get_list_items(
+        self, category: Category
+    ) -> list[Characteristic] | list[Category]:
         return (
             self._get_characteristics(category)
             if category.category_id == self.none_id
             else [category]
         )
 
-    def _get_choice_dict(self, choice):
+    def _get_choice_dict(
+        self, choice: Category | Characteristic
+    ) -> dict[str, Any]:
         if isinstance(choice, Category):
             return {
                 "group": choice.name,
@@ -84,7 +94,9 @@ class CategoryChoices:
         else:
             return {"options": ((choice.characteristic_id, choice.name),)}
 
-    def _get_choices(self, categories):
+    def _get_choices(
+        self, categories: list[Category]
+    ) -> tuple[dict[str, Any], ...]:
         # The following two lines are equivalent to _get_category_list
         category_list = (
             item
@@ -100,23 +112,23 @@ class CategoryChoices:
 class ResortChoices(CategoryChoices):
     reverse_sort = True
 
-    def _get_characteristics(self, category):
-        return category.resorts
+    def _get_characteristics(self, category: Category) -> list[Characteristic]:
+        return category.resorts  # pyright: ignore[reportAttributeAccessIssue]
 
 
 class RoomChoices(CategoryChoices):
     none_id = "category_room_none"
     sort_key = staticmethod(lambda x: x.room_index)
 
-    def _get_characteristics(self, category):
-        return category.rooms
+    def _get_characteristics(self, category: Category) -> list[Characteristic]:
+        return category.rooms  # pyright: ignore[reportAttributeAccessIssue]
 
 
 class ViewChoices(CategoryChoices):
     none_id = "category_view_none"
 
-    def _get_characteristics(self, category):
-        return category.views
+    def _get_characteristics(self, category: Category) -> list[Characteristic]:
+        return category.views  # pyright: ignore[reportAttributeAccessIssue]
 
 
 def get_template_for_type(contact_type: ContactTypes) -> str:

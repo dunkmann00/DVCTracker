@@ -1,8 +1,17 @@
 from functools import wraps
+from typing import Any, Callable
 
 
 class NotificationResponse:
-    def __init__(self, success=None, msg=None, data=None):
+    Success: "NotificationResponse"
+    Fail: "NotificationResponse"
+
+    def __init__(
+        self,
+        success: bool | None = None,
+        msg: str | None = None,
+        data: str | None = None,
+    ) -> None:
         self.success = success
         self.msg = msg
         self.data = data
@@ -12,10 +21,12 @@ NotificationResponse.Success = NotificationResponse(True)
 NotificationResponse.Fail = NotificationResponse(False)
 
 
-def log_response(service, success_msg, raise_on_fail=False):
-    def decorated_function(f):
+def log_response(
+    service: str, success_msg: str, raise_on_fail: bool = False
+) -> Callable[..., Any]:
+    def decorated_function(f: Callable[..., Any]) -> Callable[..., Any]:
         @wraps(f)
-        def decorator(*args, **kwargs):
+        def decorator(*args: Any, **kwargs: Any) -> NotificationResponse:  # noqa: ANN401
             response = f(*args, **kwargs)
             if response.success:
                 if success_msg:

@@ -3,6 +3,7 @@ import traceback
 from base64 import b64encode
 from datetime import date
 from pathlib import Path
+from typing import Sequence
 
 import click
 import sqlalchemy.exc
@@ -44,7 +45,7 @@ def encode_auth_key(auth_key_path: str) -> None:
 @with_appcontext
 def make_new_user(username: str, password: str) -> None:
     print(f"Making new user with username: {username}")
-    user = User(username=username, password=password)
+    user = User(username=username, password=password)  # pyright: ignore[reportCallIssue]
     db.session.add(user)
     try:
         db.session.commit()
@@ -60,7 +61,7 @@ def make_new_user(username: str, password: str) -> None:
 @with_appcontext
 def reset_errors() -> None:
     db.session.execute(db.update(StoredSpecial).values(error=False))
-    Status.default.healthy = True
+    Status.default.healthy = True  # pyright: ignore[reportAttributeAccessIssue]
     db.session.commit()
 
 
@@ -123,13 +124,13 @@ def send_test_email(username: str, email_address: str) -> None:
             return
     else:
         emails = [
-            Email(email_address=email_address_input)
+            Email(email_address=email_address_input)  # pyright: ignore[reportCallIssue]
             for email_address_input in email_address
         ]
         if len(emails) == 0:
             print("No email addresses provided.")
             return
-        user = User(emails=emails)
+        user = User(emails=emails)  # pyright: ignore[reportCallIssue]
     specials = db.session.scalars(db.select(StoredSpecial).limit(3)).all()
     up_special = specials[1]
     down_special = specials[2]
@@ -162,13 +163,13 @@ def send_test_text_message(
             return
     else:
         phones = [
-            Phone(phone_number=phone_number_input)
+            Phone(phone_number=phone_number_input)  # pyright: ignore[reportCallIssue]
             for phone_number_input in phone_number
         ]
         if len(phones) == 0:
             print("No phone numbers provided.")
             return
-        user = User(phones=phones)
+        user = User(phones=phones)  # pyright: ignore[reportCallIssue]
     notifications.send_update_text_message(user, message)
 
 
@@ -191,12 +192,13 @@ def send_test_apn(
             return
     else:
         apns = [
-            APN(push_token=push_token_input) for push_token_input in push_token
+            APN(push_token=push_token_input)  # pyright: ignore[reportCallIssue]
+            for push_token_input in push_token  # pyright: ignore[reportCallIssue]
         ]
         if len(apns) == 0:
             print("No apns provided.")
             return
-        user = User(apns=apns)
+        user = User(apns=apns)  # pyright: ignore[reportCallIssue]
     notifications.send_update_push_notification(user, message, message_id)
 
 
@@ -216,8 +218,8 @@ def test_error(send_error_report: bool) -> None:
         db.select(StoredSpecial).limit(3)
     ).all()
     for special in specials:
-        special.errors = [SpecialError("Test", "This is a test error.")]
-        special.raw_string = "This is a test error."
+        special.errors = [SpecialError("Test", "This is a test error.")]  # pyright: ignore[reportAttributeAccessIssue]
+        special.raw_string = "This is a test error."  # pyright: ignore[reportAttributeAccessIssue]
         special.new_error = True
         special.error = True
 
@@ -263,7 +265,9 @@ def update_specials_cli(
 
 
 def update_specials(
-    local_specials: list[Path], send_email: bool, send_error_report: bool
+    local_specials: Sequence[Path],
+    send_email: bool,
+    send_error_report: bool,
 ) -> None:
     g.send_error_report = send_error_report
     try:
@@ -315,7 +319,7 @@ def update_specials(
         removed_specials_list = remove_old_specials(all_removed_specials_list)
 
         # Record that we have just updated the specials.
-        Status.default.update()
+        Status.default.update()  # pyright: ignore[reportAttributeAccessIssue]
 
         for user in db.session.scalars(db.select(User)):
             important_criteria = ImportantCriteria(user.important_criteria)
@@ -370,7 +374,7 @@ def update_specials(
 
         # Handle any errors that were generated during the parsing of the specials
         handle_errors(all_current_specials, all_stored_specials)
-        Status.default.healthy = True
+        Status.default.healthy = True  # pyright: ignore[reportAttributeAccessIssue]
     except Exception as e:
         unhandled_error(e)
 
@@ -378,7 +382,7 @@ def update_specials(
 
 
 def get_current_specials(
-    local_specials: list[Path],
+    local_specials: Sequence[Path],
 ) -> dict[str, dict[str, ParsedSpecial]]:
     all_new_specials = {}
     for Parser in PARSERS:
@@ -503,7 +507,7 @@ def handle_errors(
     email_addresses_grouped: dict[int, list[Email]] = {}
     for email in email_addresses:
         user: list[Email] = email_addresses_grouped.get(email.user_id, [])
-        user.append(email.email_address)
+        user.append(email.email_address)  # pyright: ignore[reportArgumentType]
         email_addresses_grouped[email.user_id] = user
 
     if len(new_specials_errors) > 0:
@@ -565,10 +569,28 @@ def empty_parser_error(parser_source: str) -> bool:
             parser_source=parser_source,
             env_label=current_app.config.get("ENV_LABEL"),
         )
-        notification_response = notifications.send_error_email(error_msg)
+
+        email_addresses: list[Email] = db.session.scalars(  # pyright: ignore[reportAssignmentType]
+            db.select(Email).filter_by(get_errors=True)
+        ).all()
+        email_addresses_grouped: dict[int, list[Email]] = {}
+        for email in email_addresses:
+            user: list[Email] = email_addresses_grouped.get(email.user_id, [])
+            user.append(email.email_address)  # pyright: ignore[reportArgumentType]
+            email_addresses_grouped[email.user_id] = user
+
+        notification_response = None
+        for emails_addresses in email_addresses_grouped.values():
+            # TODO: Don't only use the last response
+            notification_response = notifications.send_error_email(
+                error_msg, emails_addresses
+            )
+
         notifications.send_error_text_messsage()
         notifications.send_error_push_notification(
             message_id=notification_response.data
+            if notification_response is not None
+            else None
         )
     elif not parser_status.healthy and parser_status.empty_okay:
         parser_status.healthy = True
@@ -585,7 +607,7 @@ def get_parser_status(parser_source: str) -> ParserStatus:
         db.select(ParserStatus).filter_by(parser_source=parser_source).limit(1)
     )
     if parser_status is None:
-        parser_status = ParserStatus(parser_source=parser_source, healthy=True)
+        parser_status = ParserStatus(parser_source=parser_source, healthy=True)  # pyright: ignore[reportCallIssue]
         db.session.add(parser_status)
     return parser_status
 
@@ -593,7 +615,7 @@ def get_parser_status(parser_source: str) -> ParserStatus:
 def unhandled_error(error: Exception) -> None:
     traceback.print_exc()
     db.session.rollback()
-    if Status.default.healthy or g.send_error_report:
+    if Status.default.healthy or g.send_error_report:  # pyright: ignore[reportAttributeAccessIssue]
         error_msg = f"Unhandled Exception: {error_type(error)}\n\n{error}\n\n{traceback.format_exc()}"
         send_error_func = (
             notifications.send_error_report_email
@@ -607,7 +629,7 @@ def unhandled_error(error: Exception) -> None:
         email_addresses_grouped: dict[int, list[Email]] = {}
         for email in email_addresses:
             user: list[Email] = email_addresses_grouped.get(email.user_id, [])
-            user.append(email.email_address)
+            user.append(email.email_address)  # pyright: ignore[reportArgumentType]
             email_addresses_grouped[email.user_id] = user
 
         notification_response = None
@@ -617,14 +639,14 @@ def unhandled_error(error: Exception) -> None:
                 error_msg, emails_addresses, html_message=False
             )
 
-        if Status.default.healthy:
+        if Status.default.healthy:  # pyright: ignore[reportAttributeAccessIssue]
             notifications.send_error_text_messsage()
             notifications.send_error_push_notification(
                 message_id=notification_response.data
                 if notification_response is not None
                 else None
             )
-        Status.default.healthy = False
+        Status.default.healthy = False  # pyright: ignore[reportAttributeAccessIssue]
 
 
 # From traceback.py in CPython Line #563
@@ -638,7 +660,7 @@ def error_type(error: Exception) -> str:
 
 def local_special_for_parser(
     parser: BaseParser,
-    local_specials: list[Path],
+    local_specials: Sequence[Path],
 ) -> Path | None:
     for local_special in local_specials:
         if (

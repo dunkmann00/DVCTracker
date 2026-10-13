@@ -1,12 +1,17 @@
+from typing import Iterable
+
 from flask import current_app
+from sqlalchemy import Sequence
 from twilio.base.exceptions import TwilioRestException
 from twilio.rest import Client
 
-from ...models import Phone, db
+from ...models import Phone, User, db
 from .util import NotificationResponse, log_response
 
 
-def send_text_message(message, phone_numbers):
+def send_text_message(
+    message: str, phone_numbers: Iterable[str]
+) -> NotificationResponse:
     if current_app.config["TWILIO_SID"] is None:
         print("No Twilio SID, not sending txt.")
         return NotificationResponse(success=True)
@@ -37,7 +42,9 @@ def send_text_message(message, phone_numbers):
 
 
 @log_response("Twilio", "Update Text Sent")
-def send_update_text_message(user, message=None):
+def send_update_text_message(
+    user: User, message: str | None = None
+) -> NotificationResponse:
     phone_numbers = [phone.phone_number for phone in user.phones]
     if len(phone_numbers) == 0:
         print(
@@ -52,7 +59,7 @@ def send_update_text_message(user, message=None):
 
 
 @log_response("Twilio", "Error Text Sent")
-def send_error_text_messsage():
+def send_error_text_messsage() -> NotificationResponse:
     phone_numbers = db.session.scalars(
         db.select(Phone.phone_number).filter_by(get_errors=True)
     ).all()

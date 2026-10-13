@@ -1,8 +1,10 @@
+from typing import cast
+
 from flask import abort, current_app, render_template, request
 
 from ... import db
 from ...auth import auth
-from ...models import APN
+from ...models import APN, User
 from ...util import ContactTypes
 from ..forms import ContactListForm
 from ..util import get_template_for_type
@@ -14,7 +16,8 @@ from . import user
 def current_user() -> str:
     user = auth.current_user()
     contact_list = ContactListForm(
-        email_forms=user.emails, phone_forms=user.phones
+        email_forms=user.emails,  # pyright: ignore[reportOptionalMemberAccess]
+        phone_forms=user.phones,  # pyright: ignore[reportOptionalMemberAccess]
     )
     contact_list.email_forms.append_entry()
     contact_list.phone_forms.append_entry()
@@ -38,11 +41,11 @@ def update_apn() -> str:
             db.select(APN).filter_by(push_token=push_token_str).limit(1)
         )
         if push_token is None:
-            push_token = APN(user=user)
+            push_token = APN(user=user)  # pyright: ignore[reportCallIssue]
         if (
-            push_token.user != user
+            push_token.user != user  # pyright: ignore[reportAttributeAccessIssue]
         ):  # If a user signs out and into another account
-            push_token.user = user
+            push_token.user = user  # pyright: ignore[reportAttributeAccessIssue]
         push_token.push_token = (
             push_token_str  # This also updates last_updated attr
         )
@@ -58,7 +61,7 @@ def update_contact(type: str) -> str:
     if type not in [ContactTypes.EMAIL.value, ContactTypes.PHONE.value]:
         abort(404)
 
-    user = auth.current_user()
+    user = cast(User, auth.current_user())
     contact_type = ContactTypes(type)
 
     # Create the form with the request data and extract the individual form
@@ -74,15 +77,16 @@ def update_contact(type: str) -> str:
     if contact_form.validate():
         # Validation succeeded so we can use the form data
         contact_model = user.get_contact(
-            contact_form.contact_id.data, contact_type
+            contact_form.contact_id.data,  # pyright: ignore[reportArgumentType]
+            contact_type,  # pyright: ignore[reportArgumentType]
         )
         if request.method == "POST":
             if contact_model:  # Update
                 contact_model.get_errors = contact_form.get_errors.data
             else:  # Create
                 model_cls = user.contact_class_for(contact_type)
-                contact_model = model_cls(**contact_form.to_json())
-                contact_model.user = user
+                contact_model = model_cls(**contact_form.to_json())  # pyright: ignore[reportOptionalCall]
+                contact_model.user = user  # pyright: ignore[reportAttributeAccessIssue]
                 db.session.add(contact_model)
         else:
             # There is still a chanve this could be None (although it shouldn't)
@@ -104,8 +108,8 @@ def update_contact(type: str) -> str:
     # Let's get the data that needs to be passed back. Including either an empty
     # bottom form (ready to add another contact) or with the erroneous data that
     # was submitted
-    contact_list_data = list(user.get_contacts_for(contact_type))
-    contact_list_data.append(contact_form and contact_form.to_json())
+    contact_list_data = list(user.get_contacts_for(contact_type))  # pyright: ignore[reportArgumentType]
+    contact_list_data.append(contact_form and contact_form.to_json())  # pyright: ignore[reportArgumentType]
 
     contact_list = ContactListForm.new_with_type(
         contact_type, contact_list_data

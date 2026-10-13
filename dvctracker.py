@@ -1,4 +1,5 @@
 import os
+from typing import Any
 
 from flask_migrate import Migrate, upgrade
 
@@ -30,7 +31,7 @@ migrate = Migrate(app, db, compare_type=True)
 
 
 @app.shell_context_processor
-def make_shell_context():
+def make_shell_context() -> dict[str, Any]:
     return dict(
         db=db,
         ParsedSpecial=ParsedSpecial,
@@ -58,7 +59,7 @@ def make_shell_context():
 
 
 @app.cli.command()
-def deploy():
+def deploy() -> None:
     """Run deployment tasks."""
     # migrate database to latest revision
     print("Upgrading db schema if any changes made...")
