@@ -1,27 +1,32 @@
 from flask import Flask, json, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData
+from sqlalchemy import MetaData, orm
+from werkzeug import Response
 
 from config import config
 
 from .customjsonprovider import CustomJSONProvider
 
-# This is for alembic
-convention = {  # https://docs.sqlalchemy.org/en/latest/core/constraints.html#configuring-constraint-naming-conventions
-    "ix": "ix_%(column_0_label)s",
-    "uq": "uq_%(table_name)s_%(column_0_name)s",
-    "ck": "ck_%(table_name)s_%(constraint_name)s",
-    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
-    "pk": "pk_%(table_name)s",
-}
 
-metadata = MetaData(naming_convention=convention)
+# This is for alembic
+class Base(orm.DeclarativeBase):
+    metadata = MetaData(
+        naming_convention={  # https://docs.sqlalchemy.org/en/latest/core/constraints.html#configuring-constraint-naming-conventions
+            "ix": "ix_%(column_0_label)s",
+            "uq": "uq_%(table_name)s_%(column_0_name)s",
+            "ck": "ck_%(table_name)s_%(constraint_name)s",
+            "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+            "pk": "pk_%(table_name)s",
+        }
+    )
+
+
 db = SQLAlchemy(
-    metadata=metadata, engine_options={"json_serializer": json.dumps}
+    model_class=Base, engine_options={"json_serializer": json.dumps}
 )
 
 
-def create_app(config_name):
+def create_app(config_name: str) -> Flask:
     app = Flask(__name__)
     app.config.from_object(config[config_name])
     config[config_name].init_app(app)
@@ -48,7 +53,7 @@ def create_app(config_name):
     app.register_blueprint(main_blueprint)
 
     @app.route("/")
-    def index():
+    def index() -> Response:
         return redirect(url_for("main.specials.current_specials"))
 
     from .cli import cli_bp
