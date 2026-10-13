@@ -35,9 +35,8 @@ def datetimeformat(
 
 
 @main.app_template_filter()
-def convert_from_utc(value: datetime, tzinfo: str | None = None) -> datetime:
-    utc_value = value.replace(tzinfo=tz.tzutc())
-    return utc_value.astimezone(tz.gettz(tzinfo or current_app.config["TZ"]))
+def convert_tz(value: datetime, tzinfo: str | None = None) -> datetime:
+    return value.astimezone(tz.gettz(tzinfo or current_app.config["TZ"]))
 
 
 @main.app_template_filter()
