@@ -1,8 +1,10 @@
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
 from typing import Any, ClassVar, Generator
 
+import sqlalchemy
 import tomlkit
-from sqlalchemy import Column, Dialect, String, orm
+from sqlalchemy import Column, Dialect, Numeric, orm, type_coerce
 from sqlalchemy.ext.hybrid import HybridExtensionType, hybrid_property
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import ColumnElement
@@ -164,16 +166,27 @@ class StoredSpecial(ProxyConversionMixin, db.Model):
         return cls.check_out - cls.check_in
 
     @hybrid_property
-    def price_per_night(self) -> float | None:
+    def price_per_night(self) -> Decimal | None:
         if self.price is None or self.duration is None or self.duration == 0:
             return None
-        return self.price / self.duration
+
+        return Decimal(self.price) / Decimal(self.duration)
+
+    @price_per_night.inplace.expression  # pyright: ignore[reportArgumentType]
+    @classmethod
+    def _price_per_night_expression(cls) -> ColumnElement[Decimal]:
+        return type_coerce(cls.price / cls.duration, Numeric)
 
     @hybrid_property
-    def price_per_point(self) -> float | None:
+    def price_per_point(self) -> Decimal | None:
         if self.price is None or self.points is None or self.points == 0:
             return None
-        return self.price / self.points
+        return Decimal(self.price) / Decimal(self.points)
+
+    @price_per_point.inplace.expression  # pyright: ignore[reportArgumentType]
+    @classmethod
+    def _price_per_point_expression(cls) -> ColumnElement[Decimal]:
+        return type_coerce(cls.price / cls.points, Numeric)
 
     @property
     def price_increased(self) -> bool | None:
