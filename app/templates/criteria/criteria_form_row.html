@@ -85,7 +85,7 @@
                 <span class="input-group-text" id="price-addon1">$</span>
                 {{ criteria.price(class="form-control no-spinner dvc-input", inputmode="numeric") }}
                 <div class="invalid-feedback">
-                    Must be greater than 0.
+                    Must be a whole number greater than 0.
                 </div>
             </div>
         </div>
@@ -96,7 +96,7 @@
                 {{ criteria.price_per_night(class="form-control no-spinner dvc-input", inputmode="numeric") }}
                 <span class="input-group-text" id="pricePerNight-addon2">/night</span>
                 <div class="invalid-feedback">
-                    Must be greater than 0.
+                    Must be a whole number greater than 0.
                 </div>
             </div>
         </div>
@@ -105,9 +105,9 @@
             <div class="input-group has-validation">
                 <span class="input-group-text" id="pricePerPoint-addon1">$</span>
                 {{ criteria.price_per_point(class="form-control no-spinner dvc-input", inputmode="numeric") }}
-                <span class="input-group-text" id="pricePerPoint-addon2">/night</span>
+                <span class="input-group-text" id="pricePerPoint-addon2">/point</span>
                 <div class="invalid-feedback">
-                    Must be greater than 0.
+                    Must be a whole number greater than 0.
                 </div>
             </div>
         </div>

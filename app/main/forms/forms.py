@@ -74,15 +74,30 @@ class ImportantCriteriaForm(Form):
     )
     price = IntegerField(
         "Price (Maximum)",
-        [Optional(), NumberRange(min=1, message="Must be greater than 0.")],
+        [
+            Optional(),
+            NumberRange(
+                min=1, message="Must be a whole number greater than 0."
+            ),
+        ],
     )
     price_per_night = IntegerField(
         "Price/Night (Maximum)",
-        [Optional(), NumberRange(min=1, message="Must be greater than 0.")],
+        [
+            Optional(),
+            NumberRange(
+                min=1, message="Must be a whole number greater than 0."
+            ),
+        ],
     )
     price_per_point = IntegerField(
         "Price/Point (Maximum)",
-        [Optional(), NumberRange(min=1, message="Must be greater than 0.")],
+        [
+            Optional(),
+            NumberRange(
+                min=1, message="Must be a whole number greater than 0."
+            ),
+        ],
     )
     resorts = MultiCheckboxField("Resorts", [Optional()])
     rooms = MultiCheckboxField("Rooms", [Optional()])
