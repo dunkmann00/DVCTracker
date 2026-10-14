@@ -20,10 +20,10 @@ dependencies = [
     "flask-talisman<2.0.0,>=1.1.0",
     "phonenumbers<10.0.0,>=9.0.0",
     "python-dateutil<3.0.0.0,>=2.9.0.post0",
-    "yacron<1.0.0,>=0.19.0",
     "apns2 @ git+https://github.com/dunkmann00/PyAPNs2.git@httpx",
     "pynacl (>=1.5.0,<2.0.0)",
     "css-inline (>=0.22.1,<0.23.0)",
+    "cronstable (>=1.2.66,<2.0.0)",
 ]
 
 [tool.poetry]
