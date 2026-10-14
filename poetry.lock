@@ -286,18 +286,6 @@ files = [
 ]
 
 [[package]]
-name = "cachetools"
-version = "7.2.0"
-description = "Extensible memoizing collections and decorators"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "cachetools-7.2.0-py3-none-any.whl", hash = "sha256:3045213f186b89fdd95d94441354c4bd87c570b7a38d8c3fd1d9dd37f6dc90d8"},
-    {file = "cachetools-7.2.0.tar.gz", hash = "sha256:bcac1a1b8da6909994a2957238a57b8140dab7c5c5c69a43669654fe87a33c1d"},
-]
-
-[[package]]
 name = "certifi"
 version = "2026.7.22"
 description = "Python package for providing Mozilla's CA Bundle."
@@ -422,62 +410,6 @@ files = [
 
 [package.dependencies]
 pycparser = {version = "*", markers = "implementation_name != \"PyPy\""}
-
-[[package]]
-name = "chardet"
-version = "7.6.0"
-description = "Universal character encoding detector"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "chardet-7.6.0-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:cbaca8f563a9de07ab1a53157dba93802e54c26afe3339892afcc7c59ea4ef1b"},
-    {file = "chardet-7.6.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:55a4c31adc7c7e83ad412f2f66b6b7358d0d4fe67505e7f58e18f68f75d341bb"},
-    {file = "chardet-7.6.0-cp310-cp310-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:7b586cab9e9072dddd89bc2bd27ee72808d0c84ec73695fe6ec0f3c46b057c65"},
-    {file = "chardet-7.6.0-cp310-cp310-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:4b81d3f7d7914442d5f7d515b8c6d79cee6b794bc208971fb6902f176671166a"},
-    {file = "chardet-7.6.0-cp310-cp310-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:dde4080fb6bb8db96e8c44893771bcc0d235f4c22cdddb194a765a65e3a72ba7"},
-    {file = "chardet-7.6.0-cp310-cp310-win_amd64.whl", hash = "sha256:d6030886e7da2740bf299b6a8cc75b4dcc2c90db0ca8fe0a6e4fd0bfd071dabd"},
-    {file = "chardet-7.6.0-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:6424512f576fa7e88b7431d38a42d57552c8f717465a975fc42e497cd280d833"},
-    {file = "chardet-7.6.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:284136186ff90735f901ed0a1c6d41e7af67c666841cc0eceb58482a21b7056c"},
-    {file = "chardet-7.6.0-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:5e9b31b9ae93872d66439b046a1e08c2ea99791f3c254dce1e2633e395c5587c"},
-    {file = "chardet-7.6.0-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:aa03322e07ac08d520ec50bb50c73143d0892d1adc067d4c5e58f4ef4b2363a8"},
-    {file = "chardet-7.6.0-cp311-cp311-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:0ad9bc6dab4f338673353fa3f0dc96122f559aaf746087408106e2fcbf132fe8"},
-    {file = "chardet-7.6.0-cp311-cp311-win_amd64.whl", hash = "sha256:360260d074d8712ac1e9048fcafb0fdde246f9d0b12555748ad0017c5ecee43d"},
-    {file = "chardet-7.6.0-cp312-cp312-macosx_10_13_x86_64.whl", hash = "sha256:19fea52164e6e00f2a21ed418f42e4b0162a09199274c86d07ad3efd661317c4"},
-    {file = "chardet-7.6.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:a12023d48d0e207791c01161d03cb3c0d85c6a15f345eb9d3d56063a63d1e40f"},
-    {file = "chardet-7.6.0-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:249993b88ac7a58cad2781acea8f379152a28a719c9b401d614898c63a8c83da"},
-    {file = "chardet-7.6.0-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2cf0adaca8b1c4bacfade9d0a1e4f8f70b1bb122833d6f07ab90e3adc84eb13a"},
-    {file = "chardet-7.6.0-cp312-cp312-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:cf6d08c2373b7772a558d141f9e8cee53fe1d222341bac612e4d558b04995f73"},
-    {file = "chardet-7.6.0-cp312-cp312-win_amd64.whl", hash = "sha256:406936df1328a3284fef366eaa2bfd1cccd0ef1b10cb99781dd5b022ea644b84"},
-    {file = "chardet-7.6.0-cp313-cp313-macosx_10_13_x86_64.whl", hash = "sha256:57e6846cc13ce1ff59979f4ec9da770c57e12aa99046073f632de5a51d9a6f20"},
-    {file = "chardet-7.6.0-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:089e3bb81a0a07e94f15461ded9f9ee66d349615b1a9fd557d4de1003e2fc12e"},
-    {file = "chardet-7.6.0-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:43ea433e43a23c55e8e17f3fad1e07f5cfe5450c73124b95b0d849c21ad379ee"},
-    {file = "chardet-7.6.0-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:2b5d31f9b7f793e15e81cca877e7ccd72bffffa2a3443a9d47be9dfee84fad69"},
-    {file = "chardet-7.6.0-cp313-cp313-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:c54b6a8d3b219560fa5cf4c28df932c37471afe047afdc152067104e741f38c1"},
-    {file = "chardet-7.6.0-cp313-cp313-win_amd64.whl", hash = "sha256:b3b4c96c4df93899b3c8b9e8159e06b1f55c66d7ca384d91481108e251a06eb0"},
-    {file = "chardet-7.6.0-cp314-cp314-macosx_10_15_x86_64.whl", hash = "sha256:c6061adf247ab5dda173b67010e13904c6071717660c7c8077fb50aca362b264"},
-    {file = "chardet-7.6.0-cp314-cp314-macosx_11_0_arm64.whl", hash = "sha256:fc1e1571321baf8927582fe34363ad7f02279f11c8c2839c14b4c76894148db6"},
-    {file = "chardet-7.6.0-cp314-cp314-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:8900f6c7cf6b015b17a51767cc6144689059ba1cdceaa383d29eb037ac28579e"},
-    {file = "chardet-7.6.0-cp314-cp314-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:cedbc584789eb2edfde20fd03669972a833ce6019e60014ae613f9bfc440e8e3"},
-    {file = "chardet-7.6.0-cp314-cp314-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:d5dc835e40e0e09c2c3eab43731a8b5127834f42786dda09ba2f4b699ccd527a"},
-    {file = "chardet-7.6.0-cp314-cp314-win_amd64.whl", hash = "sha256:0f304de7041afaec0195ad6464937cd112392002e9d72ed15d55f20a9abd3a13"},
-    {file = "chardet-7.6.0-cp314-cp314t-macosx_10_15_x86_64.whl", hash = "sha256:a4f0a368ad04d5def08bdfaa17c7e15e71552f93923dc2aa9b2f7d9dee02fbb6"},
-    {file = "chardet-7.6.0-cp314-cp314t-macosx_11_0_arm64.whl", hash = "sha256:75d6c3a4d2046d49e83d2d2206eb073a1f390743e856d90c1bbc19949b26acf4"},
-    {file = "chardet-7.6.0-cp314-cp314t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:459e2b1c98f9a86a4698112aa42dffa802bbbff883c1ff144071f87224125862"},
-    {file = "chardet-7.6.0-cp314-cp314t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:0bdb6f03107b7ace3f44e0edd91aa24456ee558787df265cc19daf45785b31c7"},
-    {file = "chardet-7.6.0-cp315-cp315-macosx_10_15_x86_64.whl", hash = "sha256:0c44a32da32cc8b23d6b20d98ace15ec7600950e4955d1bf5ab1f849b0187fdb"},
-    {file = "chardet-7.6.0-cp315-cp315-macosx_11_0_arm64.whl", hash = "sha256:7bbc8a9652c7f859c593847f220c1d264f25749369abb1a267b404ee8cceb209"},
-    {file = "chardet-7.6.0-cp315-cp315-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:83512a475a2f3886166aa0bca1bbb39343a4eb3186dd5532127d6f2591d09118"},
-    {file = "chardet-7.6.0-cp315-cp315-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:271ab71ec1be61dbbce0436de0848895c03eae051c379e937a39573d9ce403d9"},
-    {file = "chardet-7.6.0-cp315-cp315-manylinux_2_31_riscv64.manylinux_2_39_riscv64.whl", hash = "sha256:da86fc1b40ff5996fbb5e4c2d2dca770eac2c893cef157dacc050b8b4d929846"},
-    {file = "chardet-7.6.0-cp315-cp315-win_amd64.whl", hash = "sha256:b73f277c1ac09c4f8076c4214b816c7aa78a0a2f0cb7156742f4303f856bedc3"},
-    {file = "chardet-7.6.0-cp315-cp315t-macosx_10_15_x86_64.whl", hash = "sha256:61238d5945b36af9a2ad13494f8969b7deb3c3b4abe223e54670c064e73f5328"},
-    {file = "chardet-7.6.0-cp315-cp315t-macosx_11_0_arm64.whl", hash = "sha256:f2ec3c78cc6b54bf8e091ec4ee885473078b5d7ef18ab1b01c86ae1e98bf88f7"},
-    {file = "chardet-7.6.0-cp315-cp315t-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:167d7ba3ee08b654e36d7b43ebd9a36606c9a12e2fabdb361757a095ca3b7e3d"},
-    {file = "chardet-7.6.0-cp315-cp315t-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:f14f46ef1977e41ce1f4814ca6984cea7f8b6baf8cbc6626ef7bf3d13cf7ea13"},
-    {file = "chardet-7.6.0-py3-none-any.whl", hash = "sha256:4076d795897ce45239825956a1334e134322ecc4bfe84dbb12acd5390de0fbc1"},
-    {file = "chardet-7.6.0.tar.gz", hash = "sha256:93d9df6089ded42ed1fe9f57e272c0b74bd0464d45c0c7d50f09f26f31105c3c"},
-]
 
 [[package]]
 name = "charset-normalizer"
@@ -760,40 +692,31 @@ cffi = {version = ">=2.0.0", markers = "platform_python_implementation != \"PyPy
 ssh = ["bcrypt (>=3.1.5)"]
 
 [[package]]
-name = "cssselect"
-version = "1.5.0"
-description = "cssselect parses CSS3 Selectors and translates them to XPath 1.0"
+name = "css-inline"
+version = "0.22.1"
+description = "High-performance library for inlining CSS into HTML 'style' attributes"
 optional = false
 python-versions = ">=3.10"
 groups = ["main"]
 files = [
-    {file = "cssselect-1.5.0-py3-none-any.whl", hash = "sha256:1d1aded98e82bdde447ded990a191fd6916177c4f0c914fb62eccd58e2ffcdcc"},
-    {file = "cssselect-1.5.0.tar.gz", hash = "sha256:3cbe82dd7acbee9ba9e5723b5f9e4749826912f1fb31cd7f92aabed5fde15b15"},
+    {file = "css_inline-0.22.1-cp310-abi3-macosx_10_12_x86_64.macosx_11_0_arm64.macosx_10_12_universal2.whl", hash = "sha256:422e4e5a567f1ba6b418963ed989620427aa27948c174dad21907be6d3294c46"},
+    {file = "css_inline-0.22.1-cp310-abi3-macosx_10_12_x86_64.whl", hash = "sha256:d28c6e8d51be9483f6717c28241196eca67eaef9ef57d7975f28fa4fe9ead376"},
+    {file = "css_inline-0.22.1-cp310-abi3-manylinux_2_12_i686.manylinux2010_i686.whl", hash = "sha256:f2af1d0fd3bfafeb3b25a66df950f2b9d6c508bd658133b2d73633edbb4dd7f1"},
+    {file = "css_inline-0.22.1-cp310-abi3-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b0007817d1a55250ce7d8225c3ca2cd1c85905729938707c4b3af9603e8a109c"},
+    {file = "css_inline-0.22.1-cp310-abi3-manylinux_2_24_aarch64.whl", hash = "sha256:5bfcc109810b4c2d3ffb711c3400bca4b1a1f0df789e65bbe01b1ea72098f423"},
+    {file = "css_inline-0.22.1-cp310-abi3-manylinux_2_24_armv7l.whl", hash = "sha256:6bdf12dde4175cd1ce8b87b4711893805a03b861b14a624820dd1ab046144d91"},
+    {file = "css_inline-0.22.1-cp310-abi3-musllinux_1_2_aarch64.whl", hash = "sha256:aac50f7299f194af8ae64c7180b8809ff8a27de2b2dc7e4782409626fcdbd897"},
+    {file = "css_inline-0.22.1-cp310-abi3-musllinux_1_2_armv7l.whl", hash = "sha256:69f73298810eafb031e83743967b9ca70cdfeaf28fb54398e6ff09a2c7cf05d4"},
+    {file = "css_inline-0.22.1-cp310-abi3-musllinux_1_2_x86_64.whl", hash = "sha256:2fc866fbe9baf78394e40a8ca9364443e51ed669f5a6f91cdb44f8736e9c24f4"},
+    {file = "css_inline-0.22.1-cp310-abi3-pyemscripten_2025_0_wasm32.whl", hash = "sha256:dc8b185cc2ab25f16bc46348e03a76ff89ac84fbb38e0fdbc32cdc5fd926fea1"},
+    {file = "css_inline-0.22.1-cp310-abi3-pyemscripten_2026_0_wasm32.whl", hash = "sha256:4c21878ddb9ce14546011de5b92f34c7f0e7822fb0cf1062ca26935ae9669eab"},
+    {file = "css_inline-0.22.1-cp310-abi3-win32.whl", hash = "sha256:94286c9ab21a572aa3c811f62e71f321d41b0a8443dabc22b398e1badf4223ea"},
+    {file = "css_inline-0.22.1-cp310-abi3-win_amd64.whl", hash = "sha256:80fd1e6030f84c62f2fc2e803e9c55a2bfb7410b36ea0bf3fee5fda48bd71d7c"},
+    {file = "css_inline-0.22.1-pp311-pypy311_pp73-macosx_10_12_x86_64.whl", hash = "sha256:30ee4946f68e527912b4df27a9ab5593c3e40bc18be133362a85e46b6477e052"},
+    {file = "css_inline-0.22.1-pp311-pypy311_pp73-manylinux_2_24_aarch64.whl", hash = "sha256:0d0e2f0c8a06ffb04556d6b5f5d08840ce04036114acf6c91d1b005204bab53a"},
+    {file = "css_inline-0.22.1-pp311-pypy311_pp73-manylinux_2_24_x86_64.whl", hash = "sha256:078f78bd8f37e535fa698dd65972d08a32d87721a33c81b8cf8dea6a3e8aa977"},
+    {file = "css_inline-0.22.1.tar.gz", hash = "sha256:603fcc4b88a1337adc02761ca185c420dfc9a11865694c602f39f38b0f40812e"},
 ]
-
-[[package]]
-name = "cssutils"
-version = "2.15.0"
-description = "A CSS Cascading Style Sheets library for Python"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "cssutils-2.15.0-py3-none-any.whl", hash = "sha256:207faa466810a1aef109261673f2458356d0839ddedaebc0ee553376290fb6a9"},
-    {file = "cssutils-2.15.0.tar.gz", hash = "sha256:e9739237f3915037dacba787c4b58f280e3ec5d9864953e185bf23d40ff7d021"},
-]
-
-[package.dependencies]
-encutils = "*"
-more_itertools = "*"
-
-[package.extras]
-check = ["pytest-checkdocs (>=2.14)", "pytest-ruff (>=0.2.1) ; sys_platform != \"cygwin\""]
-cover = ["pytest-cov"]
-doc = ["furo", "jaraco.packaging (>=9.3)", "jaraco.tidelift (>=1.4)", "rst.linker (>=1.9)", "sphinx (>=3.5)", "sphinx-lint"]
-enabler = ["pytest-enabler (>=3.4)"]
-test = ["cssselect", "importlib_resources ; python_version < \"3.9\"", "jaraco.test (>=5.1)", "lxml ; python_version < \"3.11\"", "pytest (>=6,!=8.1.*)"]
-type = ["pytest-mypy (>=1.0.1) ; platform_python_implementation != \"PyPy\""]
 
 [[package]]
 name = "dnspython"
@@ -831,21 +754,6 @@ files = [
 [package.dependencies]
 dnspython = ">=2.0.0"
 idna = ">=2.0.0"
-
-[[package]]
-name = "encutils"
-version = "1.0.0"
-description = ""
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "encutils-1.0.0-py3-none-any.whl", hash = "sha256:605297da19a23d1b2da7d3b9bd75513acc979e9facf03aa7ec7ba04b5f567a79"},
-    {file = "encutils-1.0.0.tar.gz", hash = "sha256:38eca5af18cebabd8be43c17f14c9d3fbba83cc5f7ac8e3ab1c86e24c4b2b91a"},
-]
-
-[package.dependencies]
-chardet = "*"
 
 [[package]]
 name = "flask"
@@ -1578,18 +1486,6 @@ files = [
 ]
 
 [[package]]
-name = "more-itertools"
-version = "11.1.0"
-description = "More routines for operating on iterables, beyond itertools"
-optional = false
-python-versions = ">=3.10"
-groups = ["main"]
-files = [
-    {file = "more_itertools-11.1.0-py3-none-any.whl", hash = "sha256:4b65538ae22f6fed0ce4874efd317463a7489796a0939fa66824dd542125a192"},
-    {file = "more_itertools-11.1.0.tar.gz", hash = "sha256:48e8f4d9e7e5878571ecf6f2b4e57634f93cd474cc8cfbd2376f2d11b396e30d"},
-]
-
-[[package]]
 name = "multidict"
 version = "6.9.1"
 description = "multidict implementation"
@@ -1781,33 +1677,6 @@ files = [
     {file = "phonenumbers-9.0.40-py2.py3-none-any.whl", hash = "sha256:189c028c4acd41ee80782e50f74a91260bd76d9115c83be94302509e1cdb5e84"},
     {file = "phonenumbers-9.0.40.tar.gz", hash = "sha256:a0dd1bc98efa0b6f5839c7b1fface2ebdf0a811645dd8211ae3f037a17ec07ac"},
 ]
-
-[[package]]
-name = "premailer"
-version = "3.10.0"
-description = "Turns CSS blocks into style attributes"
-optional = false
-python-versions = "*"
-groups = ["main"]
-files = []
-develop = false
-
-[package.dependencies]
-cachetools = "*"
-cssselect = "*"
-cssutils = "*"
-lxml = "*"
-requests = "*"
-
-[package.extras]
-dev = ["black", "flake8", "therapist", "tox", "twine", "wheel"]
-test = ["mock", "nose"]
-
-[package.source]
-type = "git"
-url = "https://github.com/dunkmann00/premailer.git"
-reference = "parsestyle-validate-option"
-resolved_reference = "08ea63266ed9342e0f3acf381bfe731b96dbe035"
 
 [[package]]
 name = "propcache"
@@ -2623,4 +2492,4 @@ propcache = ">=0.2.1"
 [metadata]
 lock-version = "2.1"
 python-versions = "<4.0,>=3.12"
-content-hash = "26182b02a00a4d2c43ec69c2d90453b6d7be2f241261d6bc9f1fc4975e3d2986"
+content-hash = "ff27a19d870a41db3aaa4f72e55f4efdd16d25b8345d2ecaf472f49d8359cdf0"

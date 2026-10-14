@@ -1,17 +1,17 @@
+from pathlib import Path
 from typing import Iterable, Sequence
 
+import css_inline
 import requests
 from flask import current_app
-from premailer import Premailer
 
 from ...models import Email, User, db
 from .util import NotificationResponse, log_response
 
-inliner = Premailer(
-    base_path="app/static/",
-    allow_loading_external_files=True,
-    strip_important=False,
-    disable_validation=True,
+inliner = css_inline.CSSInliner(
+    keep_at_rules=True,
+    minify_css=True,
+    base_url="file://app/static/",
 )
 
 
@@ -27,7 +27,7 @@ def send_email(
     msg_type = "html" if html_message else "text"
 
     if html_message:
-        email_message = inliner.transform(email_message)
+        email_message = inliner.inline(email_message)
 
     sub_env = current_app.config.get("ENV_LABEL")
     sub_env = f"({sub_env}) " if sub_env else ""
