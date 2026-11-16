@@ -35,38 +35,6 @@ class MultiCheckboxField(wtforms.SelectMultipleField):
         else:
             yield from self._make_options(self.iter_choices())
 
-    def has_groups(self) -> bool:
-        return (
-            self.choices is not None
-            and len(self.choices) > 0
-            and isinstance(self.choices[0], dict)  # pyright: ignore[reportArgumentType]
-        )
-
-    def iter_groups(  # pyright: ignore[reportIncompatibleMethodOverride]
-        self,
-    ) -> Generator[
-        tuple[str, list[tuple[str, str, bool, dict[str, Any]]]], None, None
-    ]:
-        if self.choices is None:
-            return
-
-        for choices_dict in self.choices:
-            group: str = choices_dict.get("group")  # pyright: ignore[reportAttributeAccessIssue]
-            choices: list[tuple[str, str]] = choices_dict.get("options")  # pyright: ignore[reportAttributeAccessIssue]
-            yield (group, self._choices_generator(choices))  # pyright: ignore[reportAttributeAccessIssue]
-
-    def iter_choices(
-        self,
-    ) -> Generator[tuple[str, str, bool, dict[str, Any]], None, None]:
-        if self.has_groups():
-            choices: list[tuple[str, str]] = list(
-                chain.from_iterable(
-                    map(lambda x: x.get("options"), self.choices)  # pyright: ignore[reportArgumentType, reportAttributeAccessIssue]
-                )
-            )
-            return self._choices_generator(choices)  # pyright: ignore[reportAttributeAccessIssue]
-        return super().iter_choices()  # pyright: ignore[reportReturnType]
-
     def _make_option(
         self,
         choice: tuple[str, str, bool, dict[str, Any]],

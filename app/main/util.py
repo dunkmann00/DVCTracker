@@ -2,6 +2,7 @@ from typing import Any, Callable, Generator
 
 from flask import g
 from werkzeug.local import LocalProxy
+from wtforms import SelectChoice  # pyright: ignore[reportAttributeAccessIssue]
 
 from ..auth import auth
 from ..criteria import ImportantCriteria
@@ -80,23 +81,7 @@ class CategoryChoices:
             else [category]
         )
 
-    def _get_choice_dict(
-        self, choice: Category | Characteristic
-    ) -> dict[str, Any]:
-        if isinstance(choice, Category):
-            return {
-                "group": choice.name,
-                "options": tuple(
-                    (characteristic.characteristic_id, characteristic.name)
-                    for characteristic in self._get_characteristics(choice)
-                ),
-            }
-        else:
-            return {"options": ((choice.characteristic_id, choice.name),)}
-
-    def _get_choices(
-        self, categories: list[Category]
-    ) -> tuple[dict[str, Any], ...]:
+    def _get_choices(self, categories: list[Category]) -> list[SelectChoice]:
         # The following two lines are equivalent to _get_category_list
         category_list = (
             item
@@ -106,7 +91,22 @@ class CategoryChoices:
         category_list = sorted(
             category_list, key=self.sort_key, reverse=self.reverse_sort
         )
-        return tuple(self._get_choice_dict(item) for item in category_list)
+
+        choices = []
+
+        for item in category_list:
+            if isinstance(item, Category):
+                for characteristic in self._get_characteristics(item):
+                    choices.append(
+                        SelectChoice(
+                            characteristic.characteristic_id,
+                            characteristic.name,
+                            optgroup=item.name,
+                        )
+                    )
+            else:
+                choices.append(SelectChoice(item.characteristic_id, item.name))
+        return choices
 
 
 class ResortChoices(CategoryChoices):
